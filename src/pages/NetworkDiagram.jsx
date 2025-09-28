@@ -60,12 +60,9 @@ const NetworkDiagram = () => {
   const [insertionEdge, setInsertionEdge] = useState(null);
   const edgeUpdateSuccessful = useRef(true);
 
-  const getOnuNumber = (node) => {
-    if (!node?.data?.label) return 0;
-    const parts = node.data.label.split(":");
-    if (parts.length < 2) return 0;
-    // Get the last part and parse it as a number
-    return parseInt(parts[parts.length - 1], 10) || 0;
+  const getSortableNumbers = (label = "") => {
+    const matches = label.match(/\d+/g); // Finds all sequences of digits
+    return matches ? matches.map(Number) : []; // Converts them to numbers
   };
 
   // Paste all of your handler functions here (onConnect, onEdgeUpdate, handleAction, etc.)
@@ -296,6 +293,7 @@ const NetworkDiagram = () => {
         const apiData = await fetchData();
         if (!apiData) return;
 
+        // Step 1: Create nodes and edges (No changes here)
         const initialNodes = apiData.map((item) => ({
           id: String(item.id),
           type: "custom",
@@ -323,6 +321,7 @@ const NetworkDiagram = () => {
             style: { stroke: item.cable_color || "#b1b1b7" },
           }));
 
+        // Step 2: Get base layout from Dagre (No changes here)
         const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
           getLayoutedElements(initialNodes, initialEdges);
 
@@ -350,32 +349,43 @@ const NetworkDiagram = () => {
         const nodeHeight = 60;
 
         Object.values(ponNodesByParent).forEach((ponGroup) => {
-          ponGroup.sort((a, b) => a.position.y - b.position.y);
+          // --- CHANGED: Sort PONs numerically by their labels ---
+          ponGroup.sort((a, b) => {
+            const numsA = getSortableNumbers(a.data.label);
+            const numsB = getSortableNumbers(b.data.label);
+            for (let i = 0; i < Math.min(numsA.length, numsB.length); i++) {
+              if (numsA[i] !== numsB[i]) return numsA[i] - numsB[i];
+            }
+            return numsA.length - numsB.length;
+          });
 
           ponGroup.forEach((parentNode) => {
             let onuGroup = layoutedEdges
               .filter((e) => e.source === parentNode.id)
               .map((e) => nodesWithFinalLayout.find((n) => n.id === e.target))
-              .filter(Boolean); // Ensure no undefined nodes
+              .filter(Boolean);
 
-            // --- 1. NEW: Sort the ONU group by their parsed number ---
-            onuGroup.sort((a, b) => getOnuNumber(a) - getOnuNumber(b));
+            // --- CHANGED: Sort ONUs numerically by their labels ---
+            onuGroup.sort((a, b) => {
+              const numsA = getSortableNumbers(a.data.label);
+              const numsB = getSortableNumbers(b.data.label);
+              for (let i = 0; i < Math.min(numsA.length, numsB.length); i++) {
+                if (numsA[i] !== numsB[i]) return numsA[i] - numsB[i];
+              }
+              return numsA.length - numsB.length;
+            });
 
             if (onuGroup.length > 0) {
               const startX = parentNode.position.x + GRID_X_SPACING;
               const startY = currentYOffset;
-
               onuGroup.forEach((node, index) => {
-                // --- 2. NEW: Swapped logic for column-first layout ---
                 const row = index % NODES_PER_COLUMN;
                 const column = Math.floor(index / NODES_PER_COLUMN);
-
                 node.position = {
                   x: startX + column * GRID_X_SPACING,
                   y: startY + row * GRID_Y_SPACING,
                 };
               });
-
               const numRows = Math.min(onuGroup.length, NODES_PER_COLUMN);
               const gridHeight = (numRows - 1) * GRID_Y_SPACING + nodeHeight;
               parentNode.position.y = startY + (gridHeight - nodeHeight) / 2;
@@ -403,7 +413,6 @@ const NetworkDiagram = () => {
         setLoading(false);
       }
     };
-
     loadInitialData();
   }, [setNodes, setEdges]);
 
