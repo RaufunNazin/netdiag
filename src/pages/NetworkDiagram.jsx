@@ -30,7 +30,7 @@ import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 
 const nodeTypes = { custom: CustomNode };
-const NODES_PER_ROW = 8;
+const NODES_PER_COLUMN = 8; // Renamed from NODES_PER_ROW
 const GRID_X_SPACING = 300;
 const GRID_Y_SPACING = 80;
 const PADDING_BETWEEN_GRIDS = 50;
@@ -59,6 +59,14 @@ const NetworkDiagram = () => {
   });
   const [insertionEdge, setInsertionEdge] = useState(null);
   const edgeUpdateSuccessful = useRef(true);
+
+  const getOnuNumber = (node) => {
+    if (!node?.data?.label) return 0;
+    const parts = node.data.label.split(":");
+    if (parts.length < 2) return 0;
+    // Get the last part and parse it as a number
+    return parseInt(parts[parts.length - 1], 10) || 0;
+  };
 
   // Paste all of your handler functions here (onConnect, onEdgeUpdate, handleAction, etc.)
   const onConnect = useCallback(
@@ -287,6 +295,7 @@ const NetworkDiagram = () => {
       try {
         const apiData = await fetchData();
         if (!apiData) return;
+
         const initialNodes = apiData.map((item) => ({
           id: String(item.id),
           type: "custom",
@@ -301,6 +310,7 @@ const NetworkDiagram = () => {
           },
           position: { x: 0, y: 0 },
         }));
+
         const initialEdges = apiData
           .filter((item) => item.parent_id !== null && item.parent_id !== 0)
           .map((item) => ({
@@ -312,13 +322,16 @@ const NetworkDiagram = () => {
             markerEnd: { type: MarkerType.ArrowClosed },
             style: { stroke: item.cable_color || "#b1b1b7" },
           }));
+
         const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
           getLayoutedElements(initialNodes, initialEdges);
+
         const nodesWithFinalLayout = [...dagreLayoutedNodes];
         const ponNodesByParent = {};
         const oltNode = nodesWithFinalLayout.find(
           (n) => n.data.icon === "input"
         );
+
         layoutedEdges.forEach((edge) => {
           if (edge.source === oltNode?.id) {
             const targetNode = nodesWithFinalLayout.find(
@@ -332,27 +345,38 @@ const NetworkDiagram = () => {
             }
           }
         });
+
         let currentYOffset = 0;
         const nodeHeight = 60;
+
         Object.values(ponNodesByParent).forEach((ponGroup) => {
           ponGroup.sort((a, b) => a.position.y - b.position.y);
+
           ponGroup.forEach((parentNode) => {
-            const onuGroup = layoutedEdges
+            let onuGroup = layoutedEdges
               .filter((e) => e.source === parentNode.id)
-              .map((e) => nodesWithFinalLayout.find((n) => n.id === e.target));
+              .map((e) => nodesWithFinalLayout.find((n) => n.id === e.target))
+              .filter(Boolean); // Ensure no undefined nodes
+
+            // --- 1. NEW: Sort the ONU group by their parsed number ---
+            onuGroup.sort((a, b) => getOnuNumber(a) - getOnuNumber(b));
+
             if (onuGroup.length > 0) {
               const startX = parentNode.position.x + GRID_X_SPACING;
               const startY = currentYOffset;
+
               onuGroup.forEach((node, index) => {
-                if (!node) return;
-                const column = index % NODES_PER_ROW;
-                const row = Math.floor(index / NODES_PER_ROW);
+                // --- 2. NEW: Swapped logic for column-first layout ---
+                const row = index % NODES_PER_COLUMN;
+                const column = Math.floor(index / NODES_PER_COLUMN);
+
                 node.position = {
                   x: startX + column * GRID_X_SPACING,
                   y: startY + row * GRID_Y_SPACING,
                 };
               });
-              const numRows = Math.ceil(onuGroup.length / NODES_PER_ROW) || 1;
+
+              const numRows = Math.min(onuGroup.length, NODES_PER_COLUMN);
               const gridHeight = (numRows - 1) * GRID_Y_SPACING + nodeHeight;
               parentNode.position.y = startY + (gridHeight - nodeHeight) / 2;
               currentYOffset += gridHeight + PADDING_BETWEEN_GRIDS;
@@ -362,6 +386,7 @@ const NetworkDiagram = () => {
             }
           });
         });
+
         if (oltNode && ponNodesByParent[oltNode.id]) {
           const ponNodes = ponNodesByParent[oltNode.id];
           const yPositions = ponNodes.map((n) => n.position.y);
@@ -369,6 +394,7 @@ const NetworkDiagram = () => {
           const maxY = Math.max(...yPositions);
           oltNode.position.y = minY + (maxY - minY) / 2;
         }
+
         setNodes(nodesWithFinalLayout);
         setEdges(layoutedEdges);
       } catch (error) {
@@ -377,6 +403,7 @@ const NetworkDiagram = () => {
         setLoading(false);
       }
     };
+
     loadInitialData();
   }, [setNodes, setEdges]);
 
