@@ -28,6 +28,7 @@ import SearchControl from "../components/ui/SearchControl.jsx";
 import AddNodeModal from "../components/modals/AddNodeModal.jsx";
 import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
+import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 
 const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8; // Renamed from NODES_PER_ROW
@@ -416,69 +417,67 @@ const NetworkDiagram = () => {
     loadInitialData();
   }, [setNodes, setEdges]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  } else {
-    return (
-      <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
-        <ReactFlow
-          nodes={visibleNodes}
-          edges={visibleEdges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          isValidConnection={isValidConnection}
-          nodesDraggable={isEditMode}
-          nodesConnectable={isEditMode}
-          edgesUpdatable={isEditMode}
-          panOnDrag={!isEditMode}
-          onPaneClick={onPaneClick}
-          onPaneContextMenu={onPaneContextMenu}
-          onNodeContextMenu={onNodeContextMenu}
-          onEdgeContextMenu={onEdgeContextMenu}
-          onEdgeUpdate={onEdgeUpdate}
-          onEdgeUpdateStart={onEdgeUpdateStart}
-          onEdgeUpdateEnd={onEdgeUpdateEnd}
-          onNodeClick={onNodeClick}
-          nodeTypes={nodeTypes}
-          fitView
-        >
-          <Controls />
-          <Background variant="dots" gap={12} size={1} />
-          {contextMenu && (
-            <ContextMenu {...contextMenu} onAction={handleAction} />
-          )}
-        </ReactFlow>
-        <EditFab
-          isEditing={isEditMode}
-          onClick={() => setIsEditMode(!isEditMode)}
-        />
-        <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
-        <EditNodeModal
-          isOpen={editModal.isOpen}
-          node={editModal.node}
-          onClose={() => setEditModal({ isOpen: false, node: null })}
-          onSave={handleUpdateNodeLabel}
-        />
-        <AddNodeModal
-          isOpen={addModal.isOpen}
-          onClose={() =>
-            setAddModal({ isOpen: false, position: null, isInsertion: false })
-          }
-          onSave={handleAddNodeSave}
-          defaultPosition={addModal.position}
-          isInsertion={addModal.isInsertion}
-        />
-        <ConfirmDeleteModal
-          isOpen={deleteModal.isOpen}
-          onClose={() => setDeleteModal({ isOpen: false, id: null, type: "" })}
-          onConfirm={handleConfirmDelete}
-          itemType={deleteModal.type}
-        />
-        <HelpBox />
-      </div>
-    );
-  }
+  return (
+    <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
+      <ReactFlow
+        nodes={visibleNodes}
+        edges={visibleEdges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        isValidConnection={isValidConnection}
+        nodesDraggable={isEditMode}
+        nodesConnectable={isEditMode}
+        edgesUpdatable={isEditMode}
+        panOnDrag={!isEditMode}
+        onPaneClick={onPaneClick}
+        onPaneContextMenu={onPaneContextMenu}
+        onNodeContextMenu={onNodeContextMenu}
+        onEdgeContextMenu={onEdgeContextMenu}
+        onEdgeUpdate={onEdgeUpdate}
+        onEdgeUpdateStart={onEdgeUpdateStart}
+        onEdgeUpdateEnd={onEdgeUpdateEnd}
+        onNodeClick={onNodeClick}
+        nodeTypes={nodeTypes}
+        fitView
+      >
+        <Background variant="dots" gap={12} size={1} />
+        {contextMenu && (
+          <ContextMenu {...contextMenu} onAction={handleAction} />
+        )}
+      </ReactFlow>
+
+      {loading && <LoadingOverlay />}
+
+      <EditFab
+        isEditing={isEditMode}
+        onClick={() => setIsEditMode(!isEditMode)}
+      />
+      <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
+      <EditNodeModal
+        isOpen={editModal.isOpen}
+        node={editModal.node}
+        onClose={() => setEditModal({ isOpen: false, node: null })}
+        onSave={handleUpdateNodeLabel}
+      />
+      <AddNodeModal
+        isOpen={addModal.isOpen}
+        onClose={() =>
+          setAddModal({ isOpen: false, position: null, isInsertion: false })
+        }
+        onSave={handleAddNodeSave}
+        defaultPosition={addModal.position}
+        isInsertion={addModal.isInsertion}
+      />
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, id: null, type: "" })}
+        onConfirm={handleConfirmDelete}
+        itemType={deleteModal.type}
+      />
+      <HelpBox />
+    </div>
+  );
 };
 
 export default NetworkDiagram;

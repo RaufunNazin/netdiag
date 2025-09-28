@@ -40,29 +40,34 @@ const HelpBox = () => {
   return (
     <div className="absolute bottom-4 right-4 z-10">
       <div
-        className={`bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 w-72 ${
+        className={`bg-white/50 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 w-72 ${
           isOpen ? "block" : "hidden"
         }`}
       >
         <h3 className="text-lg font-bold text-gray-800 mb-2">How to Use</h3>
         <ul className="text-sm text-gray-600 space-y-2 list-disc list-inside">
           <li>
-            <b>Double-click</b> a device to expand or collapse its branch.
+            Click the <b>pencil icon</b> in the bottom-right corner to enter{" "}
+            <b>Edit Mode</b>.
           </li>
           <li>
-            <b>Right-click</b> on an item for more actions like editing or
-            deleting.
+            In <b>Edit Mode</b>, you can <b>right-click</b> on items for actions
+            or <b>drag lines</b> to reconnect devices.
           </li>
           <li>
-            <b>Drag lines</b> from one connection point to another to reconnect
-            them.
+            <b>Click</b> a device to expand or collapse its branch of
+            connections.
           </li>
           <li>
-            Connections go from an <b>orange</b> point (right) to a <b>green</b>{" "}
-            point (left).
+            Connections flow from an <b>orange</b> point (source) to a{" "}
+            <b>green</b> point (target).
           </li>
           <li>
-            <b>Pan & Zoom</b> using your mouse or the controls in the top-left.
+            <b>Pan </b> the view using your mouse and drag to explore the
+            network.
+          </li>
+          <li>
+            <b>Zoom </b> in and out with your mouse wheel or trackpad pinch.
           </li>
         </ul>
       </div>
