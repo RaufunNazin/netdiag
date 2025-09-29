@@ -18,7 +18,13 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import { getLayoutedElements } from "../layout";
-import { fetchOlts, fetchData, getDescendants, saveNodeInfo } from "../utils/graphUtils";
+import {
+  fetchOlts,
+  fetchData,
+  getDescendants,
+  saveNodeInfo,
+  copyNodeInfo,
+} from "../utils/graphUtils";
 
 import EditFab from "../components/ui/EditFab.jsx";
 import CustomNode from "../components/CustomNode.jsx";
@@ -63,6 +69,7 @@ const NetworkDiagram = () => {
     id: null,
     type: "",
   });
+  const [newConnections, setNewConnections] = useState([]); // <-- ADD THIS LINE
   const [insertionEdge, setInsertionEdge] = useState(null);
   const edgeUpdateSuccessful = useRef(true);
 
@@ -71,22 +78,80 @@ const NetworkDiagram = () => {
     return matches ? matches.map(Number) : []; // Converts them to numbers
   };
 
-  // Paste all of your handler functions here (onConnect, onEdgeUpdate, handleAction, etc.)
+  const compareNodesByLabel = (a, b) => {
+    const numsA = getSortableNumbers(a.data.label);
+    const numsB = getSortableNumbers(b.data.label);
+    for (let i = 0; i < Math.min(numsA.length, numsB.length); i++) {
+      if (numsA[i] !== numsB[i]) return numsA[i] - numsB[i];
+    }
+    return numsA.length - numsB.length;
+  };
+
   const onConnect = useCallback(
-    (params) =>
-      setEdges((eds) =>
-        addEdge(
-          {
-            ...params,
-            sourceHandle: "right",
-            targetHandle: "left",
-            markerEnd: { type: MarkerType.ArrowClosed },
-          },
-          eds
-        )
-      ),
-    [setEdges]
+    (params) => {
+      // Find the source and target nodes from the main 'nodes' state
+      const sourceNode = nodes.find((n) => n.id === params.source);
+      const targetNode = nodes.find((n) => n.id === params.target);
+
+      // Create the edge for immediate visual feedback in all cases
+      const newEdge = {
+        ...params,
+        id: `e-${params.source}-${params.target}`, // More unique ID
+        markerEnd: { type: MarkerType.ArrowClosed },
+      };
+      setEdges((eds) => addEdge(newEdge, eds));
+
+      // Check if we are connecting a PON ('default' icon) to an ONU ('output' icon)
+      if (
+        sourceNode?.data?.icon === "default" &&
+        targetNode?.data?.icon === "output"
+      ) {
+        // This is a connection we want to save, so add it to the pending list
+        setNewConnections((prevConnections) => [...prevConnections, params]);
+      }
+    },
+    [nodes, setEdges, setNewConnections] // Add `nodes` to the dependency array
   );
+
+  const handleFabClick = useCallback(async () => {
+    // If we are currently in edit mode, this click means "save and lock"
+    console.log("fab1");
+    if (isEditMode) {
+      console.log("fab2");
+      console.log(newConnections);
+      if (newConnections.length > 0) {
+        console.log("fab3");
+        setLoading(true);
+        try {
+          // Create a list of all API calls to run
+          const savePromises = newConnections.map((conn) => {
+            const newParentId = parseInt(conn.source, 10);
+            const sourceNodeId = parseInt(conn.target, 10);
+            return copyNodeInfo(sourceNodeId, newParentId);
+          });
+
+          // Run all API calls in parallel
+          await Promise.all(savePromises);
+
+          // Clear the pending connections list on success
+          setNewConnections([]);
+
+          // Reload the diagram to show the permanent, saved state
+          const currentOlt = selectedOlt;
+          setSelectedOlt(null);
+          setTimeout(() => setSelectedOlt(currentOlt), 50);
+        } catch (error) {
+          console.error("Failed to save new connections:", error);
+          // On error, don't exit edit mode, so the user can see the issue
+          setLoading(false);
+          return; // Stop execution here
+        }
+      }
+    }
+    // This will now only run on success or if there were no new connections
+    setIsEditMode((prevMode) => !prevMode);
+  }, [isEditMode, newConnections, selectedOlt]); // <-- Add dependencies
+
   const onEdgeUpdateStart = useCallback(() => {
     edgeUpdateSuccessful.current = false;
   }, []);
@@ -240,13 +305,13 @@ const NetworkDiagram = () => {
     }
     setDeleteModal({ isOpen: false, id: null, type: "" });
   };
-  const handleUpdateNodeLabel = (nodeId, newLabel) => {
+  const handleUpdateNodeLabel = (nodeId, updatedObject) => {
     setNodes((nds) =>
       nds.map((n) =>
-        n.id === nodeId ? { ...n, data: { ...n.data, label: newLabel } } : n
+        n.id === nodeId ? { ...n, data: { ...n.data, ...updatedObject } } : n
       )
     );
-    saveNodeInfo(nodeId, { name: newLabel }).catch((error) => {
+    saveNodeInfo(nodeId, updatedObject).catch((error) => {
       console.error("Error saving node info:", error);
     });
   };
@@ -298,10 +363,12 @@ const NetworkDiagram = () => {
 
   // 1. Fetch the list of OLTs ONCE on initial mount
   useEffect(() => {
+    if (localStorage.getItem("selectedOlt")) {
+      setSelectedOlt(localStorage.getItem("selectedOlt"));
+    }
     const getOltList = async () => {
       try {
         const oltList = await fetchOlts();
-        console.log(oltList);
         setOlts(oltList || []);
       } catch (error) {
         console.error("Failed to load OLT list.", error);
@@ -317,45 +384,104 @@ const NetworkDiagram = () => {
       setIsEmpty(true);
       return; // Do nothing if no OLT is selected
     }
+    localStorage.setItem("selectedOlt", selectedOlt); // Save selection
     const loadInitialData = async () => {
       setLoading(true);
+      setIsEmpty(false);
       try {
         const apiData = await fetchData(selectedOlt); // Use the selected OLT
         if (!apiData || apiData.length === 0) {
           setIsEmpty(true);
+          setNodes([]);
+          setEdges([]);
           setLoading(false);
+          return;
         }
-        setIsEmpty(false);
 
-        // Step 1: Create nodes and edges (No changes here)
-        const initialNodes = apiData.map((item) => ({
-          id: String(item.id),
-          type: "custom",
-          data: {
-            label: item.name || item.mac || `Node ${item.id}`,
-            icon:
-              item.node_type === "OLT"
-                ? "input"
-                : item.node_type === "PON"
-                ? "default"
-                : "output",
-          },
-          position: { x: 0, y: 0 },
-        }));
+        // --- NEW DE-DUPLICATION LOGIC STARTS HERE ---
 
-        const initialEdges = apiData
-          .filter((item) => item.parent_id !== null && item.parent_id !== 0)
-          .map((item) => ({
-            id: `e-${item.parent_id}-${item.id}`,
-            source: String(item.parent_id),
-            target: String(item.id),
-            sourceHandle: "right",
-            targetHandle: "left",
-            markerEnd: { type: MarkerType.ArrowClosed },
-            style: { stroke: item.cable_color || "#b1b1b7" },
-          }));
+        const uniqueNodesMap = new Map();
+        const macToNodeIdMap = new Map();
 
-        // Step 2: Get base layout from Dagre (No changes here)
+        // First, add all non-ONU nodes (OLTs and PONs), which are always unique by ID
+        apiData.forEach((item) => {
+          if (item.node_type !== "ONU") {
+            uniqueNodesMap.set(String(item.id), item);
+          }
+        });
+
+        // Group all ONU records by their MAC address
+        const onuRecordsByMac = {};
+        apiData.forEach((item) => {
+          if (item.node_type === "ONU" && item.mac) {
+            if (!onuRecordsByMac[item.mac]) {
+              onuRecordsByMac[item.mac] = [];
+            }
+            onuRecordsByMac[item.mac].push(item);
+          }
+        });
+
+        // For each group of ONUs with the same MAC, find the "primary" record
+        for (const mac in onuRecordsByMac) {
+          const records = onuRecordsByMac[mac];
+          let primaryRecord = records[0]; // Start with the first as a fallback
+
+          // Find the best record to represent the node's data
+          for (const record of records) {
+            const parentNode = uniqueNodesMap.get(String(record.parent_id));
+            // A record is "primary" if the parent's name is part of the child's name
+            if (parentNode && record.name.startsWith(parentNode.name)) {
+              primaryRecord = record;
+              break; // Found the ideal record, so we can stop looking
+            }
+          }
+
+          // Now, use this chosen primary record for the unique node
+          uniqueNodesMap.set(String(primaryRecord.id), primaryRecord);
+          macToNodeIdMap.set(mac, String(primaryRecord.id));
+        }
+
+        // Create edges for ALL connections, mapping them to the primary node ID
+        const initialEdges = [];
+        apiData.forEach((item) => {
+          if (item.parent_id !== null && item.parent_id !== 0) {
+            let targetId =
+              item.mac && item.node_type === "ONU"
+                ? macToNodeIdMap.get(item.mac)
+                : String(item.id);
+
+            initialEdges.push({
+              id: `e-${item.id}`, // Unique ID for each connection record
+              source: String(item.parent_id),
+              target: targetId,
+              sourceHandle: "right",
+              targetHandle: "left",
+              markerEnd: { type: MarkerType.ArrowClosed },
+              style: { stroke: item.cable_color || "#b1b1b7" },
+            });
+          }
+        });
+
+        // Create the final list of unique nodes for React Flow
+        const initialNodes = Array.from(uniqueNodesMap.values()).map(
+          (item) => ({
+            id: macToNodeIdMap.get(item.mac) || String(item.id), // Use the primary ID
+            type: "custom",
+            data: {
+              ...item,
+              label: item.name || item.mac || `Node ${item.id}`,
+              icon:
+                item.node_type === "OLT"
+                  ? "input"
+                  : item.node_type === "PON"
+                  ? "default"
+                  : "output",
+            },
+            position: { x: 0, y: 0 },
+          })
+        );
+        
+        // --- Layout logic with the new fix ---
         const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
           getLayoutedElements(initialNodes, initialEdges);
 
@@ -382,45 +508,52 @@ const NetworkDiagram = () => {
         let currentYOffset = 0;
         const nodeHeight = 60;
 
-        Object.values(ponNodesByParent).forEach((ponGroup) => {
-          // --- CHANGED: Sort PONs numerically by their labels ---
-          ponGroup.sort((a, b) => {
-            const numsA = getSortableNumbers(a.data.label);
-            const numsB = getSortableNumbers(b.data.label);
-            for (let i = 0; i < Math.min(numsA.length, numsB.length); i++) {
-              if (numsA[i] !== numsB[i]) return numsA[i] - numsB[i];
+        // 1. ADD THIS SET to track which nodes have been positioned
+        const positionedOnuIds = new Set();
+
+        const onusByPrimaryParent = {};
+        nodesWithFinalLayout.forEach((node) => {
+          // Check if the node is an ONU and has a parent_id in its data
+          if (node.data.icon === "output" && node.data.parent_id) {
+            const parentId = String(node.data.parent_id);
+            if (!onusByPrimaryParent[parentId]) {
+              onusByPrimaryParent[parentId] = [];
             }
-            return numsA.length - numsB.length;
-          });
+            onusByPrimaryParent[parentId].push(node);
+          }
+        });
+
+        Object.values(ponNodesByParent).forEach((ponGroup) => {
+          ponGroup.sort(compareNodesByLabel);
 
           ponGroup.forEach((parentNode) => {
-            let onuGroup = layoutedEdges
-              .filter((e) => e.source === parentNode.id)
-              .map((e) => nodesWithFinalLayout.find((n) => n.id === e.target))
-              .filter(Boolean);
+            let onuGroup = onusByPrimaryParent[parentNode.id] || [];
+            onuGroup.sort(compareNodesByLabel);
 
-            // --- CHANGED: Sort ONUs numerically by their labels ---
-            onuGroup.sort((a, b) => {
-              const numsA = getSortableNumbers(a.data.label);
-              const numsB = getSortableNumbers(b.data.label);
-              for (let i = 0; i < Math.min(numsA.length, numsB.length); i++) {
-                if (numsA[i] !== numsB[i]) return numsA[i] - numsB[i];
-              }
-              return numsA.length - numsB.length;
-            });
+            // 2. FILTER the group to only include ONUs that haven't been placed yet
+            const unpositionedOnuGroup = onuGroup.filter(
+              (onu) => !positionedOnuIds.has(onu.id)
+            );
 
-            if (onuGroup.length > 0) {
+            if (unpositionedOnuGroup.length > 0) {
               const startX = parentNode.position.x + GRID_X_SPACING;
               const startY = currentYOffset;
-              onuGroup.forEach((node, index) => {
+
+              unpositionedOnuGroup.forEach((node, index) => {
                 const row = index % NODES_PER_COLUMN;
                 const column = Math.floor(index / NODES_PER_COLUMN);
                 node.position = {
                   x: startX + column * GRID_X_SPACING,
                   y: startY + row * GRID_Y_SPACING,
                 };
+                // 3. RECORD that this node's position is now set
+                positionedOnuIds.add(node.id);
               });
-              const numRows = Math.min(onuGroup.length, NODES_PER_COLUMN);
+
+              const numRows = Math.min(
+                unpositionedOnuGroup.length,
+                NODES_PER_COLUMN
+              );
               const gridHeight = (numRows - 1) * GRID_Y_SPACING + nodeHeight;
               parentNode.position.y = startY + (gridHeight - nodeHeight) / 2;
               currentYOffset += gridHeight + PADDING_BETWEEN_GRIDS;
@@ -492,10 +625,7 @@ const NetworkDiagram = () => {
 
       {!isEmpty && (
         <>
-          <EditFab
-            isEditing={isEditMode}
-            onClick={() => setIsEditMode(!isEditMode)}
-          />
+          <EditFab isEditing={isEditMode} onClick={handleFabClick} />
           <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
           <HelpBox />
         </>

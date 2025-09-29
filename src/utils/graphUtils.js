@@ -9,12 +9,30 @@ export const saveNodeInfo = async (nodeId, updatedInfo) => {
         console.error("Failed to update node label:", error);
       });
     if (response.status === 200) {
-      toast.success("Node information updated successfully!");
+      toast.success("Device update successful!");
     } else {
-      toast.error("Failed to update node information.");
+      toast.error("Failed to update device");
     }
   } catch (error) {
-    console.error("Error saving node info:", error);
+    console.error("Error saving device info:", error);
+    throw error;
+  }
+};
+
+export const copyNodeInfo = async (sourceNodeId, newParentId) => {
+  try {
+    const payload = {
+      source_node_id: parseInt(sourceNodeId, 10),
+      new_parent_id: parseInt(newParentId, 10),
+    };
+    const response = await api.post(`/device/copy`, payload);
+    if (response.status === 201) {
+      toast.success("Connection update successful!");
+    } else {
+      toast.error("Failed to update connection");
+    }
+  } catch (error) {
+    console.error("Error copying connection info:", error);
     throw error;
   }
 };
