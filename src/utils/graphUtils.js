@@ -86,3 +86,35 @@ export const getDescendants = (nodeId, allNodes, allEdges) => {
 
   return { hiddenNodeIds, hiddenEdgeIds };
 };
+
+export const deleteNode = async (nodeId) => {
+  try {
+    const response = await api.delete(`/node/${nodeId}`);
+    if (response.status === 200) {
+      toast.success("Device deleted successfully!");
+    } else {
+      toast.error("Failed to delete device.");
+    }
+    return response.data; // Return data on success
+  } catch (error) {
+    console.error(`Error deleting node ${nodeId}:`, error);
+    toast.error("An error occurred while deleting the device.");
+    throw error;
+  }
+};
+
+export const deleteEdge = async (edgeInfo) => {
+  try {
+    const response = await api.delete(`/edge`, { data: edgeInfo });
+    if (response.status === 200) {
+      toast.success("Connection deleted successfully!");
+    } else {
+      toast.error("Failed to delete connection.");
+    }
+    return response.data; // Return data on success
+  } catch (error) {
+    console.error("Error deleting edge:", error);
+    toast.error("An error occurred while deleting the connection.");
+    throw error;
+  }
+};

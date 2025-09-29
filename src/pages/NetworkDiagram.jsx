@@ -24,6 +24,8 @@ import {
   getDescendants,
   saveNodeInfo,
   copyNodeInfo,
+  deleteNode,
+  deleteEdge,
 } from "../utils/graphUtils";
 
 import EditFab from "../components/ui/EditFab.jsx";
@@ -295,16 +297,43 @@ const NetworkDiagram = () => {
       setNodes((nds) => nds.concat(newNode));
     }
   };
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(async () => {
     const { id, type } = deleteModal;
-    if (type === "device") {
-      setNodes((nds) => nds.filter((n) => n.id !== id));
-      setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
-    } else {
-      setEdges((eds) => eds.filter((e) => e.id !== id));
+    setLoading(true);
+
+    try {
+      if (type === "device") {
+        // Node deletion logic remains the same
+        await deleteNode(id);
+      } else {
+        // This is an edge deletion
+        const edgeToDelete = edges.find((e) => e.id === id);
+        // Find the target node to get its NAME
+        const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
+
+        if (edgeToDelete && targetNode) {
+          // Construct the NEW payload for the API
+          const edgeInfo = {
+            name: targetNode.data.name, // Use the node's unique name
+            source_id: parseInt(edgeToDelete.source, 10),
+            sw_id: parseInt(selectedOlt, 10),
+          };
+          await deleteEdge(edgeInfo);
+        }
+      }
+
+      // On success, reload the diagram to reflect the change
+      const currentOlt = selectedOlt;
+      setSelectedOlt(null);
+      setTimeout(() => setSelectedOlt(currentOlt), 50);
+    } catch (error) {
+      console.error(`Failed to delete ${type}:`, error);
+      // Error toast is shown in graphUtils, so just stop the loading indicator
+    } finally {
+      setDeleteModal({ isOpen: false, id: null, type: "" });
+      // setLoading will be turned off by the data reload effect
     }
-    setDeleteModal({ isOpen: false, id: null, type: "" });
-  };
+  }, [deleteModal, edges, nodes, selectedOlt]); // <-- Add 'nodes' to the dependency array
   const handleUpdateNodeLabel = (nodeId, updatedObject) => {
     setNodes((nds) =>
       nds.map((n) =>
@@ -480,7 +509,7 @@ const NetworkDiagram = () => {
             position: { x: 0, y: 0 },
           })
         );
-        
+
         // --- Layout logic with the new fix ---
         const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
           getLayoutedElements(initialNodes, initialEdges);
