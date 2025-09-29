@@ -1,8 +1,8 @@
 import api from "../api";
 
-export const fetchData = async () => {
+export const fetchData = async (sw_id) => {
   try {
-    const response = await api.get("/data");
+    const response = await api.get(`/data/${sw_id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching data:", error);

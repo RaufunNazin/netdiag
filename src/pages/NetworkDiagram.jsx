@@ -29,6 +29,7 @@ import AddNodeModal from "../components/modals/AddNodeModal.jsx";
 import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
+import EmptyState from "../components/ui/EmptyState.jsx";
 
 const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8; // Renamed from NODES_PER_ROW
@@ -47,6 +48,7 @@ const NetworkDiagram = () => {
   const [nodeIdCounter, setNodeIdCounter] = useState(8);
   const [loading, setLoading] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
+  const [isEmpty, setIsEmpty] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [addModal, setAddModal] = useState({
     isOpen: false,
@@ -291,8 +293,11 @@ const NetworkDiagram = () => {
     const loadInitialData = async () => {
       setLoading(true);
       try {
-        const apiData = await fetchData();
-        if (!apiData) return;
+        const apiData = await fetchData(5303); // Example SW_ID
+        if (!apiData || apiData.length === 0) {
+          setIsEmpty(true);
+          setLoading(false);
+        }
 
         // Step 1: Create nodes and edges (No changes here)
         const initialNodes = apiData.map((item) => ({
@@ -448,6 +453,7 @@ const NetworkDiagram = () => {
       </ReactFlow>
 
       {loading && <LoadingOverlay />}
+      {!loading && isEmpty && <EmptyState />}
 
       <EditFab
         isEditing={isEditMode}
