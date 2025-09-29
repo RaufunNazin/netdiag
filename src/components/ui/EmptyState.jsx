@@ -4,7 +4,7 @@ import React from "react";
 
 const EmptyState = () => {
   return (
-    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center text-center p-4">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-4">
       <div className="text-gray-400">
         {/* Disconnected Network Icon */}
         <svg

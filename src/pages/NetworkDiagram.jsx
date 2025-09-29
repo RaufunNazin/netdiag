@@ -18,7 +18,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import { getLayoutedElements } from "../layout";
-import { fetchData, getDescendants } from "../utils/graphUtils";
+import { fetchOlts, fetchData, getDescendants, saveNodeInfo } from "../utils/graphUtils";
 
 import EditFab from "../components/ui/EditFab.jsx";
 import CustomNode from "../components/CustomNode.jsx";
@@ -30,6 +30,7 @@ import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
+import OltSelector from "../components/ui/OltSelector.jsx";
 
 const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8; // Renamed from NODES_PER_ROW
@@ -49,6 +50,8 @@ const NetworkDiagram = () => {
   const [loading, setLoading] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
   const [isEmpty, setIsEmpty] = useState(false);
+  const [olts, setOlts] = useState([]); // For the dropdown list
+  const [selectedOlt, setSelectedOlt] = useState(null); // The chosen OLT ID
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [addModal, setAddModal] = useState({
     isOpen: false,
@@ -243,6 +246,9 @@ const NetworkDiagram = () => {
         n.id === nodeId ? { ...n, data: { ...n.data, label: newLabel } } : n
       )
     );
+    saveNodeInfo(nodeId, { name: newLabel }).catch((error) => {
+      console.error("Error saving node info:", error);
+    });
   };
   const onNodeFound = (nodeId) => {
     setNodes((nds) =>
@@ -289,15 +295,37 @@ const NetworkDiagram = () => {
       ),
     };
   }, [nodes, edges]);
+
+  // 1. Fetch the list of OLTs ONCE on initial mount
   useEffect(() => {
+    const getOltList = async () => {
+      try {
+        const oltList = await fetchOlts();
+        console.log(oltList);
+        setOlts(oltList || []);
+      } catch (error) {
+        console.error("Failed to load OLT list.", error);
+      }
+    };
+    getOltList();
+  }, []); // Empty array ensures this runs only once
+
+  useEffect(() => {
+    if (!selectedOlt) {
+      setNodes([]);
+      setEdges([]);
+      setIsEmpty(true);
+      return; // Do nothing if no OLT is selected
+    }
     const loadInitialData = async () => {
       setLoading(true);
       try {
-        const apiData = await fetchData(5303); // Example SW_ID
+        const apiData = await fetchData(selectedOlt); // Use the selected OLT
         if (!apiData || apiData.length === 0) {
           setIsEmpty(true);
           setLoading(false);
         }
+        setIsEmpty(false);
 
         // Step 1: Create nodes and edges (No changes here)
         const initialNodes = apiData.map((item) => ({
@@ -420,7 +448,7 @@ const NetworkDiagram = () => {
       }
     };
     loadInitialData();
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, selectedOlt]);
 
   return (
     <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
@@ -455,11 +483,24 @@ const NetworkDiagram = () => {
       {loading && <LoadingOverlay />}
       {!loading && isEmpty && <EmptyState />}
 
-      <EditFab
-        isEditing={isEditMode}
-        onClick={() => setIsEditMode(!isEditMode)}
+      <OltSelector
+        olts={olts}
+        selectedOlt={selectedOlt}
+        onChange={setSelectedOlt}
+        isLoading={loading}
       />
-      <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
+
+      {!isEmpty && (
+        <>
+          <EditFab
+            isEditing={isEditMode}
+            onClick={() => setIsEditMode(!isEditMode)}
+          />
+          <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
+          <HelpBox />
+        </>
+      )}
+
       <EditNodeModal
         isOpen={editModal.isOpen}
         node={editModal.node}
@@ -481,7 +522,6 @@ const NetworkDiagram = () => {
         onConfirm={handleConfirmDelete}
         itemType={deleteModal.type}
       />
-      <HelpBox />
     </div>
   );
 };
