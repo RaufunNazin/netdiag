@@ -345,16 +345,40 @@ const NetworkDiagram = () => {
       // setLoading will be turned off by the data reload effect
     }
   }, [deleteModal, edges, nodes, selectedOlt]); // <-- Add 'nodes' to the dependency array
-  const handleUpdateNodeLabel = (nodeId, updatedObject) => {
-    setNodes((nds) =>
-      nds.map((n) =>
-        n.id === nodeId ? { ...n, data: { ...n.data, ...updatedObject } } : n
-      )
-    );
-    saveNodeInfo(nodeId, updatedObject).catch((error) => {
-      console.error("Error saving node info:", error);
-    });
-  };
+  const handleUpdateNodeLabel = useCallback(
+    async (nodeId, updatedFormData) => {
+      setLoading(true);
+      try {
+        // Find the original node from the state to get its original name
+        const nodeToUpdate = nodes.find((n) => n.id === nodeId);
+        if (!nodeToUpdate) {
+          throw new Error("Node to update not found.");
+        }
+
+        // Prepare the payload for the API
+        const payload = {
+          ...updatedFormData, // This includes the new name and any other fields
+          original_name: nodeToUpdate.data.name, // The name BEFORE the edit
+          sw_id: parseInt(selectedOlt, 10),
+        };
+
+        await saveNodeInfo(nodeId, payload);
+
+        // --- CRITICAL STEP ---
+        // On success, trigger a full reload to apply all layout logic correctly
+        const currentOlt = selectedOlt;
+        setSelectedOlt(null);
+        setTimeout(() => setSelectedOlt(currentOlt), 50);
+      } catch (error) {
+        console.error("Error saving node info:", error);
+        // The error toast is handled in graphUtils
+      } finally {
+        // setLoading is turned off by the data reload effect
+      }
+    },
+    [nodes, selectedOlt]
+  ); // Add dependencies
+
   const onNodeFound = (nodeId) => {
     setNodes((nds) =>
       nds.map((n) => ({
@@ -603,6 +627,37 @@ const NetworkDiagram = () => {
             }
           });
         });
+
+        // 1. Find all ONU nodes that were NOT positioned by the main loop
+        const allOnuNodes = nodesWithFinalLayout.filter(
+          (n) => n.data.icon === "output"
+        );
+        const orphanedOnus = allOnuNodes.filter(
+          (n) => !positionedOnuIds.has(n.id)
+        );
+
+        // 2. If there are any orphans, place them in a separate grid at the bottom
+        if (orphanedOnus.length > 0) {
+          orphanedOnus.sort(compareNodesByLabel);
+
+          // Define how many orphans should appear in one horizontal row
+          const ORPHANS_PER_ROW = 6;
+
+          const startX = oltNode ? oltNode.position.x : 0;
+          const startY = currentYOffset + PADDING_BETWEEN_GRIDS * 2;
+
+          orphanedOnus.forEach((node, index) => {
+            // THIS MATH IS NOW CORRECT FOR HORIZONTAL ROWS
+            const column = index % ORPHANS_PER_ROW;
+            const row = Math.floor(index / ORPHANS_PER_ROW);
+
+            node.position = {
+              x: startX + column * GRID_X_SPACING, // 'column' determines X position
+              y: startY + row * GRID_Y_SPACING, // 'row' determines Y position
+            };
+            positionedOnuIds.add(node.id); // Mark the orphan as positioned
+          });
+        }
 
         if (oltNode && ponNodesByParent[oltNode.id]) {
           const ponNodes = ponNodesByParent[oltNode.id];
