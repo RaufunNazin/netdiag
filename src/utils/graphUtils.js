@@ -87,17 +87,18 @@ export const getDescendants = (nodeId, allNodes, allEdges) => {
   return { hiddenNodeIds, hiddenEdgeIds };
 };
 
-export const deleteNode = async (nodeId) => {
+export const deleteNode = async (nodeInfo) => { // nodeInfo is now { name, sw_id }
   try {
-    const response = await api.delete(`/node/${nodeId}`);
+    // For an axios.delete request with a body, it must be passed in a `data` object
+    const response = await api.delete(`/node`, { data: nodeInfo });
     if (response.status === 200) {
-      toast.success("Device deleted successfully!");
+      toast.success("Device and all its connections deleted successfully!");
     } else {
       toast.error("Failed to delete device.");
     }
-    return response.data; // Return data on success
+    return response.data;
   } catch (error) {
-    console.error(`Error deleting node ${nodeId}:`, error);
+    console.error(`Error deleting node ${nodeInfo.name}:`, error);
     toast.error("An error occurred while deleting the device.");
     throw error;
   }

@@ -303,8 +303,19 @@ const NetworkDiagram = () => {
 
     try {
       if (type === "device") {
-        // Node deletion logic remains the same
-        await deleteNode(id);
+        // Find the node in the state to get its name from the 'data' object
+        const nodeToDelete = nodes.find((n) => n.id === id);
+
+        if (nodeToDelete) {
+          // Construct the new payload with name and the currently selected OLT ID
+          const nodeInfo = {
+            name: nodeToDelete.data.name,
+            sw_id: parseInt(selectedOlt, 10),
+          };
+          await deleteNode(nodeInfo);
+        } else {
+          throw new Error("Node to delete was not found in the current state.");
+        }
       } else {
         // This is an edge deletion
         const edgeToDelete = edges.find((e) => e.id === id);
