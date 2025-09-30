@@ -362,7 +362,7 @@ const NetworkDiagram = () => {
           sw_id: parseInt(selectedOlt, 10),
         };
 
-        await saveNodeInfo(nodeId, payload);
+        await saveNodeInfo(payload);
 
         // --- CRITICAL STEP ---
         // On success, trigger a full reload to apply all layout logic correctly

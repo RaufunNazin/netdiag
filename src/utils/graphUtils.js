@@ -1,10 +1,10 @@
 import api from "../api";
 import { toast } from "react-toastify";
 
-export const saveNodeInfo = async (nodeId, updatedInfo) => {
+export const saveNodeInfo = async (updatedInfo) => {
   try {
     const response = await api
-      .put(`/device/${nodeId}`, updatedInfo)
+      .put(`/device`, updatedInfo)
       .catch((error) => {
         console.error("Failed to update node label:", error);
       });
