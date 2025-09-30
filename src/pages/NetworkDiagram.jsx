@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {
   useState,
   useCallback,
@@ -465,75 +466,91 @@ const NetworkDiagram = () => {
         // --- NEW DE-DUPLICATION LOGIC STARTS HERE ---
 
         const uniqueNodesMap = new Map();
-        const macToNodeIdMap = new Map();
+        const nameSwIdToNodeIdMap = new Map(); // The new lookup map
 
-        // First, add all non-ONU nodes (OLTs and PONs), which are always unique by ID
+        // 1. Add non-ONUs first (OLTs and PONs are always unique by their own ID)
         apiData.forEach((item) => {
           if (item.node_type !== "ONU") {
             uniqueNodesMap.set(String(item.id), item);
           }
         });
 
-        // Group all ONU records by their MAC address
-        const onuRecordsByMac = {};
+        // 2. Group all ONU records by their composite key (`name` + `sw_id`)
+        const onuRecordsByNameSwId = {};
         apiData.forEach((item) => {
-          if (item.node_type === "ONU" && item.mac) {
-            if (!onuRecordsByMac[item.mac]) {
-              onuRecordsByMac[item.mac] = [];
+          if (item.node_type === "ONU" && item.name && item.sw_id) {
+            const key = `${item.name}-${item.sw_id}`;
+            if (!onuRecordsByNameSwId[key]) {
+              onuRecordsByNameSwId[key] = [];
             }
-            onuRecordsByMac[item.mac].push(item);
+            onuRecordsByNameSwId[key].push(item);
           }
         });
 
-        // For each group of ONUs with the same MAC, find the "primary" record
-        for (const mac in onuRecordsByMac) {
-          const records = onuRecordsByMac[mac];
+        // 3. For each group, find the "primary" record to represent the node
+        // (The logic is the same as before: prefer the record whose parent name matches its own)
+        for (const key in onuRecordsByNameSwId) {
+          const records = onuRecordsByNameSwId[key];
           let primaryRecord = records[0]; // Start with the first as a fallback
 
-          // Find the best record to represent the node's data
           for (const record of records) {
             const parentNode = uniqueNodesMap.get(String(record.parent_id));
-            // A record is "primary" if the parent's name is part of the child's name
             if (parentNode && record.name.startsWith(parentNode.name)) {
               primaryRecord = record;
-              break; // Found the ideal record, so we can stop looking
+              break; // Found the ideal record
             }
           }
 
-          // Now, use this chosen primary record for the unique node
+          // 4. Store the chosen primary record and create the lookup entry
           uniqueNodesMap.set(String(primaryRecord.id), primaryRecord);
-          macToNodeIdMap.set(mac, String(primaryRecord.id));
+          nameSwIdToNodeIdMap.set(key, String(primaryRecord.id));
         }
 
-        // Create edges for ALL connections, mapping them to the primary node ID
+        // 5. Create edges for ALL connections, using the new lookup map to find the target ID
         const initialEdges = [];
         apiData.forEach((item) => {
           if (item.parent_id !== null && item.parent_id !== 0) {
-            let targetId =
-              item.mac && item.node_type === "ONU"
-                ? macToNodeIdMap.get(item.mac)
-                : String(item.id);
+            let targetId;
+            // For ONUs, find the de-duplicated ID using the name and sw_id
+            if (item.node_type === "ONU" && item.name && item.sw_id) {
+              const key = `${item.name}-${item.sw_id}`;
+              targetId = nameSwIdToNodeIdMap.get(key);
+            } else {
+              // For other node types, the target is just its own ID
+              targetId = String(item.id);
+            }
 
-            initialEdges.push({
-              id: `e-${item.id}`, // Unique ID for each connection record
-              source: String(item.parent_id),
-              target: targetId,
-              sourceHandle: "right",
-              targetHandle: "left",
-              markerEnd: { type: MarkerType.ArrowClosed },
-              style: { stroke: item.cable_color || "#b1b1b7" },
-            });
+            // Only create an edge if a valid target was found
+            if (targetId) {
+              initialEdges.push({
+                id: `e-${item.id}`,
+                source: String(item.parent_id),
+                target: targetId,
+                sourceHandle: "right",
+                targetHandle: "left",
+                markerEnd: { type: MarkerType.ArrowClosed },
+                style: { stroke: item.cable_color || "#b1b1b7" },
+              });
+            }
           }
         });
 
-        // Create the final list of unique nodes for React Flow
-        const initialNodes = Array.from(uniqueNodesMap.values()).map(
-          (item) => ({
-            id: macToNodeIdMap.get(item.mac) || String(item.id), // Use the primary ID
+        // 6. Create the final list of unique nodes for React Flow
+        const initialNodes = Array.from(uniqueNodesMap.values()).map((item) => {
+          let nodeId;
+          // Ensure we use the primary ID for the de-duplicated ONU node
+          if (item.node_type === "ONU" && item.name && item.sw_id) {
+            const key = `${item.name}-${item.sw_id}`;
+            nodeId = nameSwIdToNodeIdMap.get(key);
+          } else {
+            nodeId = String(item.id);
+          }
+          return {
+            id: nodeId,
             type: "custom",
             data: {
               ...item,
-              label: item.name || item.mac || `Node ${item.id}`,
+              label: item.name || `Node ${item.id}`,
               icon:
                 item.node_type === "OLT"
                   ? "input"
@@ -542,8 +559,8 @@ const NetworkDiagram = () => {
                   : "output",
             },
             position: { x: 0, y: 0 },
-          })
-        );
+          };
+        });
 
         // --- Layout logic with the new fix ---
         const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
