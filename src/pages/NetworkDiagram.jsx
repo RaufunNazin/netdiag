@@ -28,6 +28,7 @@ import {
   deleteNode,
   deleteEdge,
   createNode,
+  insertNode,
 } from "../utils/graphUtils";
 
 import EditFab from "../components/ui/EditFab.jsx";
@@ -251,15 +252,32 @@ const NetworkDiagram = () => {
     async (formData) => {
       setLoading(true);
       try {
-        const payload = {
-          ...formData,
-          sw_id: parseInt(selectedOlt, 10),
-        };
+        // Check if this is an INSERT operation
+        if (addModal.isInsertion && insertionEdge) {
+          // Inherit the cable color from the original edge
+          const cableColor = insertionEdge.style?.stroke || null;
 
-        // Call the API to create the node in the database
-        await createNode(payload);
+          const payload = {
+            new_node_data: {
+              ...formData,
+              cable_color: cableColor, // Assign the inherited color
+              sw_id: parseInt(selectedOlt, 10),
+            },
+            original_source_id: parseInt(insertionEdge.source, 10),
+            original_target_id: parseInt(insertionEdge.target, 10),
+          };
 
-        // On success, trigger a full reload to show the new node
+          await insertNode(payload);
+        } else {
+          // This is a regular ADD operation
+          const payload = {
+            ...formData,
+            sw_id: parseInt(selectedOlt, 10),
+          };
+          await createNode(payload);
+        }
+
+        // On success, trigger a full reload to show the changes
         const currentOlt = selectedOlt;
         setSelectedOlt(null);
         setTimeout(() => setSelectedOlt(currentOlt), 50);
@@ -268,8 +286,8 @@ const NetworkDiagram = () => {
         setLoading(false); // Stop loading on error
       }
     },
-    [selectedOlt]
-  ); // Add dependencies
+    [selectedOlt, addModal.isInsertion, insertionEdge] // Add dependencies
+  );
 
   const handleConfirmDelete = useCallback(async () => {
     const { id, type } = deleteModal;

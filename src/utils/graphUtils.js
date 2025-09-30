@@ -19,6 +19,22 @@ export const saveNodeInfo = async (updatedInfo) => {
   }
 };
 
+export const insertNode = async (payload) => {
+  try {
+    const response = await api.post(`/node/insert`, payload);
+    if (response.status === 201) {
+      toast.success("Device inserted successfully!");
+    } else {
+      toast.error("Failed to insert device.");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Error inserting node:", error);
+    toast.error(error.response?.data?.detail || "An error occurred while inserting the device.");
+    throw error;
+  }
+};
+
 export const createNode = async (nodeData) => {
   try {
     const response = await api.post(`/device`, nodeData);

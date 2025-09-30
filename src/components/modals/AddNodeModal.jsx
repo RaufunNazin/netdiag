@@ -116,7 +116,7 @@ const AddNodeModal = ({
   onSave,
   defaultPosition,
   parentNode,
-  isInsertion
+  isInsertion,
 }) => {
   const [formData, setFormData] = useState(initialState);
 
@@ -146,22 +146,30 @@ const AddNodeModal = ({
   };
 
   const handleSave = () => {
+    // --- THIS IS THE FIX ---
+    // The validation now correctly checks for `formData.node_type`
     if (formData.node_type && formData.name.trim()) {
       let finalObject = {
         ...formData,
         parent_id: parentNode?.id,
-        lat1: parseFloat(formData.lat1),
-        long1: parseFloat(formData.long1),
-        split_ratio: formData.node_type === "Splitter" ? parseInt(formData.split_ratio) : null,
-        cable_start: formData.cable_start ? parseInt(formData.cable_start) : null,
-        cable_end: formData.cable_end ? parseInt(formData.cable_end) : null,
+        // Convert number fields correctly, providing a null fallback
+        lat1: parseFloat(formData.lat1) || null,
+        long1: parseFloat(formData.long1) || null,
+        split_ratio:
+          formData.node_type === "Splitter"
+            ? parseInt(formData.split_ratio, 10)
+            : null,
+        cable_start: formData.cable_start
+          ? parseInt(formData.cable_start, 10)
+          : null,
+        cable_end: formData.cable_end ? parseInt(formData.cable_end, 10) : null,
+        cable_length: formData.cable_length ? parseInt(formData.cable_length, 10) : null,
       };
+
       if (finalObject.brand === "Other") {
         finalObject.brand = finalObject.brand_other;
       }
       delete finalObject.brand_other;
-      delete finalObject.lat1;
-      delete finalObject.long1;
 
       onSave(finalObject, defaultPosition);
       clearStorageAndClose();
@@ -174,7 +182,7 @@ const AddNodeModal = ({
     <div className="absolute inset-0 bg-slate-900/70 z-[100] flex justify-center items-center p-4">
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-4xl max-h-[95vh] flex flex-col">
         <h3 className="text-2xl font-bold text-slate-800 pb-4 mb-4">
-          Add New Node
+          {isInsertion ? "Insert New Device" : "Add New Node"}
         </h3>
         <div className="overflow-y-auto pr-6 -mr-6 flex-grow">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -480,7 +488,7 @@ const AddNodeModal = ({
             className="btn-primary"
             disabled={!formData.node_type}
           >
-            Add Node
+            {isInsertion ? "Insert Device" : "Add Node"}
           </button>
         </div>
       </div>
