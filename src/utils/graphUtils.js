@@ -19,6 +19,22 @@ export const saveNodeInfo = async (updatedInfo) => {
   }
 };
 
+export const createNode = async (nodeData) => {
+  try {
+    const response = await api.post(`/device`, nodeData);
+    if (response.status === 201) {
+      toast.success("Device created successfully!");
+    } else {
+      toast.error("Failed to create device.");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Error creating node:", error);
+    toast.error(error.response?.data?.detail || "An error occurred while creating the device.");
+    throw error;
+  }
+};
+
 export const copyNodeInfo = async (sourceNodeId, newParentId) => {
   try {
     const payload = {

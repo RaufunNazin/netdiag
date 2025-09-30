@@ -16,3 +16,30 @@
 .view-only .react-flow__background {
   background-color: #f8f8f8;
 }
+
+@layer components {
+  .label-style {
+    @apply block text-sm font-semibold text-slate-700 mb-1;
+  }
+
+  /* --- THIS IS THE UPDATED STYLE --- */
+  .input-style {
+    @apply w-full p-2 border border-slate-300 rounded-md 
+           transition-colors duration-200
+           focus:outline-none focus:border-slate-500;
+  }
+
+  .input-style-disabled {
+    @apply w-full p-2 border border-slate-200 rounded-md bg-slate-100 text-slate-500 cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply px-5 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm 
+           hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+           disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors duration-200;
+  }
+  .btn-secondary {
+    @apply px-5 py-2 bg-slate-200 text-slate-800 font-semibold rounded-md 
+           hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400
+           transition-colors duration-200;
+  }
+}

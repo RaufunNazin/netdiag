@@ -27,6 +27,7 @@ import {
   copyNodeInfo,
   deleteNode,
   deleteEdge,
+  createNode,
 } from "../utils/graphUtils";
 
 import EditFab from "../components/ui/EditFab.jsx";
@@ -55,7 +56,6 @@ const NetworkDiagram = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [nodeIdCounter, setNodeIdCounter] = useState(8);
   const [loading, setLoading] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
   const [isEmpty, setIsEmpty] = useState(false);
@@ -216,7 +216,8 @@ const NetworkDiagram = () => {
           x: contextMenu.left,
           y: contextMenu.top,
         });
-        setAddModal({ isOpen: true, position, isInsertion: false });
+        const parentNode = nodes.find((n) => n.id === id);
+        setAddModal({ isOpen: true, position, isInsertion: false, parentNode });
         break;
       }
       case "editNode": {
@@ -227,16 +228,6 @@ const NetworkDiagram = () => {
       case "deleteNode":
         setDeleteModal({ isOpen: true, id, type: "device" });
         break;
-      case "renameEdge": {
-        const newLabel = prompt(
-          "Enter new connection name:",
-          edges.find((e) => e.id === id)?.label
-        );
-        setEdges((eds) =>
-          eds.map((e) => (e.id === id ? { ...e, label: newLabel } : e))
-        );
-        break;
-      }
       case "deleteEdge":
         setDeleteModal({ isOpen: true, id, type: "connection" });
         break;
@@ -244,60 +235,42 @@ const NetworkDiagram = () => {
         const edge = edges.find((e) => e.id === id);
         if (edge) {
           setInsertionEdge(edge);
-          setAddModal({ isOpen: true, position: null, isInsertion: true });
+          setAddModal({
+            isOpen: true,
+            position: null,
+            isInsertion: true,
+            parentNode: null,
+          });
         }
         break;
       }
     }
   };
-  const handleAddNodeSave = (name, type, position) => {
-    const newId = `node-${nodeIdCounter}`;
-    setNodeIdCounter((c) => c + 1);
-    if (addModal.isInsertion && insertionEdge) {
-      const sourceNode = nodes.find((n) => n.id === insertionEdge.source);
-      const targetNode = nodes.find((n) => n.id === insertionEdge.target);
-      if (!sourceNode || !targetNode) return;
-      const newPosition = {
-        x: (sourceNode.position.x + targetNode.position.x) / 2,
-        y: (sourceNode.position.y + targetNode.position.y) / 2,
-      };
-      const intermediateNode = {
-        id: newId,
-        type: "custom",
-        position: newPosition,
-        data: { label: name, icon: type },
-      };
-      const edgeTo = {
-        id: `e-${insertionEdge.source}-${newId}`,
-        source: insertionEdge.source,
-        sourceHandle: "right",
-        target: newId,
-        targetHandle: "left",
-        markerEnd: { type: MarkerType.ArrowClosed },
-      };
-      const edgeFrom = {
-        id: `e-${newId}-${insertionEdge.target}`,
-        source: newId,
-        sourceHandle: "right",
-        target: insertionEdge.target,
-        targetHandle: "left",
-        markerEnd: { type: MarkerType.ArrowClosed },
-      };
-      setNodes((nds) => nds.concat(intermediateNode));
-      setEdges((eds) =>
-        eds.filter((e) => e.id !== insertionEdge.id).concat([edgeTo, edgeFrom])
-      );
-      setInsertionEdge(null);
-    } else {
-      const newNode = {
-        id: newId,
-        type: "custom",
-        position,
-        data: { label: name, icon: type },
-      };
-      setNodes((nds) => nds.concat(newNode));
-    }
-  };
+
+  const handleAddNodeSave = useCallback(
+    async (formData) => {
+      setLoading(true);
+      try {
+        const payload = {
+          ...formData,
+          sw_id: parseInt(selectedOlt, 10),
+        };
+
+        // Call the API to create the node in the database
+        await createNode(payload);
+
+        // On success, trigger a full reload to show the new node
+        const currentOlt = selectedOlt;
+        setSelectedOlt(null);
+        setTimeout(() => setSelectedOlt(currentOlt), 50);
+      } catch (error) {
+        console.error("Failed to save new node:", error);
+        setLoading(false); // Stop loading on error
+      }
+    },
+    [selectedOlt]
+  ); // Add dependencies
+
   const handleConfirmDelete = useCallback(async () => {
     const { id, type } = deleteModal;
     setLoading(true);
@@ -350,35 +323,25 @@ const NetworkDiagram = () => {
     async (nodeId, updatedFormData) => {
       setLoading(true);
       try {
-        // Find the original node from the state to get its original name
         const nodeToUpdate = nodes.find((n) => n.id === nodeId);
         if (!nodeToUpdate) {
           throw new Error("Node to update not found.");
         }
-
-        // Prepare the payload for the API
         const payload = {
-          ...updatedFormData, // This includes the new name and any other fields
-          original_name: nodeToUpdate.data.name, // The name BEFORE the edit
+          ...updatedFormData,
+          original_name: nodeToUpdate.data.name,
           sw_id: parseInt(selectedOlt, 10),
         };
-
-        await saveNodeInfo(payload);
-
-        // --- CRITICAL STEP ---
-        // On success, trigger a full reload to apply all layout logic correctly
+        await saveNodeInfo(nodeId, payload); // Correctly passing nodeId here
         const currentOlt = selectedOlt;
         setSelectedOlt(null);
         setTimeout(() => setSelectedOlt(currentOlt), 50);
       } catch (error) {
         console.error("Error saving node info:", error);
-        // The error toast is handled in graphUtils
-      } finally {
-        // setLoading is turned off by the data reload effect
       }
     },
     [nodes, selectedOlt]
-  ); // Add dependencies
+  );
 
   const onNodeFound = (nodeId) => {
     setNodes((nds) =>
@@ -755,6 +718,7 @@ const NetworkDiagram = () => {
           setAddModal({ isOpen: false, position: null, isInsertion: false })
         }
         onSave={handleAddNodeSave}
+        parentNode={addModal.parentNode} // Pass the parent node to the modal
         defaultPosition={addModal.position}
         isInsertion={addModal.isInsertion}
       />
