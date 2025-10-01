@@ -70,7 +70,7 @@ const ColorPicker = ({ selectedColor, onChange }) => {
 
   return (
     <div className="relative w-full" ref={pickerRef}>
-      <label className="label-style">Core Color</label>
+      <label className="label-style">Cable Color</label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -85,7 +85,7 @@ const ColorPicker = ({ selectedColor, onChange }) => {
                   ?.hex || "#FFFFFF",
             }}
           />
-          {selectedColor || "Select Core Color"}
+          {selectedColor || "Select Cable Color"}
         </span>
         <span className="text-slate-500">▼</span>
       </button>

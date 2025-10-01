@@ -157,10 +157,10 @@ const CustomNode = ({ data, isConnectable }) => {
   if (data.node_type === "ONU") {
     if (data.status === 1) {
       // Status: 1 = UP
-      statusBorderClass = "border-r-4 border-r-green-500";
+      statusBorderClass = "border-r-4 border-t-4 border-r-green-500 border-t-green-500";
     } else if (data.status === 2) {
       // Status: 2 = DOWN
-      statusBorderClass = "border-r-4 border-r-red-500";
+      statusBorderClass = "border-r-4 border-t-4 border-r-red-500 border-t-red-500";
     }
   }
 
@@ -179,7 +179,7 @@ const CustomNode = ({ data, isConnectable }) => {
           position={Position.Left}
           id="left"
           isConnectable={isConnectable}
-          className="!bg-lime-500 !w-3 !h-3"
+          className="!bg-blue-500 !w-3 !h-3"
         />
       )}
 
