@@ -10,7 +10,6 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
-  Controls,
   Background,
   useReactFlow,
   MarkerType,
@@ -18,7 +17,6 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { getLayoutedElements } from "../layout";
 import {
   fetchOlts,
   fetchData,
@@ -60,6 +58,7 @@ const NetworkDiagram = () => {
   const [loading, setLoading] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
   const [isEmpty, setIsEmpty] = useState(false);
+  const [positionChanges, setPositionChanges] = useState(new Map());
   const [olts, setOlts] = useState([]); // For the dropdown list
   const [selectedOlt, setSelectedOlt] = useState(null); // The chosen OLT ID
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
@@ -113,70 +112,89 @@ const NetworkDiagram = () => {
     return numsA.length - numsB.length;
   };
 
+  const onNodeDragStop = useCallback(
+    (event, node) => {
+      // We only track the change if we are in edit mode.
+      if (isEditMode) {
+        setPositionChanges((prev) => new Map(prev).set(node.id, node.position));
+      }
+    },
+    [isEditMode]
+  );
+
   const onConnect = useCallback(
     (params) => {
-      // Find the source and target nodes from the main 'nodes' state
-      const sourceNode = nodes.find((n) => n.id === params.source);
-      const targetNode = nodes.find((n) => n.id === params.target);
-
-      // Create the edge for immediate visual feedback in all cases
+      // Create the edge for immediate visual feedback
       const newEdge = {
         ...params,
-        id: `e-${params.source}-${params.target}`, // More unique ID
+        id: `e-${params.source}-${params.target}`,
         markerEnd: { type: MarkerType.ArrowClosed },
       };
       setEdges((eds) => addEdge(newEdge, eds));
 
-      // Check if we are connecting a PON ('default' icon) to an ONU ('output' icon)
-      if (
-        sourceNode?.data?.icon === "default" &&
-        targetNode?.data?.icon === "output"
-      ) {
-        // This is a connection we want to save, so add it to the pending list
+      // In edit mode, if the connection is valid, add it to the list to be saved.
+      const sourceNode = nodes.find((n) => n.id === params.source);
+      const targetNode = nodes.find((n) => n.id === params.target);
+      if (isEditMode && sourceNode && targetNode) {
         setNewConnections((prevConnections) => [...prevConnections, params]);
       }
     },
-    [nodes, setEdges, setNewConnections] // Add `nodes` to the dependency array
+    [nodes, setEdges, setNewConnections, isEditMode] // Add isEditMode to dependencies
   );
 
   const handleFabClick = useCallback(async () => {
-    // If we are currently in edit mode, this click means "save and lock"
-    console.log("fab1");
     if (isEditMode) {
-      console.log("fab2");
-      console.log(newConnections);
-      if (newConnections.length > 0) {
-        console.log("fab3");
+      // Check if there are any changes to save (either positions or connections)
+      if (positionChanges.size > 0 || newConnections.length > 0) {
         setLoading(true);
         try {
-          // Create a list of all API calls to run
-          const savePromises = newConnections.map((conn) => {
+          // --- 1. Create promises for saving new connections ---
+          const connectionPromises = newConnections.map((conn) => {
             const newParentId = parseInt(conn.source, 10);
             const sourceNodeId = parseInt(conn.target, 10);
             return copyNodeInfo(sourceNodeId, newParentId);
           });
 
-          // Run all API calls in parallel
-          await Promise.all(savePromises);
+          // --- 2. Create promises for saving changed positions ---
+          const positionSavePromises = Array.from(
+            positionChanges.entries()
+          ).map(([nodeId, position]) => {
+            const nodeToUpdate = nodes.find((n) => n.id === nodeId);
+            if (!nodeToUpdate) return null;
 
-          // Clear the pending connections list on success
+            const payload = {
+              original_name: nodeToUpdate.data.name,
+              sw_id: nodeToUpdate.data.sw_id,
+              position_x: position.x,
+              position_y: position.y,
+            };
+            return saveNodeInfo(payload);
+          });
+
+          // --- 3. Run all save operations in parallel ---
+          await Promise.all([
+            ...connectionPromises,
+            ...positionSavePromises.filter(Boolean),
+          ]);
+
+          // --- 4. Clear pending changes on success ---
+          setPositionChanges(new Map());
           setNewConnections([]);
 
-          // Reload the diagram to show the permanent, saved state
+          // --- 5. Reload the diagram ---
           const currentOlt = selectedOlt;
           setSelectedOlt(null);
           setTimeout(() => setSelectedOlt(currentOlt), 50);
         } catch (error) {
-          console.error("Failed to save new connections:", error);
-          // On error, don't exit edit mode, so the user can see the issue
+          console.error("Failed to save changes:", error);
           setLoading(false);
-          return; // Stop execution here
+          return; // Stop and stay in edit mode on error
         }
       }
     }
-    // This will now only run on success or if there were no new connections
+    // Toggle edit mode
     setIsEditMode((prevMode) => !prevMode);
-  }, [isEditMode, newConnections, selectedOlt]); // <-- Add dependencies
+  }, [isEditMode, positionChanges, newConnections, nodes, selectedOlt]);
 
   const onEdgeUpdateStart = useCallback(() => {
     edgeUpdateSuccessful.current = false;
@@ -522,6 +540,11 @@ const NetworkDiagram = () => {
             item.node_type === "ONU" && item.name && item.sw_id
               ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
               : String(item.id);
+
+          // This logic checks if valid positions exist in the data
+          const hasCustomPosition =
+            item.position_x != null && item.position_y != null;
+
           return {
             id: nodeId,
             type: "custom",
@@ -529,8 +552,16 @@ const NetworkDiagram = () => {
               ...item,
               label: item.name || `Node ${item.id}`,
               icon: getNodeIcon(item.node_type),
+              // Store this flag so we know which nodes to auto-save
+              hasCustomPosition: hasCustomPosition,
             },
-            position: { x: 0, y: 0 },
+            // Use saved positions if they exist, otherwise default to {0, 0}
+            position: hasCustomPosition
+              ? {
+                  x: parseFloat(item.position_x),
+                  y: parseFloat(item.position_y),
+                }
+              : { x: 0, y: 0 },
           };
         });
 
@@ -581,13 +612,21 @@ const NetworkDiagram = () => {
 
           initialNodes.forEach((node) => {
             if (node.level === -1) {
-              console.warn(
-                "Node was not reached in layout, placing at origin:",
-                node
-              );
-              node.level = 0; // Fallback for orphaned nodes
+              console.warn("Orphaned node detected:", node);
+              // --- NEW: Position orphans at the bottom ---
+              // Give them a high `y` value to place them below the main tree.
+              // We'll assign a unique x position to prevent stacking.
+              const orphanIndex = initialNodes
+                .filter((n) => n.level === -1)
+                .indexOf(node);
+              node.position = { x: -200, y: 2500 + orphanIndex * 80 };
+              // Mark it as custom so the layout algorithm ignores it
+              node.data.hasCustomPosition = true;
+            } else if (!node.data.hasCustomPosition) {
+              // This is the corrected logic for regular nodes.
+              // It only sets the initial x/y for nodes that need to be auto-laid-out.
+              node.position = { x: node.level * GRID_X_SPACING, y: 0 };
             }
-            node.position = { x: node.level * GRID_X_SPACING, y: 0 };
           });
 
           // 3. Perform Recursive Vertical Layout
@@ -605,16 +644,23 @@ const NetworkDiagram = () => {
 
           function offsetBranch(node, offsetY) {
             if (!node || !node.position) return;
-            node.position.y += offsetY;
+
+            // Only apply offset if the node doesn't have a custom position
+            if (!node.data.hasCustomPosition) {
+              node.position.y += offsetY;
+            }
+
             if (node.children) {
               node.children.forEach((childRef) => {
                 const childNode = nodeMap.get(childRef.id);
+                // The recursion will handle the children
                 offsetBranch(childNode, offsetY);
               });
             }
           }
 
           function layoutBranch(node) {
+            // This function now correctly calculates height while respecting custom positions.
             const childrenToGrid = gridNodesByParent[node.id];
             if (childrenToGrid && childrenToGrid.length > 0) {
               const sortedChildren = [...childrenToGrid].sort(
@@ -622,23 +668,32 @@ const NetworkDiagram = () => {
               );
               const startX = node.position.x + GRID_X_SPACING;
               sortedChildren.forEach((childNode, index) => {
-                const row = index % NODES_PER_COLUMN;
-                const column = Math.floor(index / NODES_PER_COLUMN);
                 const nodeToUpdate = nodeMap.get(childNode.id);
-                if (nodeToUpdate) {
+                // Only position grid children if they don't have a custom position.
+                if (nodeToUpdate && !nodeToUpdate.data.hasCustomPosition) {
+                  const row = index % NODES_PER_COLUMN;
+                  const column = Math.floor(index / NODES_PER_COLUMN);
                   nodeToUpdate.position.y = row * GRID_Y_SPACING;
                   nodeToUpdate.position.x = startX + column * GRID_X_SPACING;
                 }
               });
+
               const numRows = Math.min(sortedChildren.length, NODES_PER_COLUMN);
               const gridHeight =
                 (numRows > 0 ? numRows - 1 : 0) * GRID_Y_SPACING + nodeHeight;
-              node.position.y = (gridHeight - nodeHeight) / 2;
+
+              // Only position the parent if it doesn't have a custom position.
+              if (!node.data.hasCustomPosition) {
+                node.position.y = (gridHeight - nodeHeight) / 2;
+              }
+              // Always return the calculated height for the parent branch.
               return gridHeight;
             }
 
             if (!node.children || node.children.length === 0) {
-              node.position.y = 0;
+              if (!node.data.hasCustomPosition) {
+                node.position.y = 0;
+              }
               return nodeHeight;
             }
 
@@ -647,8 +702,13 @@ const NetworkDiagram = () => {
               .map((c) => nodeMap.get(c.id))
               .filter(Boolean);
             children.sort(compareNodesByLabel);
+
+            const childrenWithHeights = children.map((child) =>
+              layoutBranch(child)
+            );
+
             children.forEach((child, index) => {
-              const childHeight = layoutBranch(child);
+              const childHeight = childrenWithHeights[index];
               offsetBranch(child, currentY);
               if (index < children.length - 1) {
                 currentY += childHeight + PADDING_BETWEEN_GRIDS;
@@ -657,13 +717,43 @@ const NetworkDiagram = () => {
               }
             });
             const totalHeight = currentY;
-            node.position.y = (totalHeight - nodeHeight) / 2;
+
+            if (!node.data.hasCustomPosition) {
+              node.position.y = (totalHeight - nodeHeight) / 2;
+            }
             return totalHeight;
           }
 
           if (rootNode) {
             layoutBranch(rootNode);
           }
+
+          // >>> PASTE THE NEW AUTO-SAVE CODE HERE <<<
+          const nodesToSave = initialNodes.filter(
+            (n) => !n.data.hasCustomPosition
+          );
+
+          if (nodesToSave.length > 0) {
+            console.log(
+              `Auto-saving calculated positions for ${nodesToSave.length} nodes...`
+            );
+
+            const autoSavePromises = nodesToSave.map((node) => {
+              const payload = {
+                original_name: node.data.name,
+                sw_id: node.data.sw_id,
+                position_x: node.position.x,
+                position_y: node.position.y,
+              };
+              return saveNodeInfo(payload);
+            });
+
+            // Run the save operation in the background
+            Promise.all(autoSavePromises)
+              .then(() => console.log("Auto-save complete."))
+              .catch((err) => console.error("Auto-save failed:", err));
+          }
+          // --- END of auto-save block ---
 
           setNodes(initialNodes);
           setEdges(initialEdges);
@@ -694,6 +784,7 @@ const NetworkDiagram = () => {
         nodesConnectable={isEditMode}
         edgesUpdatable={isEditMode}
         panOnDrag={!isEditMode}
+        onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
         onPaneContextMenu={onPaneContextMenu}
         onNodeContextMenu={onNodeContextMenu}
