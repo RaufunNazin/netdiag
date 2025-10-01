@@ -3,14 +3,16 @@ import dagre from "dagre";
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-const nodeWidth = 250; // Adjust to fit your node content
-const nodeHeight = 60; // Adjust as needed
+const nodeWidth = 250;
+const nodeHeight = 60;
 
 export const getLayoutedElements = (nodes, edges) => {
   dagreGraph.setGraph({
     rankdir: "LR",
-    ranksep: 10, // Controls vertical spacing between PON groups
-    nodesep: 5, // Controls spacing between nodes in the same column (e.g., OLT and another device)
+    // Increased ranksep for more horizontal space between layers
+    ranksep: 250,
+    // Increased nodesep for more vertical space between nodes in the same layer
+    nodesep: 50,
   });
 
   nodes.forEach((node) => {

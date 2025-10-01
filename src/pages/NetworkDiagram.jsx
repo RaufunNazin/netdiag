@@ -534,84 +534,144 @@ const NetworkDiagram = () => {
           };
         });
 
-        // --- START: CORRECTED LAYOUT LOGIC ---
-        const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
-          getLayoutedElements(initialNodes, initialEdges);
-        const nodesWithFinalLayout = [...dagreLayoutedNodes];
-        const oltNode = nodesWithFinalLayout.find(
-          (n) => n.data.node_type === "OLT"
-        );
+        // --- START: NEW AND FINAL LAYOUT LOGIC ---
+        if (initialNodes.length > 0) {
+          const nodeMap = new Map(initialNodes.map((n) => [n.id, n]));
+          let rootNode = null;
 
-        const childMap = {};
-        nodesWithFinalLayout.forEach((node) => {
-          if (node.data.parent_id) {
-            const parentId = String(node.data.parent_id);
-            if (!childMap[parentId]) childMap[parentId] = [];
-            childMap[parentId].push(node);
+          // 1. Build tree structure (CORRECTED)
+          // First, initialize .children array on ALL nodes
+          initialNodes.forEach((node) => {
+            node.children = [];
+          });
+          // THEN, connect them
+          initialNodes.forEach((node) => {
+            if (node.data.node_type === "OLT") {
+              rootNode = node;
+            } else if (node.data.parent_id) {
+              const parent = nodeMap.get(String(node.data.parent_id));
+              if (parent) {
+                // This is now safe, because parent.children is guaranteed to exist.
+                parent.children.push(node);
+              }
+            }
+          });
+
+          // 2. Set X positions based on a more robust tree depth calculation
+          initialNodes.forEach((node) => {
+            node.level = -1; // Start with an invalid level
+          });
+
+          if (rootNode) {
+            rootNode.level = 0;
+            const queue = [rootNode];
+            let head = 0;
+            while (head < queue.length) {
+              const parent = queue[head++];
+              initialNodes.forEach((potentialChild) => {
+                if (String(potentialChild.data.parent_id) === parent.id) {
+                  if (potentialChild.level === -1) {
+                    potentialChild.level = parent.level + 1;
+                    queue.push(potentialChild);
+                  }
+                }
+              });
+            }
           }
-        });
 
-        let currentYOffset = 0;
-        const nodeHeight = 60;
+          initialNodes.forEach((node) => {
+            if (node.level === -1) {
+              console.warn(
+                "Node was not reached in layout, placing at origin:",
+                node
+              );
+              node.level = 0; // Fallback for orphaned nodes
+            }
+            node.position = { x: node.level * GRID_X_SPACING, y: 0 };
+          });
 
-        const ponNodes = childMap[oltNode.id] || [];
-        ponNodes.sort((a, b) => a.position.y - b.position.y);
+          // 3. Perform Recursive Vertical Layout
+          const gridNodeType = "ONU";
+          const gridNodesByParent = initialNodes
+            .filter((n) => n.data.node_type === gridNodeType)
+            .reduce((acc, node) => {
+              const parentId = String(node.data.parent_id);
+              if (!acc[parentId]) acc[parentId] = [];
+              acc[parentId].push(node);
+              return acc;
+            }, {});
 
-        ponNodes.forEach((ponNode) => {
-          const subTreeYPositions = [];
-          const queue = [ponNode];
-          const visited = new Set([ponNode.id]);
+          const nodeHeight = 60;
 
-          // Find all nodes in this PON's subtree to calculate max grid height
-          while (queue.length > 0) {
-            const current = queue.shift();
-            subTreeYPositions.push(current.position.y);
-            const children = childMap[current.id] || [];
-            children.forEach((child) => {
-              if (!visited.has(child.id)) {
-                visited.add(child.id);
-                queue.push(child);
+          function offsetBranch(node, offsetY) {
+            if (!node || !node.position) return;
+            node.position.y += offsetY;
+            if (node.children) {
+              node.children.forEach((childRef) => {
+                const childNode = nodeMap.get(childRef.id);
+                offsetBranch(childNode, offsetY);
+              });
+            }
+          }
+
+          function layoutBranch(node) {
+            const childrenToGrid = gridNodesByParent[node.id];
+            if (childrenToGrid && childrenToGrid.length > 0) {
+              const sortedChildren = [...childrenToGrid].sort(
+                compareNodesByLabel
+              );
+              const startX = node.position.x + GRID_X_SPACING;
+              sortedChildren.forEach((childNode, index) => {
+                const row = index % NODES_PER_COLUMN;
+                const column = Math.floor(index / NODES_PER_COLUMN);
+                const nodeToUpdate = nodeMap.get(childNode.id);
+                if (nodeToUpdate) {
+                  nodeToUpdate.position.y = row * GRID_Y_SPACING;
+                  nodeToUpdate.position.x = startX + column * GRID_X_SPACING;
+                }
+              });
+              const numRows = Math.min(sortedChildren.length, NODES_PER_COLUMN);
+              const gridHeight =
+                (numRows > 0 ? numRows - 1 : 0) * GRID_Y_SPACING + nodeHeight;
+              node.position.y = (gridHeight - nodeHeight) / 2;
+              return gridHeight;
+            }
+
+            if (!node.children || node.children.length === 0) {
+              node.position.y = 0;
+              return nodeHeight;
+            }
+
+            let currentY = 0;
+            const children = node.children
+              .map((c) => nodeMap.get(c.id))
+              .filter(Boolean);
+            children.sort(compareNodesByLabel);
+            children.forEach((child, index) => {
+              const childHeight = layoutBranch(child);
+              offsetBranch(child, currentY);
+              if (index < children.length - 1) {
+                currentY += childHeight + PADDING_BETWEEN_GRIDS;
+              } else {
+                currentY += childHeight;
               }
             });
+            const totalHeight = currentY;
+            node.position.y = (totalHeight - nodeHeight) / 2;
+            return totalHeight;
           }
 
-          const onuGroup = childMap[ponNode.id] || [];
-          const sortedOnuGroup = [...onuGroup].sort(compareNodesByLabel);
-
-          if (sortedOnuGroup.length > 0) {
-            const startX = ponNode.position.x + GRID_X_SPACING;
-            const startY = currentYOffset;
-
-            sortedOnuGroup.forEach((node, index) => {
-              const row = index % NODES_PER_COLUMN;
-              const column = Math.floor(index / NODES_PER_COLUMN);
-              node.position = {
-                x: startX + column * GRID_X_SPACING,
-                y: startY + row * GRID_Y_SPACING,
-              };
-            });
-
-            const numRows = Math.min(sortedOnuGroup.length, NODES_PER_COLUMN);
-            const gridHeight = (numRows - 1) * GRID_Y_SPACING + nodeHeight;
-            ponNode.position.y = startY + (gridHeight - nodeHeight) / 2;
-            currentYOffset += gridHeight + PADDING_BETWEEN_GRIDS;
-          } else {
-            ponNode.position.y = currentYOffset;
-            currentYOffset += nodeHeight + PADDING_BETWEEN_GRIDS;
+          if (rootNode) {
+            layoutBranch(rootNode);
           }
-        });
 
-        // Re-center the OLT node based on its direct children (PONs)
-        if (oltNode && ponNodes.length > 0) {
-          const yPositions = ponNodes.map((n) => n.position.y);
-          const minY = Math.min(...yPositions);
-          const maxY = Math.max(...yPositions);
-          oltNode.position.y = minY + (maxY - minY) / 2;
+          setNodes(initialNodes);
+          setEdges(initialEdges);
+        } else {
+          setNodes([]);
+          setEdges([]);
         }
-        // --- END: CORRECTED LAYOUT LOGIC ---
-
-        setNodes(nodesWithFinalLayout);
-        setEdges(layoutedEdges);
+        // --- END: NEW AND FINAL LAYOUT LOGIC ---
       } catch (error) {
         console.error("Failed to load initial data:", error);
       } finally {
