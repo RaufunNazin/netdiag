@@ -77,6 +77,28 @@ const NetworkDiagram = () => {
   const [insertionEdge, setInsertionEdge] = useState(null);
   const edgeUpdateSuccessful = useRef(true);
 
+  // Add this helper function inside your NetworkDiagram component, before the return statement
+  const getNodeIcon = (nodeType) => {
+    switch (nodeType) {
+      case "OLT":
+        return "olt";
+      case "PON":
+        return "pon";
+      case "SPLITTER":
+        return "splitter";
+      case "TJ":
+        return "tj";
+      case "uSWITCH":
+        return "uswitch";
+      case "mSWITCH":
+        return "mswitch";
+      case "ONU":
+        return "onu";
+      default:
+        return "default";
+    }
+  };
+
   const getSortableNumbers = (label = "") => {
     const matches = label.match(/\d+/g); // Finds all sequences of digits
     return matches ? matches.map(Number) : []; // Converts them to numbers
@@ -254,17 +276,22 @@ const NetworkDiagram = () => {
       try {
         // Check if this is an INSERT operation
         if (addModal.isInsertion && insertionEdge) {
-          // Inherit the cable color from the original edge
-          const cableColor = insertionEdge.style?.stroke || null;
+          // --- INSERTION LOGIC ---
+
+          // The edge ID from React Flow is 'e-DATABASE_ID'. We need the number part.
+          const originalEdgeRecordId = parseInt(
+            insertionEdge.id.replace("e-", ""),
+            10
+          );
 
           const payload = {
             new_node_data: {
               ...formData,
-              cable_color: cableColor, // Assign the inherited color
+              cable_color: insertionEdge.style?.stroke || null,
               sw_id: parseInt(selectedOlt, 10),
             },
             original_source_id: parseInt(insertionEdge.source, 10),
-            original_target_id: parseInt(insertionEdge.target, 10),
+            original_edge_record_id: originalEdgeRecordId, // Send the record ID
           };
 
           await insertNode(payload);
@@ -428,14 +455,14 @@ const NetworkDiagram = () => {
       setNodes([]);
       setEdges([]);
       setIsEmpty(true);
-      return; // Do nothing if no OLT is selected
+      return;
     }
-    localStorage.setItem("selectedOlt", selectedOlt); // Save selection
+    localStorage.setItem("selectedOlt", selectedOlt);
     const loadInitialData = async () => {
       setLoading(true);
       setIsEmpty(false);
       try {
-        const apiData = await fetchData(selectedOlt); // Use the selected OLT
+        const apiData = await fetchData(selectedOlt);
         if (!apiData || apiData.length === 0) {
           setIsEmpty(true);
           setNodes([]);
@@ -444,226 +471,144 @@ const NetworkDiagram = () => {
           return;
         }
 
-        // --- NEW DE-DUPLICATION LOGIC STARTS HERE ---
-
+        // --- Data Processing and De-duplication (No changes here) ---
         const uniqueNodesMap = new Map();
-        const nameSwIdToNodeIdMap = new Map(); // The new lookup map
-
-        // 1. Add non-ONUs first (OLTs and PONs are always unique by their own ID)
+        const nameSwIdToNodeIdMap = new Map();
         apiData.forEach((item) => {
-          if (item.node_type !== "ONU") {
+          if (item.node_type !== "ONU")
             uniqueNodesMap.set(String(item.id), item);
-          }
         });
-
-        // 2. Group all ONU records by their composite key (`name` + `sw_id`)
         const onuRecordsByNameSwId = {};
         apiData.forEach((item) => {
           if (item.node_type === "ONU" && item.name && item.sw_id) {
             const key = `${item.name}-${item.sw_id}`;
-            if (!onuRecordsByNameSwId[key]) {
-              onuRecordsByNameSwId[key] = [];
-            }
+            if (!onuRecordsByNameSwId[key]) onuRecordsByNameSwId[key] = [];
             onuRecordsByNameSwId[key].push(item);
           }
         });
-
-        // 3. For each group, find the "primary" record to represent the node
-        // (The logic is the same as before: prefer the record whose parent name matches its own)
         for (const key in onuRecordsByNameSwId) {
           const records = onuRecordsByNameSwId[key];
-          let primaryRecord = records[0]; // Start with the first as a fallback
-
+          let primaryRecord = records[0];
           for (const record of records) {
             const parentNode = uniqueNodesMap.get(String(record.parent_id));
             if (parentNode && record.name.startsWith(parentNode.name)) {
               primaryRecord = record;
-              break; // Found the ideal record
+              break;
             }
           }
-
-          // 4. Store the chosen primary record and create the lookup entry
           uniqueNodesMap.set(String(primaryRecord.id), primaryRecord);
           nameSwIdToNodeIdMap.set(key, String(primaryRecord.id));
         }
-
-        // 5. Create edges for ALL connections, using the new lookup map to find the target ID
         const initialEdges = [];
         apiData.forEach((item) => {
           if (item.parent_id !== null && item.parent_id !== 0) {
-            let targetId;
-            // For ONUs, find the de-duplicated ID using the name and sw_id
-            if (item.node_type === "ONU" && item.name && item.sw_id) {
-              const key = `${item.name}-${item.sw_id}`;
-              targetId = nameSwIdToNodeIdMap.get(key);
-            } else {
-              // For other node types, the target is just its own ID
-              targetId = String(item.id);
-            }
-
-            // Only create an edge if a valid target was found
+            let targetId =
+              item.node_type === "ONU" && item.name && item.sw_id
+                ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
+                : String(item.id);
             if (targetId) {
               initialEdges.push({
                 id: `e-${item.id}`,
                 source: String(item.parent_id),
                 target: targetId,
-                sourceHandle: "right",
-                targetHandle: "left",
                 markerEnd: { type: MarkerType.ArrowClosed },
                 style: { stroke: item.cable_color || "#b1b1b7" },
               });
             }
           }
         });
-
-        // 6. Create the final list of unique nodes for React Flow
         const initialNodes = Array.from(uniqueNodesMap.values()).map((item) => {
-          let nodeId;
-          // Ensure we use the primary ID for the de-duplicated ONU node
-          if (item.node_type === "ONU" && item.name && item.sw_id) {
-            const key = `${item.name}-${item.sw_id}`;
-            nodeId = nameSwIdToNodeIdMap.get(key);
-          } else {
-            nodeId = String(item.id);
-          }
+          const nodeId =
+            item.node_type === "ONU" && item.name && item.sw_id
+              ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
+              : String(item.id);
           return {
             id: nodeId,
             type: "custom",
             data: {
               ...item,
               label: item.name || `Node ${item.id}`,
-              icon:
-                item.node_type === "OLT"
-                  ? "input"
-                  : item.node_type === "PON"
-                  ? "default"
-                  : "output",
+              icon: getNodeIcon(item.node_type),
             },
             position: { x: 0, y: 0 },
           };
         });
 
-        // --- Layout logic with the new fix ---
+        // --- START: CORRECTED LAYOUT LOGIC ---
         const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
           getLayoutedElements(initialNodes, initialEdges);
-
         const nodesWithFinalLayout = [...dagreLayoutedNodes];
-        const ponNodesByParent = {};
         const oltNode = nodesWithFinalLayout.find(
-          (n) => n.data.icon === "input"
+          (n) => n.data.node_type === "OLT"
         );
 
-        layoutedEdges.forEach((edge) => {
-          if (edge.source === oltNode?.id) {
-            const targetNode = nodesWithFinalLayout.find(
-              (n) => n.id === edge.target
-            );
-            if (targetNode && targetNode.data.icon === "default") {
-              if (!ponNodesByParent[edge.source]) {
-                ponNodesByParent[edge.source] = [];
-              }
-              ponNodesByParent[edge.source].push(targetNode);
-            }
+        const childMap = {};
+        nodesWithFinalLayout.forEach((node) => {
+          if (node.data.parent_id) {
+            const parentId = String(node.data.parent_id);
+            if (!childMap[parentId]) childMap[parentId] = [];
+            childMap[parentId].push(node);
           }
         });
 
         let currentYOffset = 0;
         const nodeHeight = 60;
 
-        // 1. ADD THIS SET to track which nodes have been positioned
-        const positionedOnuIds = new Set();
+        const ponNodes = childMap[oltNode.id] || [];
+        ponNodes.sort((a, b) => a.position.y - b.position.y);
 
-        const onusByPrimaryParent = {};
-        nodesWithFinalLayout.forEach((node) => {
-          // Check if the node is an ONU and has a parent_id in its data
-          if (node.data.icon === "output" && node.data.parent_id) {
-            const parentId = String(node.data.parent_id);
-            if (!onusByPrimaryParent[parentId]) {
-              onusByPrimaryParent[parentId] = [];
-            }
-            onusByPrimaryParent[parentId].push(node);
+        ponNodes.forEach((ponNode) => {
+          const subTreeYPositions = [];
+          const queue = [ponNode];
+          const visited = new Set([ponNode.id]);
+
+          // Find all nodes in this PON's subtree to calculate max grid height
+          while (queue.length > 0) {
+            const current = queue.shift();
+            subTreeYPositions.push(current.position.y);
+            const children = childMap[current.id] || [];
+            children.forEach((child) => {
+              if (!visited.has(child.id)) {
+                visited.add(child.id);
+                queue.push(child);
+              }
+            });
+          }
+
+          const onuGroup = childMap[ponNode.id] || [];
+          const sortedOnuGroup = [...onuGroup].sort(compareNodesByLabel);
+
+          if (sortedOnuGroup.length > 0) {
+            const startX = ponNode.position.x + GRID_X_SPACING;
+            const startY = currentYOffset;
+
+            sortedOnuGroup.forEach((node, index) => {
+              const row = index % NODES_PER_COLUMN;
+              const column = Math.floor(index / NODES_PER_COLUMN);
+              node.position = {
+                x: startX + column * GRID_X_SPACING,
+                y: startY + row * GRID_Y_SPACING,
+              };
+            });
+
+            const numRows = Math.min(sortedOnuGroup.length, NODES_PER_COLUMN);
+            const gridHeight = (numRows - 1) * GRID_Y_SPACING + nodeHeight;
+            ponNode.position.y = startY + (gridHeight - nodeHeight) / 2;
+            currentYOffset += gridHeight + PADDING_BETWEEN_GRIDS;
+          } else {
+            ponNode.position.y = currentYOffset;
+            currentYOffset += nodeHeight + PADDING_BETWEEN_GRIDS;
           }
         });
 
-        Object.values(ponNodesByParent).forEach((ponGroup) => {
-          ponGroup.sort(compareNodesByLabel);
-
-          ponGroup.forEach((parentNode) => {
-            let onuGroup = onusByPrimaryParent[parentNode.id] || [];
-            onuGroup.sort(compareNodesByLabel);
-
-            // 2. FILTER the group to only include ONUs that haven't been placed yet
-            const unpositionedOnuGroup = onuGroup.filter(
-              (onu) => !positionedOnuIds.has(onu.id)
-            );
-
-            if (unpositionedOnuGroup.length > 0) {
-              const startX = parentNode.position.x + GRID_X_SPACING;
-              const startY = currentYOffset;
-
-              unpositionedOnuGroup.forEach((node, index) => {
-                const row = index % NODES_PER_COLUMN;
-                const column = Math.floor(index / NODES_PER_COLUMN);
-                node.position = {
-                  x: startX + column * GRID_X_SPACING,
-                  y: startY + row * GRID_Y_SPACING,
-                };
-                // 3. RECORD that this node's position is now set
-                positionedOnuIds.add(node.id);
-              });
-
-              const numRows = Math.min(
-                unpositionedOnuGroup.length,
-                NODES_PER_COLUMN
-              );
-              const gridHeight = (numRows - 1) * GRID_Y_SPACING + nodeHeight;
-              parentNode.position.y = startY + (gridHeight - nodeHeight) / 2;
-              currentYOffset += gridHeight + PADDING_BETWEEN_GRIDS;
-            } else {
-              parentNode.position.y = currentYOffset;
-              currentYOffset += nodeHeight + PADDING_BETWEEN_GRIDS;
-            }
-          });
-        });
-
-        // 1. Find all ONU nodes that were NOT positioned by the main loop
-        const allOnuNodes = nodesWithFinalLayout.filter(
-          (n) => n.data.icon === "output"
-        );
-        const orphanedOnus = allOnuNodes.filter(
-          (n) => !positionedOnuIds.has(n.id)
-        );
-
-        // 2. If there are any orphans, place them in a separate grid at the bottom
-        if (orphanedOnus.length > 0) {
-          orphanedOnus.sort(compareNodesByLabel);
-
-          // Define how many orphans should appear in one horizontal row
-          const ORPHANS_PER_ROW = 6;
-
-          const startX = oltNode ? oltNode.position.x : 0;
-          const startY = currentYOffset + PADDING_BETWEEN_GRIDS * 2;
-
-          orphanedOnus.forEach((node, index) => {
-            // THIS MATH IS NOW CORRECT FOR HORIZONTAL ROWS
-            const column = index % ORPHANS_PER_ROW;
-            const row = Math.floor(index / ORPHANS_PER_ROW);
-
-            node.position = {
-              x: startX + column * GRID_X_SPACING, // 'column' determines X position
-              y: startY + row * GRID_Y_SPACING, // 'row' determines Y position
-            };
-            positionedOnuIds.add(node.id); // Mark the orphan as positioned
-          });
-        }
-
-        if (oltNode && ponNodesByParent[oltNode.id]) {
-          const ponNodes = ponNodesByParent[oltNode.id];
+        // Re-center the OLT node based on its direct children (PONs)
+        if (oltNode && ponNodes.length > 0) {
           const yPositions = ponNodes.map((n) => n.position.y);
           const minY = Math.min(...yPositions);
           const maxY = Math.max(...yPositions);
           oltNode.position.y = minY + (maxY - minY) / 2;
         }
+        // --- END: CORRECTED LAYOUT LOGIC ---
 
         setNodes(nodesWithFinalLayout);
         setEdges(layoutedEdges);
@@ -674,7 +619,7 @@ const NetworkDiagram = () => {
       }
     };
     loadInitialData();
-  }, [setNodes, setEdges, selectedOlt]);
+  }, [selectedOlt]);
 
   return (
     <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
