@@ -1,17 +1,17 @@
 import api from "../api";
 import { toast } from "react-toastify";
 
-export const saveNodeInfo = async (updatedInfo) => {
+export const saveNodeInfo = async (updatedInfo, muted = false) => {
   try {
-    const response = await api
-      .put(`/device`, updatedInfo)
-      .catch((error) => {
-        console.error("Failed to update node label:", error);
-      });
-    if (response.status === 200) {
-      toast.success("Device update successful!");
-    } else {
-      toast.error("Failed to update device");
+    const response = await api.put(`/device`, updatedInfo).catch((error) => {
+      console.error("Failed to update node label:", error);
+    });
+    if (!muted) {
+      if (response.status === 200) {
+        toast.success("Device update successful!");
+      } else {
+        toast.error("Failed to update device");
+      }
     }
   } catch (error) {
     console.error("Error saving device info:", error);
@@ -30,7 +30,10 @@ export const insertNode = async (payload) => {
     return response.data;
   } catch (error) {
     console.error("Error inserting node:", error);
-    toast.error(error.response?.data?.detail || "An error occurred while inserting the device.");
+    toast.error(
+      error.response?.data?.detail ||
+        "An error occurred while inserting the device."
+    );
     throw error;
   }
 };
@@ -46,7 +49,10 @@ export const createNode = async (nodeData) => {
     return response.data;
   } catch (error) {
     console.error("Error creating node:", error);
-    toast.error(error.response?.data?.detail || "An error occurred while creating the device.");
+    toast.error(
+      error.response?.data?.detail ||
+        "An error occurred while creating the device."
+    );
     throw error;
   }
 };
@@ -119,7 +125,8 @@ export const getDescendants = (nodeId, allNodes, allEdges) => {
   return { hiddenNodeIds, hiddenEdgeIds };
 };
 
-export const deleteNode = async (nodeInfo) => { // nodeInfo is now { name, sw_id }
+export const deleteNode = async (nodeInfo) => {
+  // nodeInfo is now { name, sw_id }
   try {
     // For an axios.delete request with a body, it must be passed in a `data` object
     const response = await api.delete(`/node`, { data: nodeInfo });

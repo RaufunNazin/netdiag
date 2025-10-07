@@ -168,7 +168,7 @@ const NetworkDiagram = () => {
               position_x: position.x,
               position_y: position.y,
             };
-            return saveNodeInfo(payload);
+            return saveNodeInfo(payload, true);
           });
 
           // --- 3. Run all save operations in parallel ---
@@ -395,7 +395,7 @@ const NetworkDiagram = () => {
           original_name: nodeToUpdate.data.name,
           sw_id: parseInt(selectedOlt, 10),
         };
-        await saveNodeInfo(nodeId, payload); // Correctly passing nodeId here
+        await saveNodeInfo(payload); // Correctly passing nodeId here
         const currentOlt = selectedOlt;
         setSelectedOlt(null);
         setTimeout(() => setSelectedOlt(currentOlt), 50);
@@ -745,7 +745,7 @@ const NetworkDiagram = () => {
                 position_x: node.position.x,
                 position_y: node.position.y,
               };
-              return saveNodeInfo(payload);
+              return saveNodeInfo(payload, true);
             });
 
             // Run the save operation in the background
