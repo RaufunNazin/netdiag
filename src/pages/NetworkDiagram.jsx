@@ -167,6 +167,7 @@ const NetworkDiagram = () => {
               sw_id: nodeToUpdate.data.sw_id,
               position_x: position.x,
               position_y: position.y,
+              position_mode: 1, // Mark as manually positioned
             };
             return saveNodeInfo(payload, true);
           });
@@ -631,16 +632,29 @@ const NetworkDiagram = () => {
 
           // 3. Perform Recursive Vertical Layout
           const gridNodeType = "ONU";
-          const gridNodesByParent = initialNodes
-            .filter((n) => n.data.node_type === gridNodeType)
-            .reduce((acc, node) => {
-              const parentId = String(node.data.parent_id);
-              if (!acc[parentId]) acc[parentId] = [];
-              acc[parentId].push(node);
-              return acc;
-            }, {});
 
           const nodeHeight = 60;
+
+          // Helper to get all grid children for a given parent ID
+          const getGridChildren = (parentId) => {
+            return initialNodes.filter(
+              (n) =>
+                String(n.data.parent_id) === parentId &&
+                n.data.node_type === gridNodeType
+            );
+          };
+
+          // Helper to get all non-grid (branching) children for a given parent ID
+          const getBranchChildren = (parentId) => {
+            return initialNodes
+              .filter(
+                (n) =>
+                  String(n.data.parent_id) === parentId &&
+                  n.data.node_type !== gridNodeType
+              )
+              .map((n) => nodeMap.get(n.id)) // Get the full node object
+              .filter(Boolean);
+          };
 
           function offsetBranch(node, offsetY) {
             if (!node || !node.position) return;
@@ -650,77 +664,85 @@ const NetworkDiagram = () => {
               node.position.y += offsetY;
             }
 
-            if (node.children) {
-              node.children.forEach((childRef) => {
-                const childNode = nodeMap.get(childRef.id);
-                // The recursion will handle the children
+            // Recursively offset all of its descendants
+            const allChildren = [
+              ...getBranchChildren(node.id),
+              ...getGridChildren(node.id),
+            ];
+
+            allChildren.forEach((childRef) => {
+              const childNode = nodeMap.get(childRef.id);
+              if (childNode) {
                 offsetBranch(childNode, offsetY);
-              });
-            }
+              }
+            });
           }
 
           function layoutBranch(node) {
-            // This function now correctly calculates height while respecting custom positions.
-            const childrenToGrid = gridNodesByParent[node.id];
-            if (childrenToGrid && childrenToGrid.length > 0) {
-              const sortedChildren = [...childrenToGrid].sort(
-                compareNodesByLabel
+            if (!node) return 0;
+
+            const branchChildren = getBranchChildren(node.id);
+            const gridChildren = getGridChildren(node.id);
+
+            // Sort children for consistent layout
+            branchChildren.sort(compareNodesByLabel);
+            gridChildren.sort(compareNodesByLabel);
+
+            let currentY = 0;
+
+            // 1. Layout all recursive branches first
+            if (branchChildren.length > 0) {
+              const branchHeights = branchChildren.map((child) =>
+                layoutBranch(child)
               );
+
+              branchChildren.forEach((child, index) => {
+                const childHeight = branchHeights[index];
+                offsetBranch(child, currentY);
+                currentY += childHeight;
+                if (index < branchChildren.length - 1) {
+                  currentY += PADDING_BETWEEN_GRIDS;
+                }
+              });
+            }
+
+            // 2. Layout the grid of ONUs below the branches
+            if (gridChildren.length > 0) {
+              // Add padding if there were branches above
+              if (branchChildren.length > 0) {
+                currentY += PADDING_BETWEEN_GRIDS;
+              }
+
               const startX = node.position.x + GRID_X_SPACING;
-              sortedChildren.forEach((childNode, index) => {
+              gridChildren.forEach((childNode, index) => {
                 const nodeToUpdate = nodeMap.get(childNode.id);
-                // Only position grid children if they don't have a custom position.
                 if (nodeToUpdate && !nodeToUpdate.data.hasCustomPosition) {
                   const row = index % NODES_PER_COLUMN;
                   const column = Math.floor(index / NODES_PER_COLUMN);
-                  nodeToUpdate.position.y = row * GRID_Y_SPACING;
+                  // The key change: add the currentY offset to the grid position
+                  nodeToUpdate.position.y = currentY + row * GRID_Y_SPACING;
                   nodeToUpdate.position.x = startX + column * GRID_X_SPACING;
                 }
               });
 
-              const numRows = Math.min(sortedChildren.length, NODES_PER_COLUMN);
+              const numRows = Math.min(gridChildren.length, NODES_PER_COLUMN);
               const gridHeight =
                 (numRows > 0 ? numRows - 1 : 0) * GRID_Y_SPACING + nodeHeight;
-
-              // Only position the parent if it doesn't have a custom position.
-              if (!node.data.hasCustomPosition) {
-                node.position.y = (gridHeight - nodeHeight) / 2;
-              }
-              // Always return the calculated height for the parent branch.
-              return gridHeight;
+              currentY += gridHeight;
             }
 
-            if (!node.children || node.children.length === 0) {
-              if (!node.data.hasCustomPosition) {
-                node.position.y = 0;
-              }
-              return nodeHeight;
-            }
+            const totalHeight = Math.max(currentY, nodeHeight);
 
-            let currentY = 0;
-            const children = node.children
-              .map((c) => nodeMap.get(c.id))
-              .filter(Boolean);
-            children.sort(compareNodesByLabel);
-
-            const childrenWithHeights = children.map((child) =>
-              layoutBranch(child)
-            );
-
-            children.forEach((child, index) => {
-              const childHeight = childrenWithHeights[index];
-              offsetBranch(child, currentY);
-              if (index < children.length - 1) {
-                currentY += childHeight + PADDING_BETWEEN_GRIDS;
-              } else {
-                currentY += childHeight;
-              }
-            });
-            const totalHeight = currentY;
-
+            // 3. Center the parent node relative to the total height of its children
             if (!node.data.hasCustomPosition) {
-              node.position.y = (totalHeight - nodeHeight) / 2;
+              // If it's a leaf node, its y is based on its own height
+              if (totalHeight === nodeHeight) {
+                node.position.y = 0;
+              } else {
+                node.position.y = (totalHeight - nodeHeight) / 2;
+              }
             }
+
             return totalHeight;
           }
 
@@ -744,6 +766,7 @@ const NetworkDiagram = () => {
                 sw_id: node.data.sw_id,
                 position_x: node.position.x,
                 position_y: node.position.y,
+                position_mode: 0, // Mark as auto-positioned
               };
               return saveNodeInfo(payload, true);
             });
