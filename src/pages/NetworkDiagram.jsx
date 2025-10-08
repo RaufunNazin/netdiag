@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {
   useState,
@@ -51,14 +52,15 @@ const NetworkDiagram = () => {
   // All of your state and logic from the original component goes here...
   // (useState, useCallback, useEffect, etc.)
   const reactFlowWrapper = useRef(null);
+  const initialNodesRef = useRef([]);
   const reactFlowInstance = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedNodes, setSelectedNodes] = useState([]); // <-- 1. ADD THIS STATE
   const [contextMenu, setContextMenu] = useState(null);
   const [isEmpty, setIsEmpty] = useState(false);
-  const [positionChanges, setPositionChanges] = useState(new Map());
   const [olts, setOlts] = useState([]); // For the dropdown list
   const [selectedOlt, setSelectedOlt] = useState(null); // The chosen OLT ID
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
@@ -103,6 +105,10 @@ const NetworkDiagram = () => {
     return matches ? matches.map(Number) : []; // Converts them to numbers
   };
 
+  const onSelectionChange = useCallback(({ nodes }) => {
+    setSelectedNodes(nodes.map((node) => node.id));
+  }, []); // <-- 2. ADD THIS HANDLER
+
   const compareNodesByLabel = (a, b) => {
     const numsA = getSortableNumbers(a.data.label);
     const numsB = getSortableNumbers(b.data.label);
@@ -111,16 +117,6 @@ const NetworkDiagram = () => {
     }
     return numsA.length - numsB.length;
   };
-
-  const onNodeDragStop = useCallback(
-    (event, node) => {
-      // We only track the change if we are in edit mode.
-      if (isEditMode) {
-        setPositionChanges((prev) => new Map(prev).set(node.id, node.position));
-      }
-    },
-    [isEditMode]
-  );
 
   const onConnect = useCallback(
     (params) => {
@@ -144,45 +140,56 @@ const NetworkDiagram = () => {
 
   const handleFabClick = useCallback(async () => {
     if (isEditMode) {
-      // Check if there are any changes to save (either positions or connections)
-      if (positionChanges.size > 0 || newConnections.length > 0) {
-        setLoading(true);
+      setLoading(true);
+
+      // Get the original nodes from the ref and the current nodes from the instance
+      const originalNodes = initialNodesRef.current;
+      const currentNodes = reactFlowInstance.getNodes();
+
+      // For faster lookups, create a map of original positions
+      const originalNodeMap = new Map(
+        originalNodes.map((node) => [node.id, node])
+      );
+
+      // --- 1. Identify which nodes have actually moved ---
+      const movedNodes = currentNodes.filter((currentNode) => {
+        const originalNode = originalNodeMap.get(currentNode.id);
+        // A node is considered moved if its original state exists and
+        // its x or y position has changed.
+        return (
+          originalNode &&
+          (currentNode.position.x !== originalNode.position.x ||
+            currentNode.position.y !== originalNode.position.y)
+        );
+      });
+
+      // Proceed only if there are changes to save
+      if (movedNodes.length > 0 || newConnections.length > 0) {
         try {
-          // --- 1. Create promises for saving new connections ---
+          // --- 2. Create promises for saving new connections (this is unchanged) ---
           const connectionPromises = newConnections.map((conn) => {
             const newParentId = parseInt(conn.source, 10);
             const sourceNodeId = parseInt(conn.target, 10);
             return copyNodeInfo(sourceNodeId, newParentId);
           });
 
-          // --- 2. Create promises for saving changed positions ---
-          const positionSavePromises = Array.from(
-            positionChanges.entries()
-          ).map(([nodeId, position]) => {
-            const nodeToUpdate = nodes.find((n) => n.id === nodeId);
-            if (!nodeToUpdate) return null;
-
+          // --- 3. Create promises for saving moved nodes' positions ---
+          const positionSavePromises = movedNodes.map((node) => {
             const payload = {
-              original_name: nodeToUpdate.data.name,
-              sw_id: nodeToUpdate.data.sw_id,
-              position_x: position.x,
-              position_y: position.y,
+              original_name: node.data.name,
+              sw_id: node.data.sw_id,
+              position_x: node.position.x,
+              position_y: node.position.y,
               position_mode: 1, // Mark as manually positioned
             };
             return saveNodeInfo(payload, true);
           });
 
-          // --- 3. Run all save operations in parallel ---
-          await Promise.all([
-            ...connectionPromises,
-            ...positionSavePromises.filter(Boolean),
-          ]);
+          // --- 4. Run all save operations in parallel ---
+          await Promise.all([...connectionPromises, ...positionSavePromises]);
 
-          // --- 4. Clear pending changes on success ---
-          setPositionChanges(new Map());
+          // --- 5. Clear pending changes on success and reload the diagram ---
           setNewConnections([]);
-
-          // --- 5. Reload the diagram ---
           const currentOlt = selectedOlt;
           setSelectedOlt(null);
           setTimeout(() => setSelectedOlt(currentOlt), 50);
@@ -195,7 +202,7 @@ const NetworkDiagram = () => {
     }
     // Toggle edit mode
     setIsEditMode((prevMode) => !prevMode);
-  }, [isEditMode, positionChanges, newConnections, nodes, selectedOlt]);
+  }, [isEditMode, newConnections, selectedOlt, reactFlowInstance]);
 
   const onEdgeUpdateStart = useCallback(() => {
     edgeUpdateSuccessful.current = false;
@@ -240,6 +247,12 @@ const NetworkDiagram = () => {
   const onPaneClick = useCallback(() => setContextMenu(null), []);
   const onNodeClick = useCallback(
     (event, node) => {
+      // If we are in edit mode, do nothing. This allows dragging to work without being interrupted.
+      if (isEditMode) {
+        return;
+      }
+
+      // Your existing collapse/expand logic will now only run when NOT in edit mode.
       setNodes((nds) =>
         nds.map((n) =>
           n.id === node.id
@@ -248,7 +261,7 @@ const NetworkDiagram = () => {
         )
       );
     },
-    [setNodes]
+    [setNodes, isEditMode] // <-- Add isEditMode to the dependency array
   );
   const handleAction = (action, { id }) => {
     setContextMenu(null);
@@ -780,6 +793,7 @@ const NetworkDiagram = () => {
 
           setNodes(initialNodes);
           setEdges(initialEdges);
+          initialNodesRef.current = initialNodes;
         } else {
           setNodes([]);
           setEdges([]);
@@ -807,7 +821,6 @@ const NetworkDiagram = () => {
         nodesConnectable={isEditMode}
         edgesUpdatable={isEditMode}
         panOnDrag={!isEditMode}
-        onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
         onPaneContextMenu={onPaneContextMenu}
         onNodeContextMenu={onNodeContextMenu}
@@ -816,6 +829,8 @@ const NetworkDiagram = () => {
         onEdgeUpdateStart={onEdgeUpdateStart}
         onEdgeUpdateEnd={onEdgeUpdateEnd}
         onNodeClick={onNodeClick}
+        onSelectionChange={onSelectionChange} // <-- 3. ADD THIS PROP
+        selectionOnDrag={true} // <-- 4. ADD THIS PROP
         nodeTypes={nodeTypes}
         fitView
       >
