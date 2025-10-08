@@ -19,6 +19,27 @@ export const saveNodeInfo = async (updatedInfo, muted = false) => {
   }
 };
 
+
+export const resetPositions = async (payload) => {
+  try {
+    const response = await api.post(`/positions/reset`, payload);
+    if (response.status === 200) {
+      toast.success("Positions reset successfully!");
+    } else {
+      toast.error("Failed to reset positions.");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Error resetting positions:", error);
+    toast.error(
+      error.response?.data?.detail ||
+        "An error occurred while resetting positions."
+    );
+    throw error;
+  }
+};
+
+
 export const insertNode = async (payload) => {
   try {
     const response = await api.post(`/node/insert`, payload);

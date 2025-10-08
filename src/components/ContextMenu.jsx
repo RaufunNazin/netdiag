@@ -8,11 +8,11 @@ const ContextMenu = ({ id, top, left, onAction, ...props }) => {
       case "node":
         return [
           { label: "Edit Device", action: "editNode" },
+          { label: "Reset Position", action: "resetPosition" }, // <-- ADD THIS LINE
           { label: "Delete Device", action: "deleteNode" },
         ];
       case "edge":
         return [
-          { label: "Rename Connection", action: "renameEdge" },
           { label: "Insert Device on Line", action: "insertNode" },
           { label: "Delete Connection", action: "deleteEdge" },
         ];

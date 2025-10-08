@@ -28,6 +28,7 @@ import {
   deleteEdge,
   createNode,
   insertNode,
+  resetPositions,
 } from "../utils/graphUtils";
 
 import EditFab from "../components/ui/EditFab.jsx";
@@ -41,6 +42,9 @@ import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import OltSelector from "../components/ui/OltSelector.jsx";
+import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
+
+import { toast } from "react-toastify";
 
 const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8; // Renamed from NODES_PER_ROW
@@ -99,6 +103,37 @@ const NetworkDiagram = () => {
         return "default";
     }
   };
+
+  // Add this new handler function
+  const handleResetPositions = useCallback(
+    async (scope, nodeId = null) => {
+      if (!selectedOlt) {
+        toast.warn("Please select an OLT first.");
+        return;
+      }
+      setLoading(true);
+      try {
+        const payload = {
+          sw_id: parseInt(selectedOlt, 10),
+          // If a nodeId is provided, scope is irrelevant for the API
+          // but we still structure the payload cleanly.
+          scope: nodeId ? null : scope,
+          node_id: nodeId ? parseInt(nodeId, 10) : null,
+        };
+        await resetPositions(payload);
+
+        // Reload the diagram to show the re-calculated layout
+        const currentOlt = selectedOlt;
+        setSelectedOlt(null); // Trigger the useEffect
+        setTimeout(() => setSelectedOlt(currentOlt), 50);
+      } catch (error) {
+        console.error("Failed to reset positions:", error);
+        // Toast is handled in graphUtils, so just stop loading indicator
+        setLoading(false);
+      }
+    },
+    [selectedOlt]
+  );
 
   const getSortableNumbers = (label = "") => {
     const matches = label.match(/\d+/g); // Finds all sequences of digits
@@ -299,6 +334,9 @@ const NetworkDiagram = () => {
         }
         break;
       }
+      case "resetPosition": // <-- ADD THIS CASE
+        handleResetPositions(null, id); // scope is null, pass the node id
+        break;
     }
   };
 
@@ -855,6 +893,10 @@ const NetworkDiagram = () => {
           <EditFab isEditing={isEditMode} onClick={handleFabClick} />
           <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
           <HelpBox />
+          <ResetPositionsFab
+            onReset={handleResetPositions}
+            disabled={loading || isEditMode}
+          />
         </>
       )}
 
