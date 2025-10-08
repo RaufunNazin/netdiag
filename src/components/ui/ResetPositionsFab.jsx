@@ -17,7 +17,8 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004 12m0 8h5.582m.582-8a8.001 8.001 0 0015.356-2M4 12v5h.582m15.356-2A8.001 8.001 0 004 12m0 8h5.582m.582-8a8.001 8.001 0 0015.356-2" />
+      <polyline points="1 4 1 10 7 10"></polyline>
+      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
     </svg>
   );
 
@@ -66,7 +67,7 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="p-3 rounded-full shadow-lg text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="p-3 rounded-full shadow-lg text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rotate-90 hover:rotate-0"
         title="Reset Positions"
       >
         {resetIcon}
