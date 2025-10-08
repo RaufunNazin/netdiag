@@ -42,9 +42,9 @@ const initialState = {
   cable_length: "",
   cable_color: "",
   cable_desc: "",
-  vlan: "",
-  lat1: "",
-  long1: "",
+  vlan: null,
+  lat1: null,
+  long1: null,
   remarks: "",
 };
 
@@ -81,7 +81,7 @@ const ColorPicker = ({ selectedColor, onChange }) => {
             className="w-5 h-5 rounded-full mr-3"
             style={{
               backgroundColor:
-                CORE_COLORS_DATA.find((color) => color.name === selectedColor)
+                CORE_COLORS_DATA.find((color) => color.hex === selectedColor)
                   ?.hex || "#FFFFFF",
             }}
           />
@@ -95,7 +95,7 @@ const ColorPicker = ({ selectedColor, onChange }) => {
             <button
               key={color.name}
               type="button"
-              onClick={() => handleColorSelect(color.name)}
+              onClick={() => handleColorSelect(color.hex)}
               aria-label={color.name}
               className={`p-2 rounded-md text-sm text-center font-semibold hover:opacity-80 transition-opacity ${color.text}`}
               style={{ backgroundColor: color.hex }}

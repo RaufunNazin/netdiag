@@ -3,151 +3,26 @@ import { Handle, Position } from "reactflow";
 
 // --- New, expanded icon set ---
 const ICONS = {
-  // OLT Icon
-  olt: (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-      <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-      <line x1="6" y1="6" x2="6.01" y2="6"></line>
-      <line x1="10" y1="6" x2="10.01" y2="6"></line>
-      <line x1="6" y1="18" x2="6.01" y2="18"></line>
-      <line x1="10" y1="18" x2="10.01" y2="18"></line>
-    </svg>
-  ),
-  // PON Port Icon
-  pon: (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 20h.01"></path>
-      <path d="M8.5 20a4 4 0 0 1 7 0"></path>
-      <path d="M5 20a8 8 0 0 1 14 0"></path>
-      <path d="M12 4v12"></path>
-    </svg>
-  ),
-  // Splitter Icon
-  splitter: (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M16 3h5v5"></path>
-      <path d="M8 3H3v5"></path>
-      <path d="M12 22V11"></path>
-      <path d="m21 8-9 9-9-9"></path>
-    </svg>
-  ),
-  // TJ (Transition Joint) Icon
-  tj: (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z"></path>
-      <path d="M18 9h2a2 2 0 0 1 2 2v9l-4-4h-2a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"></path>
-    </svg>
-  ),
-  // Unmanaged/Managed Switch Icon
+  // OLT
+  olt: <img src="/olt.png" alt="OLT" width="24" height="24" />,
+  // PON Port
+  pon: <img src="/pon.png" alt="PON Port" width="24" height="24" />,
+  // Splitter
+  splitter: <img src="/splitter.png" alt="Splitter" width="24" height="24" />,
+  // TJ (Transition Joint)
+  tj: <img src="/tj.png" alt="Transition Joint" width="24" height="24" />,
+  // Unmanaged Switch
   uswitch: (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="20" height="8" x="2" y="14" rx="2"></rect>
-      <path d="M6 18h.01"></path>
-      <path d="M10 18h.01"></path>
-      <path d="M14 18h.01"></path>
-      <path d="M18 18h.01"></path>
-      <path d="M12 2v8"></path>
-      <path d="m9 7 3-3 3 3"></path>
-    </svg>
+    <img src="/uswitch.png" alt="Unmanaged Switch" width="24" height="24" />
   ),
-  // Same icon for switches, can be changed if needed
+  // Managed Switch
   mswitch: (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="20" height="8" x="2" y="14" rx="2"></rect>
-      <path d="M6 18h.01"></path>
-      <path d="M10 18h.01"></path>
-      <path d="M14 18h.01"></path>
-      <path d="M18 18h.01"></path>
-      <path d="M12 2v8"></path>
-      <path d="m9 7 3-3 3 3"></path>
-    </svg>
+    <img src="/mswitch.png" alt="Managed Switch" width="24" height="24" />
   ),
-  // ONU Icon
-  onu: (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-      <polyline points="9 22 9 12 15 12 15 22"></polyline>
-    </svg>
-  ),
-  // Fallback Icon
-  default: (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-    </svg>
-  ),
+  // ONU
+  onu: <img src="/onu.png" alt="ONU" width="24" height="24" />,
+  // Fallback
+  default: <img src="/default.png" alt="Default" width="24" height="24" />,
 };
 
 const CustomNode = ({ data, isConnectable }) => {
@@ -157,10 +32,12 @@ const CustomNode = ({ data, isConnectable }) => {
   if (data.node_type === "ONU") {
     if (data.status === 1) {
       // Status: 1 = UP
-      statusBorderClass = "border-r-4 border-t-4 border-r-green-500 border-t-green-500";
+      statusBorderClass =
+        "border-r-4 border-t-4 border-r-green-500 border-t-green-500";
     } else if (data.status === 2) {
       // Status: 2 = DOWN
-      statusBorderClass = "border-r-4 border-t-4 border-r-red-500 border-t-red-500";
+      statusBorderClass =
+        "border-r-4 border-t-4 border-r-red-500 border-t-red-500";
     }
   }
 
