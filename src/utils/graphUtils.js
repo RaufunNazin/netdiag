@@ -96,17 +96,6 @@ export const copyNodeInfo = async (sourceNodeId, newParentId) => {
   }
 };
 
-// NEW function to fetch the OLT list
-export const fetchOlts = async () => {
-  try {
-    const response = await api.get("/olts");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching OLT list:", error);
-    throw error;
-  }
-};
-
 export const fetchData = async (swId) => {
   if (!swId) return []; // Don't fetch if no ID is provided
   try {

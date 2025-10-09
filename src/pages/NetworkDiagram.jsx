@@ -17,9 +17,8 @@ import ReactFlow, {
   reconnectEdge,
 } from "reactflow";
 import "reactflow/dist/style.css";
-
+import { FaChevronLeft } from "react-icons/fa6";
 import {
-  fetchOlts,
   fetchData,
   getDescendants,
   saveNodeInfo,
@@ -41,7 +40,6 @@ import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
-import OltSelector from "../components/ui/OltSelector.jsx";
 import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
 
 import { toast } from "react-toastify";
@@ -62,11 +60,10 @@ const NetworkDiagram = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedNodes, setSelectedNodes] = useState([]); // <-- 1. ADD THIS STATE
+  const [selectedNodes, setSelectedNodes] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [isEmpty, setIsEmpty] = useState(false);
-  const [olts, setOlts] = useState([]); // For the dropdown list
-  const [selectedOlt, setSelectedOlt] = useState(null); // The chosen OLT ID
+  const [selectedOlt, setSelectedOlt] = useState(5303);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [addModal, setAddModal] = useState({
     isOpen: false,
@@ -504,22 +501,6 @@ const NetworkDiagram = () => {
     };
   }, [nodes, edges]);
 
-  // 1. Fetch the list of OLTs ONCE on initial mount
-  useEffect(() => {
-    if (localStorage.getItem("selectedOlt")) {
-      setSelectedOlt(localStorage.getItem("selectedOlt"));
-    }
-    const getOltList = async () => {
-      try {
-        const oltList = await fetchOlts();
-        setOlts(oltList || []);
-      } catch (error) {
-        console.error("Failed to load OLT list.", error);
-      }
-    };
-    getOltList();
-  }, []); // Empty array ensures this runs only once
-
   useEffect(() => {
     if (!selectedOlt) {
       setNodes([]);
@@ -867,8 +848,8 @@ const NetworkDiagram = () => {
         onEdgeUpdateStart={onEdgeUpdateStart}
         onEdgeUpdateEnd={onEdgeUpdateEnd}
         onNodeClick={onNodeClick}
-        onSelectionChange={onSelectionChange} // <-- 3. ADD THIS PROP
-        selectionOnDrag={true} // <-- 4. ADD THIS PROP
+        onSelectionChange={onSelectionChange}
+        selectionOnDrag={true}
         nodeTypes={nodeTypes}
         fitView
       >
@@ -881,12 +862,15 @@ const NetworkDiagram = () => {
       {loading && <LoadingOverlay />}
       {!loading && isEmpty && <EmptyState />}
 
-      <OltSelector
-        olts={olts}
-        selectedOlt={selectedOlt}
-        onChange={setSelectedOlt}
-        isLoading={loading}
-      />
+      <div className="absolute top-4 left-4 z-10 text-gray-700">
+        <button
+          className="cursor-pointer"
+          title={"Go Back"}
+          onClick={() => window.history.back()}
+        >
+          <FaChevronLeft />
+        </button>
+      </div>
 
       {!isEmpty && (
         <>

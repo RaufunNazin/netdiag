@@ -6,8 +6,8 @@ const HelpBox = () => {
     question: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -22,8 +22,8 @@ const HelpBox = () => {
     cross: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -74,7 +74,7 @@ const HelpBox = () => {
       <div className="flex justify-end">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="mt-2 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200"
+          className="mt-2 bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200"
         >
           {isOpen ? icons.cross : icons.question}
         </button>
