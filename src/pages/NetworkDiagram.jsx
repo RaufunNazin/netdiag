@@ -576,7 +576,7 @@ const NetworkDiagram = () => {
                 source: String(item.parent_id),
                 target: targetId,
                 markerEnd: { type: MarkerType.ArrowClosed },
-                style: { stroke: item.cable_color || "#b1b1b1" },
+                style: { stroke: item.cable_color || "#1e293b" },
               });
             }
           }

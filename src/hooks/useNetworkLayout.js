@@ -49,7 +49,7 @@ const useNetworkLayout = () => {
             sourceHandle: "right",
             targetHandle: "left",
             markerEnd: { type: MarkerType.ArrowClosed },
-            style: { stroke: item.cable_color || "#b1b1b7" },
+            style: { stroke: item.cable_color || "#1e293b" },
           }));
 
         // Step 2: Get base horizontal layout from Dagre
