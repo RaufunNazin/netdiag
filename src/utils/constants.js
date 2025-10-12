@@ -1,6 +1,21 @@
-const LINK_TYPES = ["Fiber Optic", "Ethernet", "Wireless"];
-const DEVICE_TYPES = ["", "Splitter", "TJ", "ONU"];
-const BRAND_OPTIONS = ["", "Nokia", "Huawei", "Cisco", "VSOL", "Other"];
+const LINK_TYPES = ["Fiber Optic", "UTP"];
+const NODE_TYPES = [
+  "",
+  "AP",
+  "Bamboo",
+  "Managed Switch",
+  "OLT",
+  "ONU",
+  "PON",
+  "Router",
+  "Splitter",
+  "TJ",
+  "Unmanaged Switch",
+  "Other",
+];
+
+const DEVICE_TYPES = ["EPON", "GPON", "XPON"];
+
 const CORE_COLORS_DATA = [
   { name: "Blue", hex: "#3b82f6", text: "text-white" },
   { name: "Orange", hex: "#f97316", text: "text-white" },
@@ -19,8 +34,8 @@ const SPLIT_RATIOS = ["", "2", "4", "8", "16", "32", "64"];
 
 export {
   LINK_TYPES,
+  NODE_TYPES,
   DEVICE_TYPES,
-  BRAND_OPTIONS,
   CORE_COLORS_DATA,
   SPLIT_RATIOS,
 };

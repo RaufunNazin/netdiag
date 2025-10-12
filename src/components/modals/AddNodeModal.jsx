@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   LINK_TYPES,
+  NODE_TYPES,
   DEVICE_TYPES,
-  BRAND_OPTIONS,
   CORE_COLORS_DATA,
   SPLIT_RATIOS,
 } from "../../utils/constants";
-
+import SegmentedInput from "../ui/SegmentedInput";
 // --- LocalStorage Key ---
 const STORAGE_KEY = "addNodeFormData";
 
@@ -73,7 +73,7 @@ const ColorPicker = ({ selectedColor, onChange }) => {
             }}
           />
           {CORE_COLORS_DATA.find((color) => color.hex === selectedColor)
-            ?.name || "Select Cable Color"}
+            ?.name || <span className="text-gray-500">Select Cable Color</span>}
         </span>
         <span className="text-slate-500">▼</span>
       </button>
@@ -189,6 +189,7 @@ const AddNodeModal = ({
                 value={formData.name}
                 onChange={handleChange}
                 className="input-style"
+                placeholder="Enter node name"
               />
             </div>
             <div>
@@ -208,7 +209,7 @@ const AddNodeModal = ({
             </div>
             <div>
               <label className="label-style">
-                Device <span className="text-red-500">*</span>
+                Node Type <span className="text-red-500">*</span>
               </label>
               <select
                 name="node_type"
@@ -216,14 +217,13 @@ const AddNodeModal = ({
                 onChange={handleChange}
                 className="input-style"
               >
-                {DEVICE_TYPES.map((type) => (
+                {NODE_TYPES.map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>
                 ))}
               </select>
             </div>
-
             {formData.node_type && (
               <>
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
@@ -231,34 +231,15 @@ const AddNodeModal = ({
                 </h4>
                 <div>
                   <label className="label-style">Brand</label>
-                  <select
+                  <input
+                    type="text"
                     name="brand"
                     value={formData.brand}
                     onChange={handleChange}
                     className="input-style"
-                  >
-                    {BRAND_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Enter brand name"
+                  />
                 </div>
-                {formData.brand === "Other" ? (
-                  <div>
-                    <label className="label-style">Custom Brand</label>
-                    <input
-                      type="text"
-                      name="brand_other"
-                      value={formData.brand_other}
-                      onChange={handleChange}
-                      className="input-style"
-                      placeholder="Enter brand name"
-                    />
-                  </div>
-                ) : (
-                  <div />
-                )}
                 <div>
                   <label className="label-style">Model</label>
                   <input
@@ -267,6 +248,7 @@ const AddNodeModal = ({
                     value={formData.model}
                     onChange={handleChange}
                     className="input-style"
+                    placeholder="Enter model name"
                   />
                 </div>
                 <div>
@@ -277,37 +259,60 @@ const AddNodeModal = ({
                     value={formData.serial_no}
                     onChange={handleChange}
                     className="input-style"
+                    placeholder="Enter serial number"
                   />
                 </div>
                 {formData.node_type === "ONU" && (
                   <>
                     <div>
-                      <label className="label-style">MAC</label>
-                      <input
-                        type="text"
-                        name="mac"
-                        value={formData.mac}
+                      <label className="label-style">Device Type</label>
+                      <select
+                        name="device_type"
+                        value={formData.device_type}
                         onChange={handleChange}
                         className="input-style"
-                        placeholder="--:--:--:--:--:--"
+                      >
+                        {DEVICE_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label-style">MAC</label>
+                      <SegmentedInput
+                        count={6}
+                        maxLength={2}
+                        separator=":"
+                        value={formData.mac}
+                        onChange={(macValue) =>
+                          handleChange({
+                            target: { name: "mac", value: macValue },
+                          })
+                        }
+                        inputMode="text"
                       />
                     </div>
                     <div>
                       <label className="label-style">IP</label>
-                      <input
-                        type="text"
-                        name="ip"
+                      <SegmentedInput
+                        count={4}
+                        maxLength={3}
+                        separator="."
                         value={formData.ip}
-                        onChange={handleChange}
-                        className="input-style"
-                        placeholder="XXX.XXX.XXX.XXX"
+                        onChange={(ipValue) =>
+                          handleChange({
+                            target: { name: "ip", value: ipValue },
+                          })
+                        }
+                        inputMode="numeric"
                       />
                     </div>
                   </>
                 )}
               </>
             )}
-
             {formData.node_type === "Splitter" && (
               <>
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
@@ -322,6 +327,7 @@ const AddNodeModal = ({
                     value={formData.split_ratio}
                     onChange={handleChange}
                     className="input-style"
+                    placeholder="Select split ratio"
                   >
                     {SPLIT_RATIOS.map((ratio) => (
                       <option key={ratio} value={ratio}>
@@ -338,24 +344,46 @@ const AddNodeModal = ({
                     value={formData.split_group}
                     onChange={handleChange}
                     className="input-style"
+                    placeholder="Enter split group"
                   />
                 </div>
               </>
             )}
-
             {formData.node_type && (
-              <>
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
                   Cable Detail
                 </h4>
-                <div className="md:col-span-2">
-                  <label className="label-style">Cable ID</label>
-                  <input
-                    type="text"
-                    name="cable_id"
-                    value={formData.cable_id}
-                    onChange={handleChange}
-                    className="input-style"
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
+                  <div>
+                    <label className="label-style">Cable ID</label>
+                    <input
+                      type="text"
+                      name="cable_id"
+                      value={formData.cable_id}
+                      onChange={handleChange}
+                      className="input-style"
+                      placeholder="Enter cable ID"
+                    />
+                  </div>
+                  <div>
+                    <label className="label-style">Length (m)</label>
+                    <input
+                      type="number"
+                      name="cable_length"
+                      value={formData.cable_length}
+                      onChange={handleChange}
+                      className="input-style"
+                      placeholder="Enter cable length (meters)"
+                    />
+                  </div>
+                  <ColorPicker
+                    selectedColor={formData.cable_color}
+                    onChange={(color) =>
+                      handleChange({
+                        target: { name: "cable_color", value: color },
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -366,6 +394,7 @@ const AddNodeModal = ({
                     value={formData.cable_start}
                     onChange={handleChange}
                     className="input-style"
+                    placeholder="Enter start unit"
                   />
                 </div>
                 <div>
@@ -376,26 +405,9 @@ const AddNodeModal = ({
                     value={formData.cable_end}
                     onChange={handleChange}
                     className="input-style"
+                    placeholder="Enter end unit"
                   />
                 </div>
-                <div>
-                  <label className="label-style">Length (m)</label>
-                  <input
-                    type="number"
-                    name="cable_length"
-                    value={formData.cable_length}
-                    onChange={handleChange}
-                    className="input-style"
-                  />
-                </div>
-                <ColorPicker
-                  selectedColor={formData.cable_color}
-                  onChange={(color) =>
-                    handleChange({
-                      target: { name: "cable_color", value: color },
-                    })
-                  }
-                />
                 <div className="md:col-span-2">
                   <label className="label-style">Description</label>
                   <input
@@ -404,23 +416,17 @@ const AddNodeModal = ({
                     value={formData.cable_desc}
                     onChange={handleChange}
                     className="input-style"
+                    placeholder="Enter cable description"
                   />
                 </div>
-              </>
+              </div>
             )}
-
             {formData.node_type && (
-              <>
-                <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
+                <h4 className="md:col-span-3 text-lg font-bold text-slate-700 mt-6">
                   Other Info
                 </h4>
-                <div
-                  className={`md:col-span-2 grid grid-cols-1 ${
-                    formData.node_type === "ONU"
-                      ? "md:grid-cols-3"
-                      : "md:grid-cols-2"
-                  } gap-x-8 gap-y-6`}
-                >
+                <div className="flex flex-col gap-y-6">
                   {formData.node_type === "ONU" && (
                     <div>
                       <label className="label-style">VLAN</label>
@@ -430,6 +436,7 @@ const AddNodeModal = ({
                         value={formData.vlan}
                         onChange={handleChange}
                         className="input-style"
+                        placeholder="Enter VLAN"
                       />
                     </div>
                   )}
@@ -441,6 +448,7 @@ const AddNodeModal = ({
                       value={formData.lat1}
                       onChange={handleChange}
                       className="input-style"
+                      placeholder="Enter latitude"
                     />
                   </div>
                   <div>
@@ -451,6 +459,7 @@ const AddNodeModal = ({
                       value={formData.long1}
                       onChange={handleChange}
                       className="input-style"
+                      placeholder="Enter longitude"
                     />
                   </div>
                 </div>
@@ -462,9 +471,10 @@ const AddNodeModal = ({
                     onChange={handleChange}
                     className="input-style"
                     rows="3"
+                    placeholder="Enter any remarks"
                   ></textarea>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
