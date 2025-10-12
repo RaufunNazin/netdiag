@@ -48,13 +48,13 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
         <div className="absolute bottom-full mb-2 w-48 bg-white rounded-md shadow-lg py-1">
           <ul className="list-none p-0 m-0">
             <li
-              className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
+              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               onClick={() => handleResetClick("all")}
             >
               Reset All Positions
             </li>
             <li
-              className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
+              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               onClick={() => handleResetClick("manual")}
             >
               Reset Manual Positions

@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+button {
+  cursor: pointer;
+}
+
 /* In your global CSS file (e.g., index.css) */
 
 /* Style for view-only mode */

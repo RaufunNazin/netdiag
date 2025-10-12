@@ -39,7 +39,7 @@ const SearchControl = ({ nodes, onNodeFound }) => {
             <li
               key={node.id}
               onClick={() => handleSelect(node.id)}
-              className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+              className="p-2 hover:bg-gray-100 border-b"
             >
               {node.data.label}
             </li>

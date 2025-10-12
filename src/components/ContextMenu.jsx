@@ -8,7 +8,7 @@ const ContextMenu = ({ id, top, left, onAction, ...props }) => {
       case "node":
         return [
           { label: "Edit Device", action: "editNode" },
-          { label: "Reset Position", action: "resetPosition" }, // <-- ADD THIS LINE
+          { label: "Reset Position", action: "resetPosition" },
           { label: "Delete Device", action: "deleteNode" },
         ];
       case "edge":
@@ -31,7 +31,7 @@ const ContextMenu = ({ id, top, left, onAction, ...props }) => {
           <li
             key={action}
             onClick={() => onAction(action, { id })}
-            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+            className="px-4 py-2 hover:bg-gray-100"
           >
             {label}
           </li>

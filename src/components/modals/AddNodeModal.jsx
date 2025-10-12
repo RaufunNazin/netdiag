@@ -1,24 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-
-// --- Predefined options for dropdowns ---
-const LINK_TYPES = ["Fiber Optic", "Ethernet", "Wireless"];
-const DEVICE_TYPES = ["", "Splitter", "TJ", "ONU"];
-const BRAND_OPTIONS = ["", "Nokia", "Huawei", "Cisco", "VSOL", "Other"];
-const CORE_COLORS_DATA = [
-  { name: "Blue", hex: "#3b82f6", text: "text-white" },
-  { name: "Orange", hex: "#f97316", text: "text-white" },
-  { name: "Green", hex: "#22c55e", text: "text-white" },
-  { name: "Brown", hex: "#a16207", text: "text-white" },
-  { name: "Slate", hex: "#64748b", text: "text-white" },
-  { name: "White", hex: "#f8fafc", text: "text-slate-800" },
-  { name: "Red", hex: "#ef4444", text: "text-white" },
-  { name: "Black", hex: "#1e293b", text: "text-white" },
-  { name: "Yellow", hex: "#facc15", text: "text-slate-800" },
-  { name: "Violet", hex: "#8b5cf6", text: "text-white" },
-  { name: "Rose", hex: "#f43f5e", text: "text-white" },
-  { name: "Aqua", hex: "#22d3ee", text: "text-slate-800" },
-];
-const SPLIT_RATIOS = ["", "2", "4", "8", "16", "32", "64"];
+import {
+  LINK_TYPES,
+  DEVICE_TYPES,
+  BRAND_OPTIONS,
+  CORE_COLORS_DATA,
+  SPLIT_RATIOS,
+} from "../../utils/constants";
 
 // --- LocalStorage Key ---
 const STORAGE_KEY = "addNodeFormData";
@@ -85,7 +72,8 @@ const ColorPicker = ({ selectedColor, onChange }) => {
                   ?.hex || "#FFFFFF",
             }}
           />
-          {selectedColor || "Select Cable Color"}
+          {CORE_COLORS_DATA.find((color) => color.hex === selectedColor)
+            ?.name || "Select Cable Color"}
         </span>
         <span className="text-slate-500">▼</span>
       </button>
@@ -163,7 +151,9 @@ const AddNodeModal = ({
           ? parseInt(formData.cable_start, 10)
           : null,
         cable_end: formData.cable_end ? parseInt(formData.cable_end, 10) : null,
-        cable_length: formData.cable_length ? parseInt(formData.cable_length, 10) : null,
+        cable_length: formData.cable_length
+          ? parseInt(formData.cable_length, 10)
+          : null,
       };
 
       if (finalObject.brand === "Other") {

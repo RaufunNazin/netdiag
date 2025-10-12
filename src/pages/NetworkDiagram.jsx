@@ -37,6 +37,7 @@ import HelpBox from "../components/ui/HelpBox.jsx";
 import SearchControl from "../components/ui/SearchControl.jsx";
 import AddNodeModal from "../components/modals/AddNodeModal.jsx";
 import EditNodeModal from "../components/modals/EditNodeModal.jsx";
+import ConfirmResetModal from "../components/modals/ConfirmResetModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
@@ -45,14 +46,12 @@ import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
 import { toast } from "react-toastify";
 
 const nodeTypes = { custom: CustomNode };
-const NODES_PER_COLUMN = 8; // Renamed from NODES_PER_ROW
+const NODES_PER_COLUMN = 8;
 const GRID_X_SPACING = 300;
 const GRID_Y_SPACING = 80;
 const PADDING_BETWEEN_GRIDS = 50;
 
 const NetworkDiagram = () => {
-  // All of your state and logic from the original component goes here...
-  // (useState, useCallback, useEffect, etc.)
   const reactFlowWrapper = useRef(null);
   const initialNodesRef = useRef([]);
   const reactFlowInstance = useReactFlow();
@@ -75,11 +74,16 @@ const NetworkDiagram = () => {
     id: null,
     type: "",
   });
-  const [newConnections, setNewConnections] = useState([]); // <-- ADD THIS LINE
+  const [resetConfirmModal, setResetConfirmModal] = useState({
+    isOpen: false,
+    scope: null,
+    nodeId: null,
+    nodeName: "", // <-- ADD THIS LINE
+  });
+  const [newConnections, setNewConnections] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
   const edgeUpdateSuccessful = useRef(true);
 
-  // Add this helper function inside your NetworkDiagram component, before the return statement
   const getNodeIcon = (nodeType) => {
     switch (nodeType) {
       case "OLT":
@@ -101,7 +105,6 @@ const NetworkDiagram = () => {
     }
   };
 
-  // Add this new handler function
   const handleResetPositions = useCallback(
     async (scope, nodeId = null) => {
       if (!selectedOlt) {
@@ -112,25 +115,28 @@ const NetworkDiagram = () => {
       try {
         const payload = {
           sw_id: parseInt(selectedOlt, 10),
-          // If a nodeId is provided, scope is irrelevant for the API
-          // but we still structure the payload cleanly.
           scope: nodeId ? null : scope,
           node_id: nodeId ? parseInt(nodeId, 10) : null,
         };
         await resetPositions(payload);
 
-        // Reload the diagram to show the re-calculated layout
         const currentOlt = selectedOlt;
-        setSelectedOlt(null); // Trigger the useEffect
+        setSelectedOlt(null);
         setTimeout(() => setSelectedOlt(currentOlt), 50);
       } catch (error) {
         console.error("Failed to reset positions:", error);
-        // Toast is handled in graphUtils, so just stop loading indicator
         setLoading(false);
       }
     },
     [selectedOlt]
   );
+
+  // --- 3. CREATE A HANDLER FOR THE CONFIRMATION ACTION ---
+  const handleConfirmReset = useCallback(async () => {
+    const { scope, nodeId } = resetConfirmModal;
+    await handleResetPositions(scope, nodeId);
+    setResetConfirmModal({ isOpen: false, scope: null, nodeId: null });
+  }, [resetConfirmModal, handleResetPositions]);
 
   const getSortableNumbers = (label = "") => {
     const matches = label.match(/\d+/g); // Finds all sequences of digits
@@ -331,9 +337,16 @@ const NetworkDiagram = () => {
         }
         break;
       }
-      case "resetPosition": // <-- ADD THIS CASE
-        handleResetPositions(null, id); // scope is null, pass the node id
+      case "resetPosition": {
+        const nodeToReset = nodes.find((n) => n.id === id);
+        setResetConfirmModal({
+          isOpen: true,
+          scope: null,
+          nodeId: id,
+          nodeName: nodeToReset ? nodeToReset.data.label : "", // Find and store the name
+        });
         break;
+      }
     }
   };
 
@@ -864,7 +877,7 @@ const NetworkDiagram = () => {
 
       <div className="absolute top-4 left-4 z-10 text-gray-700">
         <button
-          className="cursor-pointer"
+          className=""
           title={"Go Back"}
           onClick={() => window.history.back()}
         >
@@ -878,7 +891,9 @@ const NetworkDiagram = () => {
           <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
           <HelpBox />
           <ResetPositionsFab
-            onReset={handleResetPositions}
+            onReset={(scope) =>
+              setResetConfirmModal({ isOpen: true, scope, nodeId: null })
+            }
             disabled={loading || isEditMode}
           />
         </>
@@ -905,6 +920,19 @@ const NetworkDiagram = () => {
         onClose={() => setDeleteModal({ isOpen: false, id: null, type: "" })}
         onConfirm={handleConfirmDelete}
         itemType={deleteModal.type}
+      />
+      <ConfirmResetModal
+        isOpen={resetConfirmModal.isOpen}
+        onClose={() =>
+          setResetConfirmModal({
+            isOpen: false,
+            scope: null,
+            nodeId: null,
+            nodeName: "",
+          })
+        }
+        onConfirm={handleConfirmReset}
+        itemInfo={resetConfirmModal.nodeName}
       />
     </div>
   );
