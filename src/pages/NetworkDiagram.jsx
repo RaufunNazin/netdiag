@@ -86,22 +86,30 @@ const NetworkDiagram = () => {
 
   const getNodeIcon = (nodeType) => {
     switch (nodeType) {
+      case "AP":
+        return "ap";
+      case "Bamboo":
+        return "bamboo";
+      case "Managed Switch":
+        return "mswitch";
       case "OLT":
         return "olt";
+      case "ONU":
+        return "onu";
       case "PON":
         return "pon";
-      case "SPLITTER":
+      case "Router":
+        return "router";
+      case "Splitter":
         return "splitter";
       case "TJ":
         return "tj";
-      case "uSWITCH":
+      case "Unmanaged Switch":
         return "uswitch";
-      case "mSWITCH":
-        return "mswitch";
-      case "ONU":
-        return "onu";
+      case "Other":
+        return "other";
       default:
-        return "default";
+        return "other";
     }
   };
 

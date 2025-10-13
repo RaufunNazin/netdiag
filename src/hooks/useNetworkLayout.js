@@ -30,12 +30,6 @@ const useNetworkLayout = () => {
           type: "custom",
           data: {
             label: item.name || item.mac || `Node ${item.id}`,
-            icon:
-              item.node_type === "OLT"
-                ? "input"
-                : item.node_type === "PON"
-                ? "default"
-                : "output",
           },
           position: { x: 0, y: 0 },
         }));

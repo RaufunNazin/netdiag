@@ -3,26 +3,45 @@ import { Handle, Position } from "reactflow";
 
 // --- New, expanded icon set ---
 const ICONS = {
-  // OLT
-  olt: <img src="/olt.png" alt="OLT" width="24" height="24" />,
-  // PON Port
-  pon: <img src="/pon.png" alt="PON Port" width="24" height="24" />,
-  // Splitter
-  splitter: <img src="/splitter.png" alt="Splitter" width="24" height="24" />,
-  // TJ (Transition Joint)
-  tj: <img src="/tj.png" alt="Transition Joint" width="24" height="24" />,
-  // Unmanaged Switch
-  uswitch: (
-    <img src="/uswitch.png" alt="Unmanaged Switch" width="24" height="24" />
-  ),
+  // Access Point
+  ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
+
+  // Bamboo
+  bamboo: <img src="/bamboo.png" alt="Bamboo" width="24" height="24" />,
+
   // Managed Switch
   mswitch: (
     <img src="/mswitch.png" alt="Managed Switch" width="24" height="24" />
   ),
+
+  // Unmanaged Switch
+  uswitch: (
+    <img src="/uswitch.png" alt="Unmanaged Switch" width="24" height="24" />
+  ),
+
+  // OLT
+  olt: <img src="/olt.png" alt="OLT" width="24" height="24" />,
+
   // ONU
   onu: <img src="/onu.png" alt="ONU" width="24" height="24" />,
-  // Fallback
-  default: <img src="/default.png" alt="Default" width="24" height="24" />,
+
+  // PON Port
+  pon: <img src="/pon.png" alt="PON Port" width="24" height="24" />,
+
+  // Router
+  router: <img src="/router.png" alt="Router" width="24" height="24" />,
+
+  // Splitter
+  splitter: <img src="/splitter.png" alt="Splitter" width="24" height="24" />,
+
+  // Transition Joint
+  tj: <img src="/tj.png" alt="Transition Joint" width="24" height="24" />,
+
+  // Other
+  other: <img src="/other.png" alt="Other" width="24" height="24" />,
+
+  // Fallback (Default)
+  default: <img src="/other.png" alt="Default" width="24" height="24" />,
 };
 
 const CustomNode = ({ data, isConnectable }) => {
@@ -50,15 +69,14 @@ const CustomNode = ({ data, isConnectable }) => {
       } ${statusBorderClass} transition-all`} // Apply status border class
     >
       {/* Target (input) handle is visible for all nodes except OLT */}
-      {data.node_type !== "OLT" && (
-        <Handle
-          type="target"
-          position={Position.Left}
-          id="left"
-          isConnectable={isConnectable}
-          className="!bg-blue-500 !w-3 !h-3"
-        />
-      )}
+
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+        isConnectable={isConnectable}
+        className="!bg-blue-500 !w-3 !h-3"
+      />
 
       <div className="w-6 h-6">{ICONS[data.icon] || ICONS["default"]}</div>
 
