@@ -19,7 +19,6 @@ export const saveNodeInfo = async (updatedInfo, muted = false) => {
   }
 };
 
-
 export const resetPositions = async (payload) => {
   try {
     const response = await api.post(`/positions/reset`, payload);
@@ -38,7 +37,6 @@ export const resetPositions = async (payload) => {
     throw error;
   }
 };
-
 
 export const insertNode = async (payload) => {
   try {
@@ -97,9 +95,13 @@ export const copyNodeInfo = async (sourceNodeId, newParentId) => {
 };
 
 export const fetchData = async (swId) => {
-  if (!swId) return []; // Don't fetch if no ID is provided
   try {
-    const response = await api.get(`/data/${swId}`);
+    // --- THIS IS THE FIX ---
+    // Conditionally create the URL. If swId is null or undefined,
+    // call the base /data endpoint. Otherwise, append the ID.
+    const url = swId ? `/data/${swId}` : "/data";
+    const response = await api.get(url);
+
     return response.data;
   } catch (error) {
     console.error(`Error fetching data for SW_ID ${swId}:`, error);

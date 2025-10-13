@@ -29,6 +29,7 @@ import {
   insertNode,
   resetPositions,
 } from "../utils/graphUtils";
+import { useParams } from "react-router-dom";
 
 import EditFab from "../components/ui/EditFab.jsx";
 import CustomNode from "../components/CustomNode.jsx";
@@ -50,8 +51,11 @@ const NODES_PER_COLUMN = 8;
 const GRID_X_SPACING = 300;
 const GRID_Y_SPACING = 80;
 const PADDING_BETWEEN_GRIDS = 50;
+const NODE_WIDTH = 250; // Approximate width of your custom node
+const NODE_HEIGHT = 60;
 
 const NetworkDiagram = () => {
+  const { id } = useParams();
   const reactFlowWrapper = useRef(null);
   const initialNodesRef = useRef([]);
   const reactFlowInstance = useReactFlow();
@@ -62,7 +66,7 @@ const NetworkDiagram = () => {
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [isEmpty, setIsEmpty] = useState(false);
-  const [selectedOlt, setSelectedOlt] = useState(5303);
+  const [selectedOlt, setSelectedOlt] = useState(undefined);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [addModal, setAddModal] = useState({
     isOpen: false,
@@ -113,24 +117,62 @@ const NetworkDiagram = () => {
     }
   };
 
+  const findAvailablePosition = (desiredPosition, existingNodes) => {
+    const isOccupied = (pos) => {
+      for (const node of existingNodes) {
+        const nodeX = node.position.x;
+        const nodeY = node.position.y;
+        if (
+          pos.x < nodeX + NODE_WIDTH &&
+          pos.x + NODE_WIDTH > nodeX &&
+          pos.y < nodeY + NODE_HEIGHT &&
+          pos.y + NODE_HEIGHT > nodeY
+        ) {
+          return true; // Collision detected
+        }
+      }
+      return false; // Position is free
+    };
+
+    if (!isOccupied(desiredPosition)) {
+      return desiredPosition; // The initial spot is perfect
+    }
+
+    // If occupied, search for a nearby spot in a spiral pattern
+    const nudge = 100; // How far to move when searching for a spot
+    for (let i = 1; i < 20; i++) {
+      const candidates = [
+        { x: desiredPosition.x + i * nudge, y: desiredPosition.y }, // Right
+        { x: desiredPosition.x - i * nudge, y: desiredPosition.y }, // Left
+        { x: desiredPosition.x, y: desiredPosition.y + i * nudge }, // Down
+        { x: desiredPosition.x, y: desiredPosition.y - i * nudge }, // Up
+      ];
+
+      for (const candidate of candidates) {
+        if (!isOccupied(candidate)) {
+          return candidate; // Found an empty spot
+        }
+      }
+    }
+
+    return desiredPosition; // Fallback if no spot is found after 20 tries
+  };
+
   const handleResetPositions = useCallback(
     async (scope, nodeId = null) => {
-      if (!selectedOlt) {
-        toast.warn("Please select an OLT first.");
-        return;
-      }
-      setLoading(true);
+      // --- THIS IS THE FIX ---
+      // The check for selectedOlt is removed to allow resets in the general view.
+      // The sw_id is now correctly set to null if selectedOlt is not present.
       try {
         const payload = {
-          sw_id: parseInt(selectedOlt, 10),
+          sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
           scope: nodeId ? null : scope,
           node_id: nodeId ? parseInt(nodeId, 10) : null,
         };
         await resetPositions(payload);
 
-        const currentOlt = selectedOlt;
-        setSelectedOlt(null);
-        setTimeout(() => setSelectedOlt(currentOlt), 50);
+        // Reload the diagram. If we are in the general view, currentOlt is null.
+        window.location.reload();
       } catch (error) {
         console.error("Failed to reset positions:", error);
         setLoading(false);
@@ -184,24 +226,21 @@ const NetworkDiagram = () => {
     [nodes, setEdges, setNewConnections, isEditMode] // Add isEditMode to dependencies
   );
 
+  // In NetworkDiagram.jsx
+
   const handleFabClick = useCallback(async () => {
     if (isEditMode) {
-      setLoading(true);
+      // --- This block handles SAVING and EXITING edit mode ---
+      setLoading(true); // Show spinner immediately on save attempt
 
-      // Get the original nodes from the ref and the current nodes from the instance
       const originalNodes = initialNodesRef.current;
       const currentNodes = reactFlowInstance.getNodes();
-
-      // For faster lookups, create a map of original positions
       const originalNodeMap = new Map(
         originalNodes.map((node) => [node.id, node])
       );
 
-      // --- 1. Identify which nodes have actually moved ---
       const movedNodes = currentNodes.filter((currentNode) => {
         const originalNode = originalNodeMap.get(currentNode.id);
-        // A node is considered moved if its original state exists and
-        // its x or y position has changed.
         return (
           originalNode &&
           (currentNode.position.x !== originalNode.position.x ||
@@ -209,45 +248,45 @@ const NetworkDiagram = () => {
         );
       });
 
-      // Proceed only if there are changes to save
       if (movedNodes.length > 0 || newConnections.length > 0) {
+        // If there are changes, attempt to save them.
         try {
-          // --- 2. Create promises for saving new connections (this is unchanged) ---
           const connectionPromises = newConnections.map((conn) => {
             const newParentId = parseInt(conn.source, 10);
             const sourceNodeId = parseInt(conn.target, 10);
             return copyNodeInfo(sourceNodeId, newParentId);
           });
 
-          // --- 3. Create promises for saving moved nodes' positions ---
           const positionSavePromises = movedNodes.map((node) => {
             const payload = {
               original_name: node.data.name,
               sw_id: node.data.sw_id,
               position_x: node.position.x,
               position_y: node.position.y,
-              position_mode: 1, // Mark as manually positioned
+              position_mode: 1,
             };
             return saveNodeInfo(payload, true);
           });
 
-          // --- 4. Run all save operations in parallel ---
           await Promise.all([...connectionPromises, ...positionSavePromises]);
 
-          // --- 5. Clear pending changes on success and reload the diagram ---
+          // On success, clear pending changes and reload.
           setNewConnections([]);
-          const currentOlt = selectedOlt;
-          setSelectedOlt(null);
-          setTimeout(() => setSelectedOlt(currentOlt), 50);
+          setTimeout(() => window.location.reload(), 300);
+          // We don't need to setLoading(false) or setIsEditMode(false) because the reload will reset the state.
         } catch (error) {
           console.error("Failed to save changes:", error);
-          setLoading(false);
-          return; // Stop and stay in edit mode on error
+          setLoading(false); // On error, stop loading and STAY in edit mode.
         }
+      } else {
+        // If there were no changes to save, just exit edit mode.
+        setLoading(false);
+        setIsEditMode(false);
       }
+    } else {
+      // --- This block handles ENTERING edit mode ---
+      setIsEditMode(true);
     }
-    // Toggle edit mode
-    setIsEditMode((prevMode) => !prevMode);
   }, [isEditMode, newConnections, selectedOlt, reactFlowInstance]);
 
   const onEdgeUpdateStart = useCallback(() => {
@@ -317,8 +356,16 @@ const NetworkDiagram = () => {
           x: contextMenu.left,
           y: contextMenu.top,
         });
+        // --- THIS IS THE FIX ---
+        // Find an available spot *before* opening the modal
+        const finalPosition = findAvailablePosition(position, nodes);
         const parentNode = nodes.find((n) => n.id === id);
-        setAddModal({ isOpen: true, position, isInsertion: false, parentNode });
+        setAddModal({
+          isOpen: true,
+          position: finalPosition,
+          isInsertion: false,
+          parentNode,
+        });
         break;
       }
       case "editNode": {
@@ -359,13 +406,10 @@ const NetworkDiagram = () => {
   };
 
   const handleAddNodeSave = useCallback(
-    async (formData) => {
-      setLoading(true);
+    async (formData, position) => {
+      // <-- Note the new 'position' parameter
       try {
-        // Check if this is an INSERT operation
         if (addModal.isInsertion && insertionEdge) {
-          // --- INSERTION LOGIC ---
-
           // The edge ID from React Flow is 'e-DATABASE_ID'. We need the number part.
           const originalEdgeRecordId = parseInt(
             insertionEdge.id.replace("e-", ""),
@@ -384,29 +428,31 @@ const NetworkDiagram = () => {
 
           await insertNode(payload);
         } else {
-          // This is a regular ADD operation
+          // --- THIS IS THE FIX ---
+          // This is a regular ADD operation, now with position data
           const payload = {
             ...formData,
-            sw_id: parseInt(selectedOlt, 10),
+            sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
+            // Add the position to the payload
+            position_x: position.x,
+            position_y: position.y,
+            position_mode: 1, // Mark as manually positioned
           };
           await createNode(payload);
         }
 
         // On success, trigger a full reload to show the changes
-        const currentOlt = selectedOlt;
-        setSelectedOlt(null);
-        setTimeout(() => setSelectedOlt(currentOlt), 50);
+        window.location.reload();
       } catch (error) {
         console.error("Failed to save new node:", error);
-        setLoading(false); // Stop loading on error
+        setLoading(false);
       }
     },
-    [selectedOlt, addModal.isInsertion, insertionEdge] // Add dependencies
+    [selectedOlt, addModal.isInsertion, insertionEdge]
   );
 
   const handleConfirmDelete = useCallback(async () => {
     const { id, type } = deleteModal;
-    setLoading(true);
 
     try {
       if (type === "device") {
@@ -417,7 +463,7 @@ const NetworkDiagram = () => {
           // Construct the new payload with name and the currently selected OLT ID
           const nodeInfo = {
             name: nodeToDelete.data.name,
-            sw_id: parseInt(selectedOlt, 10),
+            sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
           };
           await deleteNode(nodeInfo);
         } else {
@@ -434,16 +480,14 @@ const NetworkDiagram = () => {
           const edgeInfo = {
             name: targetNode.data.name, // Use the node's unique name
             source_id: parseInt(edgeToDelete.source, 10),
-            sw_id: parseInt(selectedOlt, 10),
+            sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
           };
           await deleteEdge(edgeInfo);
         }
       }
 
       // On success, reload the diagram to reflect the change
-      const currentOlt = selectedOlt;
-      setSelectedOlt(null);
-      setTimeout(() => setSelectedOlt(currentOlt), 50);
+      window.location.reload();
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error);
       // Error toast is shown in graphUtils, so just stop the loading indicator
@@ -454,7 +498,6 @@ const NetworkDiagram = () => {
   }, [deleteModal, edges, nodes, selectedOlt]); // <-- Add 'nodes' to the dependency array
   const handleUpdateNodeLabel = useCallback(
     async (nodeId, updatedFormData) => {
-      setLoading(true);
       try {
         const nodeToUpdate = nodes.find((n) => n.id === nodeId);
         if (!nodeToUpdate) {
@@ -463,12 +506,10 @@ const NetworkDiagram = () => {
         const payload = {
           ...updatedFormData,
           original_name: nodeToUpdate.data.name,
-          sw_id: parseInt(selectedOlt, 10),
+          sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
         };
         await saveNodeInfo(payload); // Correctly passing nodeId here
-        const currentOlt = selectedOlt;
-        setSelectedOlt(null);
-        setTimeout(() => setSelectedOlt(currentOlt), 50);
+        window.location.reload();
       } catch (error) {
         console.error("Error saving node info:", error);
       }
@@ -523,13 +564,11 @@ const NetworkDiagram = () => {
   }, [nodes, edges]);
 
   useEffect(() => {
-    if (!selectedOlt) {
+    if (selectedOlt === undefined) {
       setNodes([]);
       setEdges([]);
-      setIsEmpty(true);
       return;
     }
-    localStorage.setItem("selectedOlt", selectedOlt);
     const loadInitialData = async () => {
       setLoading(true);
       setIsEmpty(false);
@@ -544,33 +583,42 @@ const NetworkDiagram = () => {
         }
 
         // --- Data Processing and De-duplication (No changes here) ---
+        // --- AND REPLACE IT WITH THIS NEW, ROBUST LOGIC ---
         const uniqueNodesMap = new Map();
         const nameSwIdToNodeIdMap = new Map();
+
+        // This map will track devices by their logical identity (name + sw_id)
+        const deviceIdentityMap = new Map();
+
         apiData.forEach((item) => {
-          if (item.node_type !== "ONU")
-            uniqueNodesMap.set(String(item.id), item);
-        });
-        const onuRecordsByNameSwId = {};
-        apiData.forEach((item) => {
-          if (item.node_type === "ONU" && item.name && item.sw_id) {
-            const key = `${item.name}-${item.sw_id}`;
-            if (!onuRecordsByNameSwId[key]) onuRecordsByNameSwId[key] = [];
-            onuRecordsByNameSwId[key].push(item);
-          }
-        });
-        for (const key in onuRecordsByNameSwId) {
-          const records = onuRecordsByNameSwId[key];
-          let primaryRecord = records[0];
-          for (const record of records) {
-            const parentNode = uniqueNodesMap.get(String(record.parent_id));
-            if (parentNode && record.name.startsWith(parentNode.name)) {
-              primaryRecord = record;
-              break;
+          // A device's true identity is its name combined with its system ID (sw_id).
+          // Use -1 for null sw_id to create a consistent key.
+          const identityKey = `${item.name}-${item.sw_id ?? -1}`;
+
+          // If we haven't seen this device before, add it.
+          if (!deviceIdentityMap.has(identityKey)) {
+            deviceIdentityMap.set(identityKey, item);
+          } else {
+            // If we have seen it, we might need to replace the existing one.
+            const existingRecord = deviceIdentityMap.get(identityKey);
+            // **This is the key**: a record with a parent is always preferred over an orphan.
+            if (
+              existingRecord.parent_id === null ||
+              existingRecord.parent_id === 0
+            ) {
+              deviceIdentityMap.set(identityKey, item);
             }
           }
-          uniqueNodesMap.set(String(primaryRecord.id), primaryRecord);
-          nameSwIdToNodeIdMap.set(key, String(primaryRecord.id));
-        }
+        });
+
+        // Now, build the final uniqueNodesMap from the cleaned identity map.
+        deviceIdentityMap.forEach((item, key) => {
+          uniqueNodesMap.set(String(item.id), item);
+          // Also populate the helper map for ONU lookups
+          if (item.node_type === "ONU") {
+            nameSwIdToNodeIdMap.set(key, String(item.id));
+          }
+        });
         const initialEdges = [];
         apiData.forEach((item) => {
           if (item.parent_id !== null && item.parent_id !== 0) {
@@ -621,8 +669,11 @@ const NetworkDiagram = () => {
 
         // --- START: NEW AND FINAL LAYOUT LOGIC ---
         if (initialNodes.length > 0) {
+          initialNodes.sort(compareNodesByLabel);
           const nodeMap = new Map(initialNodes.map((n) => [n.id, n]));
           let rootNode = null;
+
+          const isGeneralView = selectedOlt === null;
 
           // 1. Build tree structure (CORRECTED)
           // First, initialize .children array on ALL nodes
@@ -630,13 +681,19 @@ const NetworkDiagram = () => {
             node.children = [];
           });
           // THEN, connect them
+          // --- Replace it with this corrected version ---
           initialNodes.forEach((node) => {
-            if (node.data.node_type === "OLT") {
+            const rootNodeType = isGeneralView ? "Router" : "OLT";
+            if (node.data.node_type === rootNodeType) {
               rootNode = node;
-            } else if (node.data.parent_id) {
+              // --- THIS IS THE FIX ---
+              // Explicitly check that parent_id is not null AND not 0.
+            } else if (
+              node.data.parent_id !== null &&
+              node.data.parent_id !== 0
+            ) {
               const parent = nodeMap.get(String(node.data.parent_id));
               if (parent) {
-                // This is now safe, because parent.children is guaranteed to exist.
                 parent.children.push(node);
               }
             }
@@ -664,22 +721,36 @@ const NetworkDiagram = () => {
             }
           }
 
+          // --- REPLACE the code block above with this final version ---
+
+          // Find how many orphans already have a manual position.
+          const manuallyPositionedOrphanCount = initialNodes.filter(
+            (n) => n.level === -1 && n.data.hasCustomPosition
+          ).length;
+
           initialNodes.forEach((node) => {
-            if (node.level === -1) {
-              console.warn("Orphaned node detected:", node);
-              // --- NEW: Position orphans at the bottom ---
-              // Give them a high `y` value to place them below the main tree.
-              // We'll assign a unique x position to prevent stacking.
-              const orphanIndex = initialNodes
-                .filter((n) => n.level === -1)
-                .indexOf(node);
-              node.position = { x: -200, y: 2500 + orphanIndex * 80 };
-              // Mark it as custom so the layout algorithm ignores it
-              node.data.hasCustomPosition = true;
-            } else if (!node.data.hasCustomPosition) {
-              // This is the corrected logic for regular nodes.
-              // It only sets the initial x/y for nodes that need to be auto-laid-out.
+            // If a node already has a position from the database, DO NOTHING.
+            if (node.data.hasCustomPosition) {
+              return;
+            }
+
+            // If it's part of the tree, calculate its X position.
+            if (node.level !== -1) {
               node.position = { x: node.level * GRID_X_SPACING, y: 0 };
+            } else {
+              // If it's a true orphan (no saved position, no level), stack it.
+              const autoOrphanIndex = initialNodes
+                .filter((n) => n.level === -1 && !n.data.hasCustomPosition)
+                .indexOf(node);
+
+              // --- THIS IS THE FIX ---
+              // Start the stack *after* the manually positioned orphans.
+              node.position = {
+                x: -GRID_X_SPACING,
+                y:
+                  (manuallyPositionedOrphanCount + autoOrphanIndex) *
+                  GRID_Y_SPACING,
+              };
             }
           });
 
@@ -805,7 +876,7 @@ const NetworkDiagram = () => {
 
           // >>> PASTE THE NEW AUTO-SAVE CODE HERE <<<
           const nodesToSave = initialNodes.filter(
-            (n) => !n.data.hasCustomPosition
+            (n) => !n.data.hasCustomPosition && n.level !== -1 // <-- THIS IS THE FIX
           );
 
           if (nodesToSave.length > 0) {
@@ -834,6 +905,10 @@ const NetworkDiagram = () => {
           setNodes(initialNodes);
           setEdges(initialEdges);
           initialNodesRef.current = initialNodes;
+
+          setTimeout(() => {
+            reactFlowInstance.fitView({ padding: 0.1, duration: 800 });
+          }, 0);
         } else {
           setNodes([]);
           setEdges([]);
@@ -847,6 +922,12 @@ const NetworkDiagram = () => {
     };
     loadInitialData();
   }, [selectedOlt]);
+
+  useEffect(() => {
+    // If an 'id' exists in the URL, parse it and set it as the selectedOlt.
+    // If no 'id' is present, set selectedOlt to null to signify the "general view".
+    setSelectedOlt(id ? parseInt(id, 10) : null);
+  }, [id]);
 
   return (
     <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
@@ -900,7 +981,12 @@ const NetworkDiagram = () => {
           <HelpBox />
           <ResetPositionsFab
             onReset={(scope) =>
-              setResetConfirmModal({ isOpen: true, scope, nodeId: null })
+              setResetConfirmModal({
+                isOpen: true,
+                scope,
+                nodeId: null,
+                nodeName: "",
+              })
             }
             disabled={loading || isEditMode}
           />
@@ -940,7 +1026,15 @@ const NetworkDiagram = () => {
           })
         }
         onConfirm={handleConfirmReset}
-        itemInfo={resetConfirmModal.nodeName}
+        itemInfo={
+          resetConfirmModal.nodeName
+            ? `the device "${resetConfirmModal.nodeName}"` // For context menu reset
+            : `all ${
+                resetConfirmModal.scope === "manual"
+                  ? "manually positioned"
+                  : ""
+              } devices` // For FAB reset
+        }
       />
     </div>
   );
