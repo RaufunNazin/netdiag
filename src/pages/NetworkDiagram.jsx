@@ -669,11 +669,23 @@ const NetworkDiagram = () => {
 
         // --- START: NEW AND FINAL LAYOUT LOGIC ---
         if (initialNodes.length > 0) {
+          const isGeneralView = selectedOlt === null;
+
+          // --- THIS IS THE FIX ---
+          // If we are in a specific OLT view, find that OLT node and force it
+          // to be auto-positioned, ignoring any position it might have saved
+          // from being moved in the general view.
+          if (!isGeneralView) {
+            initialNodes.forEach((node) => {
+              if (String(node.data.id) === String(selectedOlt)) {
+                node.data.hasCustomPosition = false;
+              }
+            });
+          }
+
           initialNodes.sort(compareNodesByLabel);
           const nodeMap = new Map(initialNodes.map((n) => [n.id, n]));
           let rootNode = null;
-
-          const isGeneralView = selectedOlt === null;
 
           // 1. Build tree structure (CORRECTED)
           // First, initialize .children array on ALL nodes
@@ -1028,7 +1040,7 @@ const NetworkDiagram = () => {
         onConfirm={handleConfirmReset}
         itemInfo={
           resetConfirmModal.nodeName
-            ? `the device "${resetConfirmModal.nodeName}"` // For context menu reset
+            ? `${resetConfirmModal.nodeName}` // For context menu reset
             : `all ${
                 resetConfirmModal.scope === "manual"
                   ? "manually positioned"
