@@ -110,8 +110,19 @@ const AddNodeModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      const savedData = localStorage.getItem(STORAGE_KEY);
-      setFormData(savedData ? JSON.parse(savedData) : initialState);
+      const savedDataJSON = localStorage.getItem(STORAGE_KEY);
+      let dataToSet = savedDataJSON
+        ? JSON.parse(savedDataJSON)
+        : { ...initialState };
+
+      // Combine lat1/long1 from saved data into a location string for the UI
+      if (dataToSet.lat1 && dataToSet.long1) {
+        dataToSet.location = `${dataToSet.lat1}, ${dataToSet.long1}`;
+      } else {
+        dataToSet.location = "";
+      }
+
+      setFormData(dataToSet);
     }
   }, [isOpen]);
 
@@ -134,27 +145,40 @@ const AddNodeModal = ({
   };
 
   const handleSave = () => {
-    // --- THIS IS THE FIX ---
-    // The validation now correctly checks for `formData.node_type`
     if (formData.node_type && formData.name.trim()) {
-      let finalObject = {
-        ...formData,
-        parent_id: parentNode?.id,
-        // Convert number fields correctly, providing a null fallback
-        lat1: parseFloat(formData.lat1) || null,
-        long1: parseFloat(formData.long1) || null,
-        split_ratio:
-          formData.node_type === "Splitter"
-            ? parseInt(formData.split_ratio, 10)
-            : null,
-        cable_start: formData.cable_start
-          ? parseInt(formData.cable_start, 10)
-          : null,
-        cable_end: formData.cable_end ? parseInt(formData.cable_end, 10) : null,
-        cable_length: formData.cable_length
-          ? parseInt(formData.cable_length, 10)
-          : null,
-      };
+      let finalObject = { ...formData, parent_id: parentNode?.id };
+
+      // Parse location string into lat1 and long1
+      const locationString = finalObject.location || "";
+      const coords = locationString.split(/[, ]+/).filter(Boolean);
+      let lat = null;
+      let lon = null;
+      if (coords.length === 2) {
+        const parsedLat = parseFloat(coords[0]);
+        const parsedLon = parseFloat(coords[1]);
+        if (!isNaN(parsedLat) && !isNaN(parsedLon)) {
+          lat = parsedLat;
+          lon = parsedLon;
+        }
+      }
+      finalObject.lat1 = lat;
+      finalObject.long1 = lon;
+      delete finalObject.location; // Remove temporary field
+
+      // Convert other numeric fields
+      finalObject.split_ratio =
+        formData.node_type === "Splitter"
+          ? parseInt(formData.split_ratio, 10) || null
+          : null;
+      finalObject.cable_start = formData.cable_start
+        ? parseInt(formData.cable_start, 10)
+        : null;
+      finalObject.cable_end = formData.cable_end
+        ? parseInt(formData.cable_end, 10)
+        : null;
+      finalObject.cable_length = formData.cable_length
+        ? parseInt(formData.cable_length, 10)
+        : null;
 
       if (finalObject.brand === "Other") {
         finalObject.brand = finalObject.brand_other;
@@ -440,26 +464,15 @@ const AddNodeModal = ({
                       />
                     </div>
                   )}
-                  <div>
-                    <label className="label-style">Latitude</label>
+                  <div className="md:col-span-2">
+                    <label className="label-style">Location (Lat, Long)</label>
                     <input
                       type="text"
-                      name="lat1"
-                      value={formData.lat1}
+                      name="location"
+                      value={formData.location || ""}
                       onChange={handleChange}
                       className="input-style"
-                      placeholder="Enter latitude"
-                    />
-                  </div>
-                  <div>
-                    <label className="label-style">Longitude</label>
-                    <input
-                      type="text"
-                      name="long1"
-                      value={formData.long1}
-                      onChange={handleChange}
-                      className="input-style"
-                      placeholder="Enter longitude"
+                      placeholder="Enter latitude, longitude"
                     />
                   </div>
                 </div>

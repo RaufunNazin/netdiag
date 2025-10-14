@@ -60,6 +60,21 @@ const CustomNode = ({ data, isConnectable }) => {
     }
   }
 
+  // --- Handlers for the new buttons ---
+  const handleDetailsClick = (e) => {
+    e.stopPropagation(); // Prevent node's main onClick from firing
+    if (data.onDetailsClick) {
+      data.onDetailsClick(data);
+    }
+  };
+
+  const handleNavigateClick = (e) => {
+    e.stopPropagation(); // Prevent node's main onClick from firing
+    if (data.onNavigateClick) {
+      data.onNavigateClick(data.id);
+    }
+  };
+
   return (
     <div
       className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-gray-800 ${
@@ -80,7 +95,55 @@ const CustomNode = ({ data, isConnectable }) => {
 
       <div className="w-6 h-6">{ICONS[data.icon] || ICONS["default"]}</div>
 
-      <div className="text-sm font-semibold">{data.label}</div>
+      <div className="text-sm font-semibold">
+        {data.label.length > 10 ? `${data.label.slice(0, 10)}...` : data.label}
+      </div>
+
+      {/* --- Action Buttons --- */}
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={handleDetailsClick}
+          className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+          title="View Details"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4M12 8h.01"></path>
+          </svg>
+        </button>
+
+        {data.node_type === "OLT" && (
+          <button
+            onClick={handleNavigateClick}
+            className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+            title="Go to OLT View"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 18l6-6-6-6"></path>
+            </svg>
+          </button>
+        )}
+      </div>
 
       {/* Source (output) handle is visible for all nodes except ONU */}
       {data.node_type !== "ONU" && (

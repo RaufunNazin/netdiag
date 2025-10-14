@@ -38,6 +38,7 @@ import CustomNode from "../components/CustomNode.jsx";
 import ContextMenu from "../components/ContextMenu.jsx";
 import HelpBox from "../components/ui/HelpBox.jsx";
 import SearchControl from "../components/ui/SearchControl.jsx";
+import NodeDetailModal from "../components/modals/NodeDetailModal.jsx";
 import AddNodeModal from "../components/modals/AddNodeModal.jsx";
 import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmResetModal from "../components/modals/ConfirmResetModal.jsx";
@@ -89,6 +90,7 @@ const NetworkDiagram = () => {
     id: null,
     type: "",
   });
+  const [detailModal, setDetailModal] = useState({ isOpen: false, node: null });
   const [resetConfirmModal, setResetConfirmModal] = useState({
     isOpen: false,
     scope: null,
@@ -98,7 +100,8 @@ const NetworkDiagram = () => {
   const [newConnections, setNewConnections] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
   const edgeUpdateSuccessful = useRef(true);
-
+  const [refetchIndex, setRefetchIndex] = useState(0);
+  const forceRefetch = () => setRefetchIndex((i) => i + 1);
   const getNodeIcon = (nodeType) => {
     switch (nodeType) {
       case "AP":
@@ -126,6 +129,15 @@ const NetworkDiagram = () => {
       default:
         return "other";
     }
+  };
+
+  // --- 2. Create the callback functions for the node buttons ---
+  const handleDetailsClick = (nodeData) => {
+    setDetailModal({ isOpen: true, node: { data: nodeData } });
+  };
+
+  const handleNavigateClick = (nodeId) => {
+    navigate(`/${nodeId}`);
   };
 
   const handleAddNodeClick = () => {
@@ -210,7 +222,7 @@ const NetworkDiagram = () => {
         await resetPositions(payload);
 
         // Reload the diagram. If we are in the general view, currentOlt is null.
-        window.location.reload();
+        forceRefetch();
       } catch (error) {
         console.error("Failed to reset positions:", error);
         setLoading(false);
@@ -310,7 +322,7 @@ const NetworkDiagram = () => {
 
           // On success, clear pending changes and reload.
           setNewConnections([]);
-          setTimeout(() => window.location.reload(), 300);
+          forceRefetch();
           // We don't need to setLoading(false) or setIsEditMode(false) because the reload will reset the state.
         } catch (error) {
           console.error("Failed to save changes:", error);
@@ -484,7 +496,7 @@ const NetworkDiagram = () => {
         }
 
         // On success, trigger a full reload to show the changes
-        window.location.reload();
+        forceRefetch();
       } catch (error) {
         console.error("Failed to save new node:", error);
         setLoading(false);
@@ -529,7 +541,7 @@ const NetworkDiagram = () => {
       }
 
       // On success, reload the diagram to reflect the change
-      window.location.reload();
+      forceRefetch();
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error);
       // Error toast is shown in graphUtils, so just stop the loading indicator
@@ -551,7 +563,7 @@ const NetworkDiagram = () => {
           sw_id: nodeToUpdate.data.sw_id,
         };
         await saveNodeInfo(payload); // Correctly passing nodeId here
-        window.location.reload();
+        forceRefetch();
       } catch (error) {
         console.error("Error saving node info:", error);
       }
@@ -717,6 +729,8 @@ const NetworkDiagram = () => {
               icon: getNodeIcon(item.node_type),
               // Store this flag so we know which nodes to auto-save
               hasCustomPosition: hasCustomPosition,
+              onDetailsClick: handleDetailsClick,
+              onNavigateClick: handleNavigateClick,
             },
             // Use saved positions if they exist, otherwise default to {0, 0}
             position: hasCustomPosition
@@ -1068,7 +1082,6 @@ const NetworkDiagram = () => {
         onSelectionChange={onSelectionChange}
         selectionOnDrag={true}
         nodeTypes={nodeTypes}
-        fitView
       >
         <Background variant="dots" gap={12} size={1} />
         {contextMenu && (
@@ -1079,15 +1092,13 @@ const NetworkDiagram = () => {
       {loading && <LoadingOverlay />}
       {!loading && isEmpty && <EmptyState />}
 
-      <div className="absolute top-4 left-4 z-10 text-gray-700">
-        <button
-          className=""
-          title={"Go Back"}
-          onClick={() => window.history.back()}
-        >
-          <FaChevronLeft />
-        </button>
-      </div>
+      {window.location.pathname !== "/" && (
+        <div className="absolute top-4 left-4 z-10 text-gray-700">
+          <button className="" title={"Go Back"} onClick={() => navigate("/")}>
+            <FaChevronLeft />
+          </button>
+        </div>
+      )}
 
       {!isEmpty && (
         <>
@@ -1154,6 +1165,11 @@ const NetworkDiagram = () => {
                   : ""
               } devices` // For FAB reset
         }
+      />
+      <NodeDetailModal
+        isOpen={detailModal.isOpen}
+        onClose={() => setDetailModal({ isOpen: false, node: null })}
+        node={detailModal.node}
       />
     </div>
   );

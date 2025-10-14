@@ -42,7 +42,7 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
   };
 
   return (
-    <div ref={wrapperRef} className="absolute bottom-16 left-4 z-10">
+    <div ref={wrapperRef} className="absolute bottom-4 left-4 z-10">
       {/* The small dropdown menu */}
       {isOpen && (
         <div className="absolute bottom-full mb-2 w-48 bg-white rounded-md shadow-lg py-1">

@@ -36,7 +36,7 @@ const SelectRootNodeFab = ({ onSelectRoot }) => {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="absolute bottom-4 left-4 z-10 rounded-full bg-blue-500 p-3 text-white shadow-lg transition-all duration-200 hover:bg-blue-600"
+        className="absolute bottom-16 left-4 z-10 rounded-full bg-blue-500 p-3 text-white shadow-lg transition-all duration-200 hover:bg-blue-600"
         title="Select Root Node"
       >
         <svg

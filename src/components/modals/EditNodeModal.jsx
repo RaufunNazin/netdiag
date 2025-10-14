@@ -7,30 +7,6 @@ import {
   SPLIT_RATIOS,
 } from "../../utils/constants";
 import SegmentedInput from "../ui/SegmentedInput";
-// --- Initial state for comparison ---
-const initialState = {
-  link_type: "Fiber Optic",
-  node_type: "",
-  name: "",
-  brand: "",
-  brand_other: "",
-  model: "",
-  serial_no: "",
-  mac: "",
-  ip: "",
-  split_ratio: "",
-  split_group: "",
-  cable_id: "",
-  cable_start: "",
-  cable_end: "",
-  cable_length: "",
-  cable_color: "",
-  cable_desc: "",
-  vlan: null,
-  lat1: null,
-  long1: null,
-  remarks: "",
-};
 
 // --- Custom Color Picker Component (copied from AddNodeModal) ---
 const ColorPicker = ({ selectedColor, onChange }) => {
@@ -96,22 +72,42 @@ const ColorPicker = ({ selectedColor, onChange }) => {
 
 // --- Main Edit Modal Component ---
 const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState(initialState);
+  // State to hold current form data
+  const [formData, setFormData] = useState({});
+  // --- FIX: State to hold the original, unmodified data for comparison ---
+  const [originalData, setOriginalData] = useState({});
 
-  // When the modal opens, populate the form with the node's existing data
   useEffect(() => {
     if (node?.data) {
-      const initialData = { ...initialState };
-      // Populate form with all keys from the node data
-      for (const key in initialData) {
-        if (node.data[key] !== undefined && node.data[key] !== null) {
-          initialData[key] = node.data[key];
-        }
-      }
-
-      initialData.name = node.data.label;
+      // Create a clean object from the node data
+      const initialData = {
+        name: node.data.label || node.data.name || "",
+        node_type: node.data.node_type || "",
+        link_type: node.data.link_type || "Fiber Optic",
+        brand: node.data.brand || "",
+        model: node.data.model || "",
+        serial_no: node.data.serial_no || "",
+        mac: node.data.mac || "",
+        ip: node.data.ip || "",
+        split_ratio: node.data.split_ratio || "",
+        split_group: node.data.split_group || "",
+        cable_id: node.data.cable_id || "",
+        cable_start: node.data.cable_start || "",
+        cable_end: node.data.cable_end || "",
+        cable_length: node.data.cable_length || "",
+        cable_color: node.data.cable_color || "",
+        cable_desc: node.data.cable_desc || "",
+        vlan: node.data.vlan || "",
+        remarks: node.data.remarks || "",
+        // Combine lat/lon into a single location string for the UI
+        location:
+          node.data.lat1 && node.data.long1
+            ? `${node.data.lat1}, ${node.data.long1}`
+            : "",
+      };
 
       setFormData(initialData);
+      setOriginalData({ ...initialData }); // Save the original state for comparison on save
     }
   }, [node]);
 
@@ -123,25 +119,51 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
   };
 
   const handleSave = () => {
-    let finalObject = {
-      ...formData,
-      // Convert number fields correctly, providing a null fallback
-      lat1: parseFloat(formData.lat1) || null,
-      long1: parseFloat(formData.long1) || null,
-      split_ratio:
-        formData.node_type === "Splitter"
-          ? parseInt(formData.split_ratio, 10)
-          : null,
-      cable_start: formData.cable_start
-        ? parseInt(formData.cable_start, 10)
-        : null,
-      cable_end: formData.cable_end ? parseInt(formData.cable_end, 10) : null,
-      cable_length: formData.cable_length
-        ? parseInt(formData.cable_length, 10)
-        : null,
-    };
+    let changes = {};
 
-    onSave(node.id, finalObject);
+    // Compare each field to find what has changed
+    for (const key in formData) {
+      if (formData[key] !== originalData[key]) {
+        changes[key] = formData[key];
+      }
+    }
+
+    // If the location string was changed, parse it into lat1 and long1
+    if ("location" in changes) {
+      const coords = (changes.location || "").split(/[, ]+/).filter(Boolean);
+      let lat = null;
+      let lon = null;
+      if (coords.length === 2) {
+        const parsedLat = parseFloat(coords[0]);
+        const parsedLon = parseFloat(coords[1]);
+        if (!isNaN(parsedLat) && !isNaN(parsedLon)) {
+          lat = parsedLat;
+          lon = parsedLon;
+        }
+      }
+      changes.lat1 = lat;
+      changes.long1 = lon;
+      delete changes.location; // Remove the temporary field before sending
+    }
+
+    // Convert any changed numeric fields
+    const numericFields = [
+      "split_ratio",
+      "cable_start",
+      "cable_end",
+      "cable_length",
+    ];
+    numericFields.forEach((field) => {
+      if (field in changes && typeof changes[field] === "string") {
+        changes[field] = parseInt(changes[field], 10) || null;
+      }
+    });
+
+    // Only save if there are actual changes
+    if (Object.keys(changes).length > 0) {
+      onSave(node.id, changes);
+    }
+
     onClose();
   };
 
@@ -428,26 +450,15 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                       />
                     </div>
                   )}
-                  <div>
-                    <label className="label-style">Latitude</label>
+                  <div className="md:col-span-2">
+                    <label className="label-style">Location (Lat, Long)</label>
                     <input
                       type="text"
-                      name="lat1"
-                      value={formData.lat1}
+                      name="location"
+                      value={formData.location || ""}
                       onChange={handleChange}
                       className="input-style"
-                      placeholder="Enter latitude"
-                    />
-                  </div>
-                  <div>
-                    <label className="label-style">Longitude</label>
-                    <input
-                      type="text"
-                      name="long1"
-                      value={formData.long1}
-                      onChange={handleChange}
-                      className="input-style"
-                      placeholder="Enter longitude"
+                      placeholder="Enter latitude, longitude"
                     />
                   </div>
                 </div>
