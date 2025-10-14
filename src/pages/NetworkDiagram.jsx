@@ -100,8 +100,7 @@ const NetworkDiagram = () => {
   const [newConnections, setNewConnections] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
   const edgeUpdateSuccessful = useRef(true);
-  const [refetchIndex, setRefetchIndex] = useState(0);
-  const forceRefetch = () => setRefetchIndex((i) => i + 1);
+
   const getNodeIcon = (nodeType) => {
     switch (nodeType) {
       case "AP":
@@ -222,7 +221,7 @@ const NetworkDiagram = () => {
         await resetPositions(payload);
 
         // Reload the diagram. If we are in the general view, currentOlt is null.
-        forceRefetch();
+        window.location.reload();
       } catch (error) {
         console.error("Failed to reset positions:", error);
         setLoading(false);
@@ -322,7 +321,7 @@ const NetworkDiagram = () => {
 
           // On success, clear pending changes and reload.
           setNewConnections([]);
-          forceRefetch();
+          setTimeout(() => window.location.reload(), 300);
           // We don't need to setLoading(false) or setIsEditMode(false) because the reload will reset the state.
         } catch (error) {
           console.error("Failed to save changes:", error);
@@ -496,7 +495,7 @@ const NetworkDiagram = () => {
         }
 
         // On success, trigger a full reload to show the changes
-        forceRefetch();
+        window.location.reload();
       } catch (error) {
         console.error("Failed to save new node:", error);
         setLoading(false);
@@ -541,7 +540,7 @@ const NetworkDiagram = () => {
       }
 
       // On success, reload the diagram to reflect the change
-      forceRefetch();
+      window.location.reload();
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error);
       // Error toast is shown in graphUtils, so just stop the loading indicator
@@ -563,7 +562,7 @@ const NetworkDiagram = () => {
           sw_id: nodeToUpdate.data.sw_id,
         };
         await saveNodeInfo(payload); // Correctly passing nodeId here
-        forceRefetch();
+        setTimeout(() => window.location.reload(), 300);
       } catch (error) {
         console.error("Error saving node info:", error);
       }
@@ -1008,8 +1007,8 @@ const NetworkDiagram = () => {
           initialNodesRef.current = initialNodes;
 
           setTimeout(() => {
-            reactFlowInstance.fitView({ padding: 0.1, duration: 800 });
-          }, 0);
+            reactFlowInstance.fitView({ padding: 0.3, duration: 500 });
+          }, 300);
         } else {
           setNodes([]);
           setEdges([]);
@@ -1094,7 +1093,11 @@ const NetworkDiagram = () => {
 
       {window.location.pathname !== "/" && (
         <div className="absolute top-4 left-4 z-10 text-gray-700">
-          <button className="" title={"Go Back"} onClick={() => navigate("/")}>
+          <button
+            className=""
+            title={"Go Back"}
+            onClick={() => window.location.replace("/")}
+          >
             <FaChevronLeft />
           </button>
         </div>
