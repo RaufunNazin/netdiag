@@ -29,8 +29,10 @@ import {
   insertNode,
   resetPositions,
 } from "../utils/graphUtils";
+import AddNodeFab from "../components/ui/AddNodeFab.jsx";
 import { useParams } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
+import SelectRootNodeFab from "../components/ui/SelectRootNodeFab.jsx";
 import EditFab from "../components/ui/EditFab.jsx";
 import CustomNode from "../components/CustomNode.jsx";
 import ContextMenu from "../components/ContextMenu.jsx";
@@ -56,6 +58,7 @@ const NODE_HEIGHT = 60;
 
 const NetworkDiagram = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const reactFlowWrapper = useRef(null);
   const initialNodesRef = useRef([]);
   const reactFlowInstance = useReactFlow();
@@ -63,10 +66,18 @@ const NetworkDiagram = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [redirectInfo, setRedirectInfo] = useState({
+    shouldRedirect: false,
+    message: "",
+  });
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
+  const [dynamicRootId, setDynamicRootId] = useState(() => {
+    // Only read from localStorage if on the general view page
+    return id ? null : localStorage.getItem("dynamicRootId");
+  });
   const [isEmpty, setIsEmpty] = useState(false);
-  const [selectedOlt, setSelectedOlt] = useState(undefined);
+  const [rootId, setRootId] = useState(undefined);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [addModal, setAddModal] = useState({
     isOpen: false,
@@ -117,6 +128,33 @@ const NetworkDiagram = () => {
     }
   };
 
+  const handleAddNodeClick = () => {
+    // Get the center of the current viewport
+    const viewportBounds = reactFlowWrapper.current.getBoundingClientRect();
+    const targetPosition = {
+      x: viewportBounds.width / 2,
+      y: viewportBounds.height / 2,
+    };
+
+    // Convert screen coordinates to flow coordinates
+    const position = reactFlowInstance.screenToFlowPosition(targetPosition);
+
+    // Find an available spot near the center
+    const finalPosition = findAvailablePosition(position, nodes);
+
+    // Open the modal with the calculated position
+    setAddModal({
+      isOpen: true,
+      position: finalPosition,
+      isInsertion: false,
+      parentNode: null, // No parent when adding to an empty space
+    });
+  };
+
+  const handleSelectRoot = (nodeId) => {
+    setDynamicRootId(nodeId);
+  };
+
   const findAvailablePosition = (desiredPosition, existingNodes) => {
     const isOccupied = (pos) => {
       for (const node of existingNodes) {
@@ -161,11 +199,11 @@ const NetworkDiagram = () => {
   const handleResetPositions = useCallback(
     async (scope, nodeId = null) => {
       // --- THIS IS THE FIX ---
-      // The check for selectedOlt is removed to allow resets in the general view.
-      // The sw_id is now correctly set to null if selectedOlt is not present.
+      // The check for rootId is removed to allow resets in the general view.
+      // The sw_id is now correctly set to null if rootId is not present.
       try {
         const payload = {
-          sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
+          sw_id: rootId ? parseInt(rootId, 10) : null,
           scope: nodeId ? null : scope,
           node_id: nodeId ? parseInt(nodeId, 10) : null,
         };
@@ -178,7 +216,7 @@ const NetworkDiagram = () => {
         setLoading(false);
       }
     },
-    [selectedOlt]
+    [rootId]
   );
 
   // --- 3. CREATE A HANDLER FOR THE CONFIRMATION ACTION ---
@@ -287,7 +325,7 @@ const NetworkDiagram = () => {
       // --- This block handles ENTERING edit mode ---
       setIsEditMode(true);
     }
-  }, [isEditMode, newConnections, selectedOlt, reactFlowInstance]);
+  }, [isEditMode, newConnections, rootId, reactFlowInstance]);
 
   const onEdgeUpdateStart = useCallback(() => {
     edgeUpdateSuccessful.current = false;
@@ -409,6 +447,7 @@ const NetworkDiagram = () => {
     async (formData, position) => {
       // <-- Note the new 'position' parameter
       try {
+        const { parentNode, isInsertion } = addModal;
         if (addModal.isInsertion && insertionEdge) {
           // The edge ID from React Flow is 'e-DATABASE_ID'. We need the number part.
           const originalEdgeRecordId = parseInt(
@@ -416,11 +455,14 @@ const NetworkDiagram = () => {
             10
           );
 
+          const sourceNode = nodes.find((n) => n.id === insertionEdge.source);
+          const swId = sourceNode ? sourceNode.data.sw_id : null;
+
           const payload = {
             new_node_data: {
               ...formData,
               cable_color: insertionEdge.style?.stroke || null,
-              sw_id: parseInt(selectedOlt, 10),
+              sw_id: swId,
             },
             original_source_id: parseInt(insertionEdge.source, 10),
             original_edge_record_id: originalEdgeRecordId, // Send the record ID
@@ -432,7 +474,7 @@ const NetworkDiagram = () => {
           // This is a regular ADD operation, now with position data
           const payload = {
             ...formData,
-            sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
+            sw_id: parentNode ? parentNode.data.sw_id : null,
             // Add the position to the payload
             position_x: position.x,
             position_y: position.y,
@@ -448,7 +490,7 @@ const NetworkDiagram = () => {
         setLoading(false);
       }
     },
-    [selectedOlt, addModal.isInsertion, insertionEdge]
+    [addModal, insertionEdge, nodes]
   );
 
   const handleConfirmDelete = useCallback(async () => {
@@ -463,7 +505,7 @@ const NetworkDiagram = () => {
           // Construct the new payload with name and the currently selected OLT ID
           const nodeInfo = {
             name: nodeToDelete.data.name,
-            sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
+            sw_id: nodeToDelete.data.sw_id,
           };
           await deleteNode(nodeInfo);
         } else {
@@ -478,9 +520,9 @@ const NetworkDiagram = () => {
         if (edgeToDelete && targetNode) {
           // Construct the NEW payload for the API
           const edgeInfo = {
-            name: targetNode.data.name, // Use the node's unique name
+            name: targetNode.data.name,
             source_id: parseInt(edgeToDelete.source, 10),
-            sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
+            sw_id: targetNode.data.sw_id,
           };
           await deleteEdge(edgeInfo);
         }
@@ -495,7 +537,7 @@ const NetworkDiagram = () => {
       setDeleteModal({ isOpen: false, id: null, type: "" });
       // setLoading will be turned off by the data reload effect
     }
-  }, [deleteModal, edges, nodes, selectedOlt]); // <-- Add 'nodes' to the dependency array
+  }, [deleteModal, edges, nodes]); // <-- Add 'nodes' to the dependency array
   const handleUpdateNodeLabel = useCallback(
     async (nodeId, updatedFormData) => {
       try {
@@ -506,7 +548,7 @@ const NetworkDiagram = () => {
         const payload = {
           ...updatedFormData,
           original_name: nodeToUpdate.data.name,
-          sw_id: selectedOlt ? parseInt(selectedOlt, 10) : null,
+          sw_id: nodeToUpdate.data.sw_id,
         };
         await saveNodeInfo(payload); // Correctly passing nodeId here
         window.location.reload();
@@ -514,7 +556,7 @@ const NetworkDiagram = () => {
         console.error("Error saving node info:", error);
       }
     },
-    [nodes, selectedOlt]
+    [nodes]
   );
 
   const onNodeFound = (nodeId) => {
@@ -564,7 +606,7 @@ const NetworkDiagram = () => {
   }, [nodes, edges]);
 
   useEffect(() => {
-    if (selectedOlt === undefined) {
+    if (rootId === undefined) {
       setNodes([]);
       setEdges([]);
       return;
@@ -573,7 +615,26 @@ const NetworkDiagram = () => {
       setLoading(true);
       setIsEmpty(false);
       try {
-        const apiData = await fetchData(selectedOlt);
+        const apiData = await fetchData(rootId);
+
+        // --- THIS IS THE FIX ---
+        const isGeneralView = rootId === null;
+
+        // If we are on a specific /:id page, check if it's an OLT.
+        if (!isGeneralView && apiData.length > 0) {
+          const rootNodeFromData = apiData.find(
+            (item) => String(item.id) === String(rootId)
+          );
+
+          if (rootNodeFromData && rootNodeFromData.node_type !== "OLT") {
+            setRedirectInfo({
+              shouldRedirect: true,
+              message: "This view is only available for OLT devices.",
+            });
+            return;
+          }
+        }
+
         if (!apiData || apiData.length === 0) {
           setIsEmpty(true);
           setNodes([]);
@@ -669,15 +730,13 @@ const NetworkDiagram = () => {
 
         // --- START: NEW AND FINAL LAYOUT LOGIC ---
         if (initialNodes.length > 0) {
-          const isGeneralView = selectedOlt === null;
-
           // --- THIS IS THE FIX ---
           // If we are in a specific OLT view, find that OLT node and force it
           // to be auto-positioned, ignoring any position it might have saved
           // from being moved in the general view.
           if (!isGeneralView) {
             initialNodes.forEach((node) => {
-              if (String(node.data.id) === String(selectedOlt)) {
+              if (String(node.data.id) === String(rootId)) {
                 node.data.hasCustomPosition = false;
               }
             });
@@ -686,6 +745,17 @@ const NetworkDiagram = () => {
           initialNodes.sort(compareNodesByLabel);
           const nodeMap = new Map(initialNodes.map((n) => [n.id, n]));
           let rootNode = null;
+          if (!isGeneralView) {
+            // In a specific /:id view, the root is always the OLT from the URL
+            rootNode = initialNodes.find(
+              (n) => String(n.data.id) === String(rootId)
+            );
+          } else if (dynamicRootId) {
+            // In general view, if a root has been selected via the FAB, use it
+            rootNode = initialNodes.find(
+              (n) => String(n.id) === String(dynamicRootId)
+            );
+          }
 
           // 1. Build tree structure (CORRECTED)
           // First, initialize .children array on ALL nodes
@@ -695,15 +765,12 @@ const NetworkDiagram = () => {
           // THEN, connect them
           // --- Replace it with this corrected version ---
           initialNodes.forEach((node) => {
-            const rootNodeType = isGeneralView ? "Router" : "OLT";
-            if (node.data.node_type === rootNodeType) {
-              rootNode = node;
-              // --- THIS IS THE FIX ---
-              // Explicitly check that parent_id is not null AND not 0.
-            } else if (
-              node.data.parent_id !== null &&
-              node.data.parent_id !== 0
-            ) {
+            // Skip the root node itself as it has no parent in this context
+            if (rootNode && node.id === rootNode.id) {
+              return;
+            }
+
+            if (node.data.parent_id !== null && node.data.parent_id !== 0) {
               const parent = nodeMap.get(String(node.data.parent_id));
               if (parent) {
                 parent.children.push(node);
@@ -887,9 +954,17 @@ const NetworkDiagram = () => {
           }
 
           // >>> PASTE THE NEW AUTO-SAVE CODE HERE <<<
-          const nodesToSave = initialNodes.filter(
-            (n) => !n.data.hasCustomPosition && n.level !== -1 // <-- THIS IS THE FIX
-          );
+          const nodesToSave = initialNodes.filter((n) => {
+            // Standard condition: Must not have a pre-existing custom position and must not be an orphan.
+            const shouldSave = !n.data.hasCustomPosition && n.level !== -1;
+
+            // --- THIS IS THE FIX ---
+            // New condition: If we are in an OLT-specific view, do NOT save the root OLT node itself.
+            const isRootNodeInOltView =
+              !isGeneralView && String(n.data.id) === String(rootId);
+
+            return shouldSave && !isRootNodeInOltView;
+          });
 
           if (nodesToSave.length > 0) {
             console.log(
@@ -933,13 +1008,42 @@ const NetworkDiagram = () => {
       }
     };
     loadInitialData();
-  }, [selectedOlt]);
+  }, [rootId, dynamicRootId, navigate]);
 
   useEffect(() => {
-    // If an 'id' exists in the URL, parse it and set it as the selectedOlt.
-    // If no 'id' is present, set selectedOlt to null to signify the "general view".
-    setSelectedOlt(id ? parseInt(id, 10) : null);
+    const newRootId = id ? parseInt(id, 10) : null;
+    setRootId(newRootId);
+
+    // If we are navigating away from the general view, clear the dynamic root.
+    if (newRootId !== null) {
+      setDynamicRootId(null);
+    } else {
+      // When returning to the general view, re-load from localStorage.
+      setDynamicRootId(localStorage.getItem("dynamicRootId"));
+    }
   }, [id]);
+
+  useEffect(() => {
+    if (redirectInfo.shouldRedirect) {
+      toast.error(redirectInfo.message);
+      // Using { replace: true } is good practice here, as it replaces the
+      // invalid URL in the history stack, so the user's back button works as expected.
+      navigate("/", { replace: true });
+      // Reset the state after navigating
+      setRedirectInfo({ shouldRedirect: false, message: "" });
+    }
+  }, [redirectInfo, navigate]);
+
+  useEffect(() => {
+    if (rootId === null) {
+      // Only save when in the general view
+      if (dynamicRootId) {
+        localStorage.setItem("dynamicRootId", dynamicRootId);
+      } else {
+        localStorage.removeItem("dynamicRootId"); // Clean up if no root is selected
+      }
+    }
+  }, [dynamicRootId, rootId]);
 
   return (
     <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
@@ -955,7 +1059,6 @@ const NetworkDiagram = () => {
         edgesUpdatable={isEditMode}
         panOnDrag={!isEditMode}
         onPaneClick={onPaneClick}
-        onPaneContextMenu={onPaneContextMenu}
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}
         onEdgeUpdate={onEdgeUpdate}
@@ -988,6 +1091,7 @@ const NetworkDiagram = () => {
 
       {!isEmpty && (
         <>
+          <AddNodeFab onClick={handleAddNodeClick} />
           <EditFab isEditing={isEditMode} onClick={handleFabClick} />
           <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
           <HelpBox />
@@ -1002,6 +1106,9 @@ const NetworkDiagram = () => {
             }
             disabled={loading || isEditMode}
           />
+          {rootId === null && (
+            <SelectRootNodeFab onSelectRoot={handleSelectRoot} />
+          )}
         </>
       )}
 

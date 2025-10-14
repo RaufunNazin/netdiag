@@ -40,34 +40,32 @@ const HelpBox = () => {
   return (
     <div className="absolute bottom-4 right-4 z-10">
       <div
-        className={`bg-white/50 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 w-72 ${
+        className={`w-72 rounded-lg border border-gray-200 bg-white/50 p-4 shadow-lg backdrop-blur-sm z-20 ${
           isOpen ? "block" : "hidden"
         }`}
       >
-        <h3 className="text-lg font-bold text-gray-800 mb-2">How to Use</h3>
-        <ul className="text-sm text-gray-600 space-y-2 list-disc list-inside">
+        <h3 className="mb-2 text-lg font-bold text-gray-800">How to Use</h3>
+        <ul className="list-inside list-disc space-y-2 text-sm text-gray-600">
           <li>
-            Click the <b>pencil icon</b> in the bottom-right corner to enter{" "}
-            <b>Edit Mode</b>.
+            Click the <b>pencil icon</b> to enter <b>Edit Mode</b>.
           </li>
           <li>
-            In <b>Edit Mode</b>, you can <b>right-click</b> on items for actions
-            or <b>drag lines</b> to reconnect devices.
+            In <b>Edit Mode</b>, you can drag devices, reconnect lines, or
+            right-click for more options.
           </li>
           <li>
-            <b>Click</b> a device to expand or collapse its branch of
-            connections.
+            Click the <b>plus icon</b> to add a new device to the diagram.
           </li>
           <li>
-            Connections flow from an <b>orange</b> point (source) to a{" "}
-            <b>green</b> point (target).
+            Click the <b>sitemap icon</b> to select a new root node for the
+            view.
           </li>
           <li>
-            <b>Pan </b> the view using your mouse and drag to explore the
-            network.
+            <b>Expand or Collapse</b> a branch by clicking on a device.
           </li>
           <li>
-            <b>Zoom </b> in and out with your mouse wheel or trackpad pinch.
+            <b>Pan and Zoom</b> by dragging the background and using your mouse
+            wheel.
           </li>
         </ul>
       </div>

@@ -17,17 +17,18 @@ const ContextMenu = ({ id, top, left, onAction, ...props }) => {
           { label: "Delete Connection", action: "deleteEdge" },
         ];
       default:
-        return [{ label: "Add Device", action: "addNode" }];
+        return [];
     }
   };
-
+  const menuItems = getMenuItems();
+  if (menuItems.length === 0) return null; // Don't render if there are no items
   return (
     <div
       style={{ top, left }}
       className="absolute z-50 bg-white rounded-md shadow-lg border border-gray-200 text-sm"
     >
       <ul className="py-1">
-        {getMenuItems().map(({ label, action }) => (
+        {menuItems.map(({ label, action }) => (
           <li
             key={action}
             onClick={() => onAction(action, { id })}

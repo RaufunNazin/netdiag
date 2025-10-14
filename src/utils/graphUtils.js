@@ -1,6 +1,17 @@
 import api from "../api";
 import { toast } from "react-toastify";
 
+export const fetchRootCandidates = async () => {
+  try {
+    const response = await api.get("/nodes/root-candidates");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching root candidates:", error);
+    toast.error("Could not load the list of root devices to search.");
+    throw error;
+  }
+};
+
 export const saveNodeInfo = async (updatedInfo, muted = false) => {
   try {
     const response = await api.put(`/device`, updatedInfo).catch((error) => {
