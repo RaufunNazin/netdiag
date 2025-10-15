@@ -46,6 +46,7 @@ import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
+import UndoFab from "../components/ui/UndoFab.jsx";
 
 import { toast } from "react-toastify";
 
@@ -67,6 +68,7 @@ const NetworkDiagram = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([]);
   const [redirectInfo, setRedirectInfo] = useState({
     shouldRedirect: false,
     message: "",
@@ -129,6 +131,36 @@ const NetworkDiagram = () => {
         return "other";
     }
   };
+
+  // ... after onConnect or another useCallback
+  const pushStateToHistory = useCallback(() => {
+    const currentNodes = reactFlowInstance.getNodes();
+    const currentEdges = reactFlowInstance.getEdges();
+    setHistory((prev) => [
+      ...prev,
+      {
+        nodes: currentNodes,
+        edges: currentEdges,
+        newConnections: newConnections,
+      },
+    ]);
+  }, [reactFlowInstance, newConnections]);
+
+  const handleUndo = useCallback(() => {
+    if (history.length === 0) return;
+
+    setHistory((prevHistory) => {
+      const newHistory = [...prevHistory];
+      const lastState = newHistory.pop();
+
+      if (lastState) {
+        setNodes(lastState.nodes);
+        setEdges(lastState.edges);
+        setNewConnections(lastState.newConnections);
+      }
+      return newHistory;
+    });
+  }, [history, setNodes, setEdges, setNewConnections]);
 
   // --- 2. Create the callback functions for the node buttons ---
   const handleDetailsClick = (nodeData) => {
@@ -255,8 +287,20 @@ const NetworkDiagram = () => {
     return numsA.length - numsB.length;
   };
 
+  const onNodeDragStart = useCallback(
+    (event, node) => {
+      if (isEditMode) {
+        pushStateToHistory();
+      }
+    },
+    [isEditMode, pushStateToHistory]
+  );
+
   const onConnect = useCallback(
     (params) => {
+      if (isEditMode) {
+        pushStateToHistory(); // <-- ADD THIS LINE
+      }
       // Create the edge for immediate visual feedback
       const newEdge = {
         ...params,
@@ -334,6 +378,7 @@ const NetworkDiagram = () => {
       }
     } else {
       // --- This block handles ENTERING edit mode ---
+      setHistory([]);
       setIsEditMode(true);
     }
   }, [isEditMode, newConnections, rootId, reactFlowInstance]);
@@ -1070,6 +1115,7 @@ const NetworkDiagram = () => {
         nodesDraggable={isEditMode}
         nodesConnectable={isEditMode}
         edgesUpdatable={isEditMode}
+        onNodeDragStart={onNodeDragStart}
         panOnDrag={!isEditMode}
         onPaneClick={onPaneClick}
         onNodeContextMenu={onNodeContextMenu}
@@ -1109,6 +1155,9 @@ const NetworkDiagram = () => {
           <EditFab isEditing={isEditMode} onClick={handleFabClick} />
           <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
           <HelpBox />
+          {isEditMode && ( // <-- WRAP WITH THIS CONDITION
+            <UndoFab onClick={handleUndo} disabled={history.length === 0} />
+          )}
           <ResetPositionsFab
             onReset={(scope) =>
               setResetConfirmModal({

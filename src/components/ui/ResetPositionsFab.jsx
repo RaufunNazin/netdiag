@@ -42,19 +42,19 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
   };
 
   return (
-    <div ref={wrapperRef} className="absolute bottom-4 left-4 z-10">
+    <div ref={wrapperRef} className="absolute bottom-4 left-4 z-20">
       {/* The small dropdown menu */}
       {isOpen && (
         <div className="absolute bottom-full mb-2 w-48 bg-white rounded-md shadow-lg py-1">
           <ul className="list-none p-0 m-0">
             <li
-              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="px-4 py-2 text-sm text-[#d43c3c] hover:bg-[#d43c3c]/10"
               onClick={() => handleResetClick("all")}
             >
               Reset All Positions
             </li>
             <li
-              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              className="px-4 py-2 text-sm text-[#d43c3c] hover:bg-[#d43c3c]/10"
               onClick={() => handleResetClick("manual")}
             >
               Reset Manual Positions

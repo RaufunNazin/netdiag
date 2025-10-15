@@ -32,7 +32,11 @@ const ContextMenu = ({ id, top, left, onAction, ...props }) => {
           <li
             key={action}
             onClick={() => onAction(action, { id })}
-            className="px-4 py-2 hover:bg-gray-100"
+            className={`px-4 py-2 cursor-pointer ${
+              action === "deleteNode" || action === "deleteEdge"
+                ? "hover:bg-[#d43c3c]/10 text-[#d43c3c]"
+                : "hover:bg-gray-100 text-gray-700"
+            }`}
           >
             {label}
           </li>

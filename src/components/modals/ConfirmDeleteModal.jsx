@@ -3,7 +3,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, itemType }) => {
   return (
     <div className="absolute inset-0 bg-black/50 z-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-xl w-96 space-y-4">
-        <h3 className="text-xl font-bold text-red-600">Confirm Deletion</h3>
+        <h3 className="text-xl font-bold text-[#ef4444]">Confirm Deletion</h3>
         <p>
           Are you sure you want to delete this {itemType}? This action cannot be
           undone.
@@ -17,7 +17,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, itemType }) => {
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            className="px-4 py-2 bg-[#ef4444] text-white rounded-md hover:bg-[#d43c3c]"
           >
             Delete
           </button>
