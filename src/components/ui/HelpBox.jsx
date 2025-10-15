@@ -72,7 +72,7 @@ const HelpBox = () => {
       <div className="flex justify-end">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="mt-2 bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200"
+          className="bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200"
         >
           {isOpen ? icons.cross : icons.question}
         </button>

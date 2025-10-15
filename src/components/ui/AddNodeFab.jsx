@@ -4,7 +4,7 @@ const AddNodeFab = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="absolute bottom-28 right-4 z-10  p-3 rounded-full shadow-lg text-white transition-all duration-200 hover:bg-green-600 bg-green-500"
+      className="z-10  p-3 rounded-full shadow-lg text-white transition-all duration-200 hover:bg-green-600 bg-green-500"
       title="Add New Device"
     >
       <svg

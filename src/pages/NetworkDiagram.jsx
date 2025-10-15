@@ -44,6 +44,7 @@ import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmResetModal from "../components/modals/ConfirmResetModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
+import IconDock from "../components/ui/IconDock.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
 import UndoFab from "../components/ui/UndoFab.jsx";
@@ -1151,13 +1152,10 @@ const NetworkDiagram = () => {
 
       {!isEmpty && (
         <>
-          <AddNodeFab onClick={handleAddNodeClick} />
-          <EditFab isEditing={isEditMode} onClick={handleFabClick} />
           <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
+
+          {/* --- ADD THE NEW DOCK HERE --- */}
           <HelpBox />
-          {isEditMode && ( // <-- WRAP WITH THIS CONDITION
-            <UndoFab onClick={handleUndo} disabled={history.length === 0} />
-          )}
           <ResetPositionsFab
             onReset={(scope) =>
               setResetConfirmModal({
@@ -1169,9 +1167,14 @@ const NetworkDiagram = () => {
             }
             disabled={loading || isEditMode}
           />
-          {rootId === null && (
-            <SelectRootNodeFab onSelectRoot={handleSelectRoot} />
-          )}
+          <IconDock>
+            {rootId === null && (
+              <SelectRootNodeFab onSelectRoot={handleSelectRoot} />
+            )}
+            <AddNodeFab onClick={handleAddNodeClick} />
+            <EditFab isEditing={isEditMode} onClick={handleFabClick} />
+            <UndoFab onClick={handleUndo} disabled={history.length === 0} />
+          </IconDock>
         </>
       )}
 

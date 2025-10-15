@@ -1,9 +1,9 @@
 import React from "react";
-import { FaUndo } from "react-icons/fa";
+import { IoArrowUndoOutline } from "react-icons/io5";
 
 const UndoFab = ({ onClick, disabled }) => {
   return (
-    <div className="absolute bottom-40 right-4 z-10">
+    <div className="z-10">
       <button
         onClick={onClick}
         disabled={disabled}
@@ -14,7 +14,7 @@ const UndoFab = ({ onClick, disabled }) => {
         }`}
         title="Undo Last Action"
       >
-        <FaUndo size={16} />
+        <IoArrowUndoOutline size={20}/>
       </button>
     </div>
   );
