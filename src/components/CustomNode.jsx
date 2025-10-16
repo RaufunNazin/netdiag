@@ -266,7 +266,6 @@ const CustomNode = ({ data, isConnectable }) => {
                       />
                       <DetailRow label="Owner" value={customer.owner} />
                       <DetailRow label="User Status" value={customer.st2} />
-                      <DetailRow label="VLAN" value={customer.vlan} />
                       <DetailRow
                         label="Last Seen (Days)"
                         value={
