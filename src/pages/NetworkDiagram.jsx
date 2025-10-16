@@ -110,7 +110,7 @@ const NetworkDiagram = () => {
         return "ap";
       case "Bamboo":
         return "bamboo";
-      case "Managed Switch":
+      case "mSwitch":
         return "mswitch";
       case "OLT":
         return "olt";
@@ -124,7 +124,7 @@ const NetworkDiagram = () => {
         return "splitter";
       case "TJ":
         return "tj";
-      case "Unmanaged Switch":
+      case "uSwitch":
         return "uswitch";
       case "Other":
         return "other";

@@ -3,14 +3,14 @@ const NODE_TYPES = [
   "",
   "AP",
   "Bamboo",
-  "Managed Switch",
+  "mSwitch",
   "OLT",
   "ONU",
   "PON",
   "Router",
   "Splitter",
   "TJ",
-  "Unmanaged Switch",
+  "uSwitch",
   "Other",
 ];
 
@@ -32,10 +32,4 @@ const CORE_COLORS_DATA = [
 ];
 const SPLIT_RATIOS = ["", "2", "4", "8", "16", "32", "64"];
 
-export {
-  LINK_TYPES,
-  NODE_TYPES,
-  DEVICE_TYPES,
-  CORE_COLORS_DATA,
-  SPLIT_RATIOS,
-};
+export { LINK_TYPES, NODE_TYPES, DEVICE_TYPES, CORE_COLORS_DATA, SPLIT_RATIOS };

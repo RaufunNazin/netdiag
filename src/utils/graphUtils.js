@@ -166,6 +166,17 @@ export const deleteNode = async (nodeInfo) => {
   }
 };
 
+export const fetchOnuCustomerInfo = async (oltId, portName) => {
+  try {
+    const response = await api.get(`/onu/${oltId}/${portName}/customers`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching customer info for ${portName}:`, error);
+    // Don't show a toast for hover actions, just return empty
+    return [];
+  }
+};
+
 export const deleteEdge = async (edgeInfo) => {
   try {
     const response = await api.delete(`/edge`, { data: edgeInfo });
