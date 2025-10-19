@@ -29,6 +29,7 @@ import {
   insertNode,
   resetPositions,
 } from "../utils/graphUtils";
+import UserStatus from "../components/ui/UserStatus";
 import AddNodeFab from "../components/ui/AddNodeFab.jsx";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -1134,6 +1135,7 @@ const NetworkDiagram = () => {
           <ContextMenu {...contextMenu} onAction={handleAction} />
         )}
       </ReactFlow>
+      <UserStatus />
 
       {loading && <LoadingOverlay />}
       {!loading && isEmpty && <EmptyState />}

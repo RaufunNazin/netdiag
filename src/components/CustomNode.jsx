@@ -2,8 +2,7 @@ import React, { memo, useState, useRef } from "react";
 import { Handle, Position } from "reactflow";
 import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
-
-// --- Helper Components (No changes here) ---
+import { useParams } from "react-router-dom";
 
 const ICONS = {
   ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
@@ -54,6 +53,7 @@ const DetailRow = ({ label, value }) => (
 
 const CustomNode = ({ data, isConnectable }) => {
   // --- STATE AND REFS ---
+  const { id } = useParams();
   const [isHovered, setIsHovered] = useState(false);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [customerData, setCustomerData] = useState(null);
@@ -168,7 +168,7 @@ const CustomNode = ({ data, isConnectable }) => {
               <path d="M12 16v-4M12 8h.01"></path>
             </svg>
           </button>
-          {data.node_type === "OLT" && (
+          {data.node_type === "OLT" && !id && (
             <button
               onClick={handleNavigateClick}
               className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
