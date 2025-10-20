@@ -48,7 +48,7 @@ const UserStatus = () => {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="ml-3 text-gray-500 hover:text-red-500 transition-colors"
+          className="ml-3 text-gray-500 hover:text-[#ef4444] transition-colors"
           title="Logout"
         >
           <FaSignOutAlt />
