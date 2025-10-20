@@ -1,5 +1,3 @@
-// src/components/ui/EmptyState.jsx
-
 import React from "react";
 
 const EmptyState = () => {
@@ -31,9 +29,11 @@ const EmptyState = () => {
         No Devices Found
       </h2>
       <p className="mt-2 text-gray-500">
-        The network for this switch appears to be empty or could not be loaded.
+        Your network view is currently empty.
       </p>
-      <b><p className="mt-2 text-gray-700">Please select another device or try after a while</p></b>
+      <p className="mt-2 text-gray-700 font-medium">
+        Click the plus button below to add your first device.
+      </p>
     </div>
   );
 };

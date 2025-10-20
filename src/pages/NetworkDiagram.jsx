@@ -36,6 +36,7 @@ import { useNavigate } from "react-router-dom";
 import SelectRootNodeFab from "../components/ui/SelectRootNodeFab.jsx";
 import EditFab from "../components/ui/EditFab.jsx";
 import CustomNode from "../components/CustomNode.jsx";
+import GuidanceToast from "../components/ui/GuidanceToast";
 import ContextMenu from "../components/ContextMenu.jsx";
 import HelpBox from "../components/ui/HelpBox.jsx";
 import SearchControl from "../components/ui/SearchControl.jsx";
@@ -49,6 +50,7 @@ import IconDock from "../components/ui/IconDock.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
 import UndoFab from "../components/ui/UndoFab.jsx";
+import SelectRootNodeModal from "../components/modals/SelectRootNodeModal.jsx";
 
 import { toast } from "react-toastify";
 
@@ -68,6 +70,7 @@ const NetworkDiagram = () => {
   const reactFlowInstance = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
@@ -540,6 +543,7 @@ const NetworkDiagram = () => {
           };
           await createNode(payload);
         }
+        sessionStorage.setItem("justAddedNode", "true");
 
         // On success, trigger a full reload to show the changes
         window.location.reload();
@@ -561,6 +565,10 @@ const NetworkDiagram = () => {
 
         if (nodeToDelete) {
           // Construct the new payload with name and the currently selected OLT ID
+          if (id === dynamicRootId) {
+            localStorage.removeItem("dynamicRootId");
+            setDynamicRootId(null); // Also clear the state
+          }
           const nodeInfo = {
             name: nodeToDelete.data.name,
             sw_id: nodeToDelete.data.sw_id,
@@ -1105,6 +1113,55 @@ const NetworkDiagram = () => {
     }
   }, [dynamicRootId, rootId]);
 
+  useEffect(() => {
+    if (loading || nodes.length === 0) {
+      return;
+    }
+
+    const justAdded = sessionStorage.getItem("justAddedNode");
+
+    if (justAdded) {
+      sessionStorage.removeItem("justAddedNode");
+      const toastId = "guidance-toast";
+
+      // A root is considered validly selected if the ID exists AND that node is present in the diagram.
+      const isRootSelectedAndValid =
+        dynamicRootId && nodes.some((n) => n.id === dynamicRootId);
+
+      // If a valid root is already selected, we don't need to show any guidance.
+      if (isRootSelectedAndValid) {
+        return;
+      }
+
+      // Check if any potential root devices (Router/Switch) exist in the diagram.
+      const hasRootCandidate = nodes.some((node) =>
+        ["Router", "Managed Switch", "Unmanaged Switch"].includes(
+          node.data.node_type
+        )
+      );
+
+      if (hasRootCandidate) {
+        // If a candidate exists but isn't validly selected, prompt the user to select it.
+        toast(
+          <GuidanceToast
+            title="Next Step: Set Your Root Node"
+            message="Great! Now click the <strong>sitemap icon</strong> (bottom center) to select your new Router/Switch as the root of the network."
+          />,
+          { toastId, autoClose: false, closeOnClick: true, type: "info" }
+        );
+      } else {
+        // If no potential root has been added yet, prompt the user to add one.
+        toast(
+          <GuidanceToast
+            title="Next Step: Add a Core Device"
+            message="To build your network, you need a starting point. Please add a <strong>Router</strong> or a <strong>Switch</strong> to serve as your root device."
+          />,
+          { toastId, autoClose: false, closeOnClick: true, type: "info" }
+        );
+      }
+    }
+  }, [nodes, loading, dynamicRootId]);
+
   return (
     <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
       <ReactFlow
@@ -1138,7 +1195,15 @@ const NetworkDiagram = () => {
       <UserStatus />
 
       {loading && <LoadingOverlay />}
-      {!loading && isEmpty && <EmptyState />}
+      {!loading && isEmpty && (
+        <>
+          <EmptyState />
+          <HelpBox isEmpty={isEmpty} />
+          <IconDock>
+            <AddNodeFab onClick={handleAddNodeClick} />
+          </IconDock>
+        </>
+      )}
 
       {window.location.pathname !== "/" && (
         <div className="absolute top-4 left-4 z-10 text-gray-700">
@@ -1157,7 +1222,7 @@ const NetworkDiagram = () => {
           <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
 
           {/* --- ADD THE NEW DOCK HERE --- */}
-          <HelpBox />
+          <HelpBox isEmpty={isEmpty} />
           <ResetPositionsFab
             onReset={(scope) =>
               setResetConfirmModal({
@@ -1171,7 +1236,7 @@ const NetworkDiagram = () => {
           />
           <IconDock>
             {rootId === null && (
-              <SelectRootNodeFab onSelectRoot={handleSelectRoot} />
+              <SelectRootNodeFab onClick={() => setSelectRootModalOpen(true)} />
             )}
             <AddNodeFab onClick={handleAddNodeClick} />
             <EditFab isEditing={isEditMode} onClick={handleFabClick} />
@@ -1227,6 +1292,11 @@ const NetworkDiagram = () => {
         isOpen={detailModal.isOpen}
         onClose={() => setDetailModal({ isOpen: false, node: null })}
         node={detailModal.node}
+      />
+      <SelectRootNodeModal
+        isOpen={isSelectRootModalOpen}
+        onClose={() => setSelectRootModalOpen(false)}
+        onSelect={handleSelectRoot}
       />
     </div>
   );

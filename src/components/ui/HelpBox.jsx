@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const HelpBox = () => {
+const HelpBox = ({ isEmpty }) => {
   const [isOpen, setIsOpen] = useState(false);
   const icons = {
     question: (
@@ -37,6 +37,37 @@ const HelpBox = () => {
     ),
   };
 
+  // Conditionally set the content based on the isEmpty prop
+  const helpContent = isEmpty
+    ? {
+        title: "Getting Started",
+        points: [
+          <>
+            Your network is empty. Click the <b>plus icon</b> below to add your
+            first device.
+          </>,
+          "Once you add a device, other options like Edit Mode will become available.",
+        ],
+      }
+    : {
+        title: "How to Use",
+        points: [
+          <>
+            Click the <b>pencil icon</b> to enter <b>Edit Mode</b>.
+          </>,
+          "In Edit Mode, you can drag devices, reconnect lines, or right-click for more options.",
+          <>
+            Click the <b>plus icon</b> to add a new device to the diagram.
+          </>,
+          <>
+            Click the <b>sitemap icon</b> to select a new root node for the
+            view.
+          </>,
+          "Expand or Collapse a branch by clicking on a device.",
+          "Pan and Zoom by dragging the background and using your mouse wheel.",
+        ],
+      };
+
   return (
     <div className="absolute bottom-4 right-4 z-10">
       <div
@@ -44,32 +75,16 @@ const HelpBox = () => {
           isOpen ? "block" : "hidden"
         }`}
       >
-        <h3 className="mb-2 text-lg font-bold text-gray-800">How to Use</h3>
+        <h3 className="mb-2 text-lg font-bold text-gray-800">
+          {helpContent.title}
+        </h3>
         <ul className="list-inside list-disc space-y-2 text-sm text-gray-600">
-          <li>
-            Click the <b>pencil icon</b> to enter <b>Edit Mode</b>.
-          </li>
-          <li>
-            In <b>Edit Mode</b>, you can drag devices, reconnect lines, or
-            right-click for more options.
-          </li>
-          <li>
-            Click the <b>plus icon</b> to add a new device to the diagram.
-          </li>
-          <li>
-            Click the <b>sitemap icon</b> to select a new root node for the
-            view.
-          </li>
-          <li>
-            <b>Expand or Collapse</b> a branch by clicking on a device.
-          </li>
-          <li>
-            <b>Pan and Zoom</b> by dragging the background and using your mouse
-            wheel.
-          </li>
+          {helpContent.points.map((point, index) => (
+            <li key={index}>{point}</li>
+          ))}
         </ul>
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200"
