@@ -88,7 +88,7 @@ const HelpBox = ({ isEmpty }) => {
                 </svg>
               </button>
             }{" "}
-            to select a new root node for the main view.
+            to select a new <b>root device</b> for the main view.
           </>,
           <>
             Click{" "}
@@ -113,7 +113,7 @@ const HelpBox = ({ isEmpty }) => {
                 </svg>
               </button>
             }{" "}
-            to add a new device to the diagram.
+            to <b>add</b> a new device to the diagram.
           </>,
           <>
             Click{" "}
@@ -150,7 +150,7 @@ const HelpBox = ({ isEmpty }) => {
                 <IoArrowUndoOutline size={12} />
               </button>
             }{" "}
-            to revert the last change in Edit Mode.
+            to <b>undo</b> the last change in Edit Mode.
           </>,
           <>
             Click{" "}
@@ -162,7 +162,7 @@ const HelpBox = ({ isEmpty }) => {
                 <FaExpand size={12} />
               </button>
             }{" "}
-            to reset the view and fit all nodes on screen.
+            to <b>adjust</b> the view and fit all nodes on screen.
           </>,
           <>
             Use{" "}
@@ -188,16 +188,22 @@ const HelpBox = ({ isEmpty }) => {
                 </svg>
               </button>
             }{" "}
-            to recalculate the automatic layout.
+            to <b>reset</b> the layout.
           </>,
           <>
-            Click any device to <b>Expand or Collapse</b> its children.
+            Connection possible from{" "}
+            <span className="inline-block w-3 h-3 bg-orange-500 rounded-full mr-1" />{" "}
+            ⟶{" "}
+            <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1" />
+          </>,
+          <>
+            Click any device to <b>Expand</b> or <b>Collapse</b> its children.
           </>,
           <>
             Hover on{" "}
             {
               <button
-                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700 "
                 title="View Details"
               >
                 <svg
@@ -216,7 +222,7 @@ const HelpBox = ({ isEmpty }) => {
                 </svg>
               </button>
             }{" "}
-            on an ONU node to see <b>customer details.</b>
+            on an ONU node to view <b>customer details.</b>
           </>,
           <>
             Click{" "}
@@ -248,7 +254,7 @@ const HelpBox = ({ isEmpty }) => {
   return (
     <div className="absolute bottom-4 right-4 z-10">
       <div
-        className={`w-84 rounded-lg border border-gray-200 bg-white/50 p-4 shadow-lg backdrop-blur-sm z-20 ${
+        className={`w-84 rounded-lg border border-gray-200 bg-white/70 p-4 shadow-lg backdrop-blur-sm z-20 ${
           isOpen ? "block" : "hidden"
         }`}
       >
