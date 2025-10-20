@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { FaExpand } from "react-icons/fa6";
+import { IoArrowUndoOutline } from "react-icons/io5";
 
 const HelpBox = ({ isEmpty }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,25 +55,200 @@ const HelpBox = ({ isEmpty }) => {
         title: "How to Use",
         points: [
           <>
-            Click the <b>pencil icon</b> to enter <b>Edit Mode</b>.
+            Use the <b>Search bar</b> (top right) to find any device.
           </>,
-          "In Edit Mode, you can drag devices, reconnect lines, or right-click for more options.",
+
           <>
-            Click the <b>plus icon</b> to add a new device to the diagram.
+            Click{" "}
+            {
+              <button
+                className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600"
+                title="Select Root Node"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {/* Top (Root) Node */}
+                  <rect x="8.5" y="3" width="7" height="7" rx="1"></rect>
+                  {/* Bottom-Left Child Node */}
+                  <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                  {/* Bottom-Right Child Node */}
+                  <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+
+                  {/* Connections: From Root to children */}
+                  <path d="M12 10 V 13 H 6.5 V 14 M12 13 H 17.5 V 14"></path>
+                </svg>
+              </button>
+            }{" "}
+            to select a new root node for the main view.
           </>,
           <>
-            Click the <b>sitemap icon</b> to select a new root node for the
-            view.
+            Click{" "}
+            {
+              <button
+                className="z-10 p-1 rounded-full text-white transition-all duration-200 hover:bg-green-600 bg-green-500"
+                title="Add New Device"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 5v14"></path>
+                  <path d="M5 12h14"></path>
+                </svg>
+              </button>
+            }{" "}
+            to add a new device to the diagram.
           </>,
-          "Expand or Collapse a branch by clicking on a device.",
-          "Pan and Zoom by dragging the background and using your mouse wheel.",
+          <>
+            Click{" "}
+            {
+              <button
+                className={`z-10 p-1.5 rounded-full text-white transition-all duration-200 bg-blue-500 hover:bg-blue-600`}
+                title={"Enable Editing"}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="8"
+                  height="8"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+              </button>
+            }{" "}
+            to enter <b>Edit Mode</b> to move nodes, create connections, or
+            right-click for more options.
+          </>,
+          <>
+            Click{" "}
+            {
+              <button
+                className={`p-1 bg-[#ef4444] rounded-full text-white transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none cursor-pointer`}
+                title="Undo Last Action"
+              >
+                <IoArrowUndoOutline size={12} />
+              </button>
+            }{" "}
+            to revert the last change in Edit Mode.
+          </>,
+          <>
+            Click{" "}
+            {
+              <button
+                className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600"
+                title="Reset View"
+              >
+                <FaExpand size={12} />
+              </button>
+            }{" "}
+            to reset the view and fit all nodes on screen.
+          </>,
+          <>
+            Use{" "}
+            {
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-1 rounded-full shadow-lg text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rotate-90 hover:rotate-0"
+                title="Reset Positions"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+              </button>
+            }{" "}
+            to recalculate the automatic layout.
+          </>,
+          <>
+            Click any device to <b>Expand or Collapse</b> its children.
+          </>,
+          <>
+            Hover on{" "}
+            {
+              <button
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+                title="View Details"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 16v-4M12 8h.01"></path>
+                </svg>
+              </button>
+            }{" "}
+            on an ONU node to see <b>customer details.</b>
+          </>,
+          <>
+            Click{" "}
+            {
+              <button
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+                title="Go to OLT View"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9 18l6-6-6-6"></path>
+                </svg>
+              </button>
+            }{" "}
+            on an OLT node to enter <b>OLT view.</b>
+          </>,
         ],
       };
 
   return (
     <div className="absolute bottom-4 right-4 z-10">
       <div
-        className={`w-72 rounded-lg border border-gray-200 bg-white/50 p-4 shadow-lg backdrop-blur-sm z-20 ${
+        className={`w-84 rounded-lg border border-gray-200 bg-white/50 p-4 shadow-lg backdrop-blur-sm z-20 ${
           isOpen ? "block" : "hidden"
         }`}
       >

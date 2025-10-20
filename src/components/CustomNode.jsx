@@ -3,6 +3,7 @@ import { Handle, Position } from "reactflow";
 import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
 import { useParams } from "react-router-dom";
+import { GrClear } from "react-icons/gr";
 
 const ICONS = {
   ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
@@ -210,12 +211,12 @@ const CustomNode = ({ data, isConnectable }) => {
               top: tooltipPosition.top,
               left: tooltipPosition.left,
             }}
-            className="fixed z-[9999] w-64 select-text rounded-md bg-white p-3 text-sm font-medium text-gray-800 shadow-xl transition-all duration-300 transform -translate-x-1/2 -translate-y-[90%]"
+            className="fixed z-[9999] w-64 select-text rounded-md bg-white p-3 text-sm font-medium text-gray-800 shadow-md transition-all duration-300 transform -translate-x-1/2 -translate-y-[90%]"
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
                 <Spinner />
-                <span>Loading...</span>
+                <span>Please wait...</span>
               </div>
             ) : customer ? (
               <div>
@@ -283,7 +284,10 @@ const CustomNode = ({ data, isConnectable }) => {
                 </div>
               </div>
             ) : (
-              <span>No customer found</span>
+              <div className="flex items-center justify-center">
+                <GrClear className="mr-2" />
+                <span>No customer found</span>
+              </div>
             )}
           </div>,
           document.body

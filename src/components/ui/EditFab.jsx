@@ -37,7 +37,7 @@ const EditFab = ({ isEditing, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className={`z-10 p-3 rounded-full shadow-lg text-white transition-all duration-200
+      className={`z-10 p-3 rounded-full text-white transition-all duration-200
         ${
           isEditing
             ? "bg-green-500 hover:bg-green-600"

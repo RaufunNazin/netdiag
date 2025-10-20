@@ -7,14 +7,14 @@ const UndoFab = ({ onClick, disabled }) => {
       <button
         onClick={onClick}
         disabled={disabled}
-        className={`flex items-center justify-center w-10 h-10 p-2 bg-[#ef4444] rounded-full text-white shadow-lg transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none ${
+        className={`p-2 bg-[#ef4444] rounded-full text-white transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none ${
           disabled
             ? "cursor-not-allowed bg-gray-400 hover:bg-gray-400"
             : "cursor-pointer"
         }`}
         title="Undo Last Action"
       >
-        <IoArrowUndoOutline size={20}/>
+        <IoArrowUndoOutline size={24} />
       </button>
     </div>
   );

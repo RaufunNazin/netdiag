@@ -29,6 +29,7 @@ import {
   insertNode,
   resetPositions,
 } from "../utils/graphUtils";
+import ResetViewFab from "../components/ui/ResetViewFab.jsx";
 import UserStatus from "../components/ui/UserStatus";
 import AddNodeFab from "../components/ui/AddNodeFab.jsx";
 import { useParams } from "react-router-dom";
@@ -282,6 +283,14 @@ const NetworkDiagram = () => {
   const onSelectionChange = useCallback(({ nodes }) => {
     setSelectedNodes(nodes.map((node) => node.id));
   }, []); // <-- 2. ADD THIS HANDLER
+
+  // Inside the NetworkDiagram component
+
+  const handleResetView = useCallback(() => {
+    // The fitView method intelligently zooms and pans to fit all nodes.
+    // We can add options for padding and a smooth animation.
+    reactFlowInstance.fitView({ padding: 0.2, duration: 500 });
+  }, [reactFlowInstance]);
 
   const compareNodesByLabel = (a, b) => {
     const numsA = getSortableNumbers(a.data.label);
@@ -662,14 +671,24 @@ const NetworkDiagram = () => {
     }
     return {
       visibleNodes: allNodes.filter((n) => !hidden.nodeIds.has(n.id)),
-      visibleEdges: edges.filter(
-        (e) =>
-          !hidden.edgeIds.has(e.id) &&
-          !hidden.nodeIds.has(e.source) &&
-          !hidden.nodeIds.has(e.target)
-      ),
+      // --- THIS IS THE FIX ---
+      visibleEdges: edges
+        .filter(
+          (e) =>
+            !hidden.edgeIds.has(e.id) &&
+            !hidden.nodeIds.has(e.source) &&
+            !hidden.nodeIds.has(e.target)
+        )
+        // Add this map function to control interactivity
+        .map((edge) => ({
+          ...edge,
+          // Edges are only interactive (clickable, draggable, etc.) in Edit Mode.
+          // When not interactive, mouse events will pass through them to the pane.
+          interactive: isEditMode,
+        })),
+      // --- END OF FIX ---
     };
-  }, [nodes, edges]);
+  }, [nodes, edges, isEditMode]); // <-- Add isEditMode to the dependency array
 
   useEffect(() => {
     if (rootId === undefined) {
@@ -1254,6 +1273,7 @@ const NetworkDiagram = () => {
             <AddNodeFab onClick={handleAddNodeClick} />
             <EditFab isEditing={isEditMode} onClick={handleFabClick} />
             <UndoFab onClick={handleUndo} disabled={history.length === 0} />
+            <ResetViewFab onClick={handleResetView} />
           </IconDock>
         </>
       )}

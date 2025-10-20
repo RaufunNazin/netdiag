@@ -25,21 +25,21 @@ const SearchControl = ({ nodes, onNodeFound }) => {
   };
 
   return (
-    <div className="absolute top-4 right-4 z-10 bg-white/90 p-2 rounded-lg shadow-lg w-64">
+    <div className="absolute top-4 right-4 z-10 bg-white/90 rounded-lg w-64">
       <input
         type="text"
         value={query}
         onChange={handleSearch}
-        placeholder="Search for a device..."
-        className="w-full p-2 border border-gray-300 rounded-md"
+        placeholder="Search any device..."
+        className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-0"
       />
       {results.length > 0 && (
-        <ul className="mt-1 border border-gray-200 rounded-md bg-white">
+        <ul className="mt-1 p-1 border border-gray-200 rounded-lg bg-white">
           {results.slice(0, 5).map((node) => (
             <li
               key={node.id}
               onClick={() => handleSelect(node.id)}
-              className="p-2 hover:bg-gray-100 border-b"
+              className="p-2 hover:bg-gray-100 cursor-pointer rounded-sm"
             >
               {node.data.label}
             </li>

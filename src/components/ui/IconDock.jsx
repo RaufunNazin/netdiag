@@ -22,12 +22,12 @@ const IconDock = ({ children }) => {
     <div
       className="fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 
                  items-center rounded-full border border-gray-200/70 
-                 bg-white/50 p-2 shadow-lg backdrop-blur-md"
+                 bg-white/50 p-2 shadow-sm backdrop-blur-md"
     >
       {/* The content area for the icons. (No changes here) */}
       <div
         className={`flex items-center gap-2 overflow-hidden transition-all 
-                   duration-500 ease-in-out
+                   duration-500 ease-in-out bg-transparent
                    ${isOpen ? "max-w-md opacity-100" : "max-w-0 opacity-0"}`}
       >
         {children}
