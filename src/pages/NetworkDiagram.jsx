@@ -1114,34 +1114,36 @@ const NetworkDiagram = () => {
   }, [dynamicRootId, rootId]);
 
   useEffect(() => {
-    if (loading || nodes.length === 0) {
+    // Don't show any guidance while loading or if the diagram is truly empty.
+    if (loading || isEmpty) {
       return;
     }
 
+    const toastId = "guidance-toast";
     const justAdded = sessionStorage.getItem("justAddedNode");
 
+    // Check if a root is selected AND if that selected root actually exists in the current node list.
+    const isRootSelectedAndValid =
+      dynamicRootId && nodes.some((n) => n.id === dynamicRootId);
+
+    // If a valid root is already selected, no guidance is needed.
+    // We also proactively dismiss any lingering toasts here.
+    if (isRootSelectedAndValid) {
+      toast.dismiss(toastId);
+      return;
+    }
+
+    // Check if there are any potential root devices (Router/Switch).
+    const hasRootCandidate = nodes.some((node) =>
+      ["Router", "Managed Switch", "Unmanaged Switch"].includes(
+        node.data.node_type
+      )
+    );
+
+    // --- MAIN LOGIC ---
     if (justAdded) {
       sessionStorage.removeItem("justAddedNode");
-      const toastId = "guidance-toast";
-
-      // A root is considered validly selected if the ID exists AND that node is present in the diagram.
-      const isRootSelectedAndValid =
-        dynamicRootId && nodes.some((n) => n.id === dynamicRootId);
-
-      // If a valid root is already selected, we don't need to show any guidance.
-      if (isRootSelectedAndValid) {
-        return;
-      }
-
-      // Check if any potential root devices (Router/Switch) exist in the diagram.
-      const hasRootCandidate = nodes.some((node) =>
-        ["Router", "Managed Switch", "Unmanaged Switch"].includes(
-          node.data.node_type
-        )
-      );
-
       if (hasRootCandidate) {
-        // If a candidate exists but isn't validly selected, prompt the user to select it.
         toast(
           <GuidanceToast
             title="Next Step: Set Your Root Node"
@@ -1150,7 +1152,6 @@ const NetworkDiagram = () => {
           { toastId, autoClose: false, closeOnClick: true, type: "info" }
         );
       } else {
-        // If no potential root has been added yet, prompt the user to add one.
         toast(
           <GuidanceToast
             title="Next Step: Add a Core Device"
@@ -1159,8 +1160,20 @@ const NetworkDiagram = () => {
           { toastId, autoClose: false, closeOnClick: true, type: "info" }
         );
       }
+    } else if (rootId === null && hasRootCandidate && !isRootSelectedAndValid) {
+      toast(
+        <GuidanceToast
+          title="Select a Root Node"
+          message="Welcome! To get started, please select a root device for your network view using the <strong>sitemap icon</strong>."
+        />,
+        { toastId, autoClose: false, closeOnClick: true, type: "info" }
+      );
     }
-  }, [nodes, loading, dynamicRootId]);
+
+    // --- THE FIX ---
+    // The general cleanup function that was causing the instant dismissal has been removed.
+    // The toast will now persist until the user clicks it or selects a valid root node.
+  }, [nodes, loading, isEmpty, dynamicRootId, rootId]);
 
   return (
     <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
