@@ -1,23 +1,19 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import {
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-  useEffect,
-} from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
-  Background,
-  useReactFlow,
-  MarkerType,
   reconnectEdge,
+  useReactFlow,
+  Background,
+  MarkerType,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { FaChevronLeft } from "react-icons/fa6";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
   fetchData,
   getDescendants,
@@ -29,30 +25,27 @@ import {
   insertNode,
   resetPositions,
 } from "../utils/graphUtils";
-import ResetViewFab from "../components/ui/ResetViewFab.jsx";
-import UserStatus from "../components/ui/UserStatus";
-import AddNodeFab from "../components/ui/AddNodeFab.jsx";
-import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import SelectRootNodeFab from "../components/ui/SelectRootNodeFab.jsx";
-import EditFab from "../components/ui/EditFab.jsx";
 import CustomNode from "../components/CustomNode.jsx";
-import GuidanceToast from "../components/ui/GuidanceToast";
 import ContextMenu from "../components/ContextMenu.jsx";
-import HelpBox from "../components/ui/HelpBox.jsx";
+import UserStatus from "../components/ui/UserStatus";
+import ResetViewFab from "../components/ui/ResetViewFab.jsx";
+import AddNodeFab from "../components/ui/AddNodeFab.jsx";
+import EditFab from "../components/ui/EditFab.jsx";
+import SelectRootNodeFab from "../components/ui/SelectRootNodeFab.jsx";
+import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
+import UndoFab from "../components/ui/UndoFab.jsx";
 import SearchControl from "../components/ui/SearchControl.jsx";
+import IconDock from "../components/ui/IconDock.jsx";
+import HelpBox from "../components/ui/HelpBox.jsx";
+import GuidanceToast from "../components/ui/GuidanceToast";
+import EmptyState from "../components/ui/EmptyState.jsx";
+import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import NodeDetailModal from "../components/modals/NodeDetailModal.jsx";
 import AddNodeModal from "../components/modals/AddNodeModal.jsx";
 import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmResetModal from "../components/modals/ConfirmResetModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
-import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
-import IconDock from "../components/ui/IconDock.jsx";
-import EmptyState from "../components/ui/EmptyState.jsx";
-import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
-import UndoFab from "../components/ui/UndoFab.jsx";
 import SelectRootNodeModal from "../components/modals/SelectRootNodeModal.jsx";
-import { toast } from "react-toastify";
 
 const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8;
@@ -66,25 +59,14 @@ const NetworkDiagram = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const reactFlowWrapper = useRef(null);
-  const initialNodesRef = useRef([]);
   const reactFlowInstance = useReactFlow();
+  const initialNodesRef = useRef([]);
+  const edgeUpdateSuccessful = useRef(true);
+
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
   const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState([]);
-  const [redirectInfo, setRedirectInfo] = useState({
-    shouldRedirect: false,
-    message: "",
-  });
-  const [selectedNodes, setSelectedNodes] = useState([]);
-  const [contextMenu, setContextMenu] = useState(null);
-  const [dynamicRootId, setDynamicRootId] = useState(() => {
-    return id ? null : localStorage.getItem("dynamicRootId");
-  });
-  const [isEmpty, setIsEmpty] = useState(false);
-  const [rootId, setRootId] = useState(undefined);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [addModal, setAddModal] = useState({
     isOpen: false,
@@ -103,9 +85,25 @@ const NetworkDiagram = () => {
     nodeId: null,
     nodeName: "",
   });
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(false);
+  const [rootId, setRootId] = useState(undefined);
+  const [dynamicRootId, setDynamicRootId] = useState(() =>
+    id ? null : localStorage.getItem("dynamicRootId")
+  );
+
+  const [selectedNodes, setSelectedNodes] = useState([]);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [history, setHistory] = useState([]);
   const [newConnections, setNewConnections] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
-  const edgeUpdateSuccessful = useRef(true);
+
+  const [redirectInfo, setRedirectInfo] = useState({
+    shouldRedirect: false,
+    message: "",
+  });
 
   const getNodeIcon = (nodeType) => {
     switch (nodeType) {
@@ -702,7 +700,7 @@ const NetworkDiagram = () => {
             }
           }
         });
-        
+
         deviceIdentityMap.forEach((item, key) => {
           uniqueNodesMap.set(String(item.id), item);
           if (item.node_type === "ONU") {
