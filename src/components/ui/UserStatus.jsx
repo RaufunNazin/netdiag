@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { FaSignOutAlt } from "react-icons/fa";
@@ -16,7 +16,6 @@ const UserStatus = () => {
         setUser({ firstName: decodedToken.first_name || decodedToken.sub });
       } catch (error) {
         console.error("Failed to decode token:", error);
-        // If token is invalid, log the user out without a message
         localStorage.removeItem("access_token");
         navigate("/login");
       }
@@ -25,8 +24,6 @@ const UserStatus = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
-    // 1. Pass a message in the navigation state to the login page
-    // 2. 'replace: true' prevents the user from going back to the authenticated page
     navigate("/login", {
       state: { message: "You have been logged out successfully." },
       replace: true,

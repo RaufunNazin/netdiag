@@ -107,16 +107,12 @@ export const copyNodeInfo = async (sourceNodeId, newParentId) => {
 
 export const fetchData = async (swId) => {
   try {
-    // --- THIS IS THE FIX ---
-    // Conditionally create the URL. If swId is null or undefined,
-    // call the base /data endpoint. Otherwise, append the ID.
     const url = swId ? `/data/${swId}` : "/data";
     const response = await api.get(url);
 
     return response.data;
   } catch (error) {
     console.error(`Error fetching data for SW_ID ${swId}:`, error);
-    // Return empty array on 404, otherwise throw
     if (error.response && error.response.status === 404) {
       return [];
     }
@@ -149,9 +145,7 @@ export const getDescendants = (nodeId, allNodes, allEdges) => {
 };
 
 export const deleteNode = async (nodeInfo) => {
-  // nodeInfo is now { name, sw_id }
   try {
-    // For an axios.delete request with a body, it must be passed in a `data` object
     const response = await api.delete(`/node`, { data: nodeInfo });
     if (response.status === 200) {
       toast.success("Device and all its connections deleted successfully!");
@@ -172,7 +166,6 @@ export const fetchOnuCustomerInfo = async (oltId, portName) => {
     return response.data;
   } catch (error) {
     console.error(`Error fetching customer info for ${portName}:`, error);
-    // Don't show a toast for hover actions, just return empty
     return [];
   }
 };
@@ -185,7 +178,7 @@ export const deleteEdge = async (edgeInfo) => {
     } else {
       toast.error("Failed to delete connection.");
     }
-    return response.data; // Return data on success
+    return response.data;
   } catch (error) {
     console.error("Error deleting edge:", error);
     toast.error("An error occurred while deleting the connection.");

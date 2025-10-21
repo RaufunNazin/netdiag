@@ -1,10 +1,7 @@
-import React from "react";
-
 const EmptyState = () => {
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-4">
       <div className="text-gray-400">
-        {/* Disconnected Network Icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="80"

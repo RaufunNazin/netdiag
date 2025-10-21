@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CORE_COLORS_DATA } from "../../utils/constants";
 
-// --- Custom Color Picker Component ---
 const ColorPicker = ({ selectedColor, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pickerRef = useRef(null);

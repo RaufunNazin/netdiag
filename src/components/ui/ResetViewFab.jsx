@@ -1,11 +1,5 @@
-import React from "react";
 import { FaExpand } from "react-icons/fa";
 
-/**
- * A Floating Action Button that triggers a reset of the React Flow viewport.
- * @param {object} props - The component props.
- * @param {Function} props.onClick - The function to call when the button is clicked.
- */
 const ResetViewFab = ({ onClick }) => {
   return (
     <button

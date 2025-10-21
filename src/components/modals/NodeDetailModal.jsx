@@ -1,7 +1,5 @@
-import React from "react";
 import { CORE_COLORS_DATA } from "../../utils/constants";
 
-// Helper component to render a single detail item. It won't render if the value is empty.
 const DetailItem = ({ label, value }) => {
   if (value === null || value === undefined || value === "") return null;
   return (
@@ -12,9 +10,7 @@ const DetailItem = ({ label, value }) => {
   );
 };
 
-// Helper component to display the location on an embedded map.
 const LocationMap = ({ lat, lon }) => {
-  // Construct the URL for an OpenStreetMap embed
   const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${
     lon - 0.01
   },${lat - 0.01},${lon + 0.01},${
@@ -36,13 +32,11 @@ const LocationMap = ({ lat, lon }) => {
   );
 };
 
-// Main Modal Component
 const NodeDetailModal = ({ isOpen, onClose, node }) => {
   if (!isOpen || !node) return null;
 
   const { data } = node;
 
-  // --- Checks to determine if sections have any content to display ---
   const hasDeviceSpecifics =
     data.brand ||
     data.model ||
@@ -69,7 +63,6 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
 
         <div className="flex-grow overflow-y-auto pr-4 -mr-4">
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-3">
-            {/* --- Basic Info Section --- */}
             <h4 className="md:col-span-3 text-lg font-bold text-slate-700">
               Basic Info
             </h4>
@@ -78,7 +71,6 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
             <DetailItem label="Link Type" value={data.link_type} />
             <DetailItem label="System ID (sw_id)" value={data.sw_id} />
 
-            {/* --- Device Specifics Section (Conditional) --- */}
             {hasDeviceSpecifics && (
               <>
                 <h4 className="md:col-span-3 mt-6 text-lg font-bold text-slate-700">
@@ -93,7 +85,6 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
               </>
             )}
 
-            {/* --- Splitter Details Section (Conditional) --- */}
             {hasSplitterDetails && (
               <>
                 <h4 className="md:col-span-3 mt-6 text-lg font-bold text-slate-700">
@@ -104,7 +95,6 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
               </>
             )}
 
-            {/* --- Cable Details Section (Conditional) --- */}
             {hasCableDetails && (
               <>
                 <h4 className="md:col-span-3 mt-6 text-lg font-bold text-slate-700">
@@ -130,7 +120,6 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
               </>
             )}
 
-            {/* --- Location & Remarks Section (Conditional) --- */}
             {(hasLocationInfo || data.remarks) && (
               <>
                 <h4 className="md:col-span-3 mt-6 text-lg font-bold text-slate-700">

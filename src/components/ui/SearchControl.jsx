@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 const SearchControl = ({ nodes, onNodeFound }) => {
   const [query, setQuery] = useState("");

@@ -12,7 +12,6 @@ const SegmentedInput = ({
   const [segments, setSegments] = useState(Array(count).fill(""));
   const inputRefs = useRef([]);
 
-  // Sync component state when the parent's value prop changes
   useEffect(() => {
     const valueSegments = value.split(separator);
     const newSegments = Array.from({ length: count }, (_, i) => valueSegments[i] || "");
@@ -23,21 +22,18 @@ const SegmentedInput = ({
     const inputValue = e.target.value;
     const newSegments = [...segments];
 
-    // Restrict input based on mode
     let sanitizedValue = inputValue;
     if (inputMode === "numeric") {
       sanitizedValue = sanitizedValue.replace(/[^0-9]/g, "");
-    } else { // Alphanumeric for MAC
+    } else {
       sanitizedValue = sanitizedValue.replace(/[^a-zA-Z0-9]/g, "");
     }
     
     newSegments[index] = sanitizedValue.slice(0, maxLength);
     setSegments(newSegments);
 
-    // Call parent's onChange with the full string
     onChange(newSegments.join(separator));
 
-    // Auto-focus to the next input
     if (sanitizedValue.length >= maxLength && index < count - 1) {
       inputRefs.current[index + 1]?.focus();
     }

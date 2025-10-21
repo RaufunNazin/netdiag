@@ -1,4 +1,4 @@
-import React, { memo, useState, useRef } from "react";
+import { memo, useState, useRef } from "react";
 import { Handle, Position } from "reactflow";
 import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
@@ -53,7 +53,6 @@ const DetailRow = ({ label, value }) => (
 );
 
 const CustomNode = ({ data, isConnectable }) => {
-  // --- STATE AND REFS ---
   const { id } = useParams();
   const [isHovered, setIsHovered] = useState(false);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
@@ -62,18 +61,16 @@ const CustomNode = ({ data, isConnectable }) => {
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const hoverTimeoutRef = useRef(null);
 
-  // --- FIX #1: Create a ref to attach to the node's DOM element ---
   const nodeRef = useRef(null);
 
   const handleMouseEnterOnIcon = async () => {
     clearTimeout(hoverTimeoutRef.current);
 
-    // --- FIX #2: Use the ref to get the node's exact position on the screen ---
     if (nodeRef.current) {
       const rect = nodeRef.current.getBoundingClientRect();
       setTooltipPosition({
-        top: rect.top, // The top edge of the node
-        left: rect.left + rect.width / 2, // The horizontal center of the node
+        top: rect.top,
+        left: rect.left + rect.width / 2,
       });
     }
 
@@ -122,10 +119,8 @@ const CustomNode = ({ data, isConnectable }) => {
     customer && customer.online1 === 1 ? "bg-green-500" : "bg-red-500";
 
   return (
-    // The component no longer needs `positionAbsolute` or `width` props
     <div ref={nodeRef}>
       {" "}
-      {/* <-- FIX #3: Attach the ref to the main node wrapper */}
       <div
         className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-gray-800 ${
           data.isCollapsed ? "bg-gray-300" : "bg-white"
@@ -296,4 +291,4 @@ const CustomNode = ({ data, isConnectable }) => {
   );
 };
 
-export default memo(CustomNode); // <-- You can add memo back if you want, this method works with or without it.
+export default memo(CustomNode);

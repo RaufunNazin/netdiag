@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaExpand } from "react-icons/fa6";
 import { IoArrowUndoOutline } from "react-icons/io5";
 
@@ -39,7 +39,6 @@ const HelpBox = ({ isEmpty }) => {
     ),
   };
 
-  // Conditionally set the content based on the isEmpty prop
   const helpContent = isEmpty
     ? {
         title: "Getting Started",
@@ -63,7 +62,6 @@ const HelpBox = ({ isEmpty }) => {
             {
               <button
                 className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600"
-                title="Select Root Node"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -76,14 +74,9 @@ const HelpBox = ({ isEmpty }) => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  {/* Top (Root) Node */}
                   <rect x="8.5" y="3" width="7" height="7" rx="1"></rect>
-                  {/* Bottom-Left Child Node */}
                   <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                  {/* Bottom-Right Child Node */}
                   <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-
-                  {/* Connections: From Root to children */}
                   <path d="M12 10 V 13 H 6.5 V 14 M12 13 H 17.5 V 14"></path>
                 </svg>
               </button>
@@ -95,7 +88,6 @@ const HelpBox = ({ isEmpty }) => {
             {
               <button
                 className="z-10 p-1 rounded-full text-white transition-all duration-200 hover:bg-green-600 bg-green-500"
-                title="Add New Device"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -120,7 +112,6 @@ const HelpBox = ({ isEmpty }) => {
             {
               <button
                 className={`z-10 p-1.5 rounded-full text-white transition-all duration-200 bg-blue-500 hover:bg-blue-600`}
-                title={"Enable Editing"}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +136,6 @@ const HelpBox = ({ isEmpty }) => {
             {
               <button
                 className={`p-1 bg-[#ef4444] rounded-full text-white transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none cursor-pointer`}
-                title="Undo Last Action"
               >
                 <IoArrowUndoOutline size={12} />
               </button>
@@ -157,7 +147,6 @@ const HelpBox = ({ isEmpty }) => {
             {
               <button
                 className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600"
-                title="Reset View"
               >
                 <FaExpand size={12} />
               </button>
@@ -170,7 +159,6 @@ const HelpBox = ({ isEmpty }) => {
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-1 rounded-full shadow-lg text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rotate-90 hover:rotate-0"
-                title="Reset Positions"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -203,8 +191,7 @@ const HelpBox = ({ isEmpty }) => {
             Hover on{" "}
             {
               <button
-                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700 "
-                title="View Details"
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -225,11 +212,34 @@ const HelpBox = ({ isEmpty }) => {
             on an ONU node to view <b>customer details.</b>
           </>,
           <>
+            Click on{" "}
+            {
+              <button
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 16v-4M12 8h.01"></path>
+                </svg>
+              </button>
+            }{" "}
+            on any device to view <b>device details.</b>
+          </>,
+          <>
             Click{" "}
             {
               <button
                 className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
-                title="Go to OLT View"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../api";
@@ -8,15 +9,13 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // This effect runs when the component loads
   useEffect(() => {
-    // Check if a message was passed in the location state
     if (location.state?.message) {
       toast.success(location.state.message);
-      // Clear the location state to prevent the toast from re-appearing on refresh
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
@@ -32,9 +31,7 @@ const LoginPage = () => {
 
     try {
       const response = await api.post("/token", formData, {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 
       localStorage.setItem("access_token", response.data.access_token);
@@ -55,13 +52,9 @@ const LoginPage = () => {
   };
 
   return (
-    // Outer container with a light base color and a dot grid background pattern
     <div className="flex items-center justify-center h-screen w-screen bg-gray-50 bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:16px_16px]">
       <form
         onSubmit={handleLogin}
-        // Glassmorphism styling for light mode:
-        // Increased opacity to bg-white/10 for better readability on a light background.
-        // Changed border to a subtle gray for definition.
         className="p-8 bg-white/10 backdrop-blur-md border border-gray-200 shadow-xl rounded-xl flex flex-col w-full max-w-sm"
       >
         <h2 className="text-xl font-extrabold text-center text-gray-800">
@@ -93,7 +86,7 @@ const LoginPage = () => {
           />
         </div>
 
-        <div className="mb-8 flex flex-col">
+        <div className="mb-8 flex flex-col relative">
           <label
             htmlFor="password"
             className="mb-2 font-semibold text-lg text-gray-700"
@@ -101,14 +94,21 @@ const LoginPage = () => {
             Password
           </label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 text-gray-900 placeholder-gray-500"
+            className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 text-gray-900 placeholder-gray-500 pr-12"
             placeholder="Enter your password"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-[50px] text-gray-600 hover:text-gray-900 font-medium"
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
         </div>
 
         <button
@@ -119,7 +119,7 @@ const LoginPage = () => {
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white
                      disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Please wait..." : "Login"}
         </button>
       </form>
     </div>

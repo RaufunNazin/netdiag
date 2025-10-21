@@ -1,10 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const ResetPositionsFab = ({ onReset, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
-  // SVG icon defined inside the component, just like the model
   const resetIcon = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -22,7 +21,6 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
     </svg>
   );
 
-  // Effect to close the dropdown if the user clicks outside of it
   useEffect(() => {
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
@@ -35,7 +33,6 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
     };
   }, [wrapperRef]);
 
-  // Handler to call the passed onReset function and close the menu
   const handleResetClick = (scope) => {
     onReset(scope);
     setIsOpen(false);
@@ -43,7 +40,6 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
 
   return (
     <div ref={wrapperRef} className="absolute bottom-4 left-4 z-20">
-      {/* The small dropdown menu */}
       {isOpen && (
         <div className="absolute bottom-full mb-2 w-48 bg-white rounded-md shadow-lg py-1">
           <ul className="list-none p-0 m-0">
@@ -63,7 +59,6 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
         </div>
       )}
 
-      {/* The main FAB button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}

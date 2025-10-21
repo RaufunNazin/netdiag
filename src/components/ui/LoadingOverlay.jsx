@@ -1,7 +1,3 @@
-// src/components/ui/LoadingOverlay.jsx
-
-import React from "react";
-
 const LoadingOverlay = () => {
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm transition-opacity duration-300">

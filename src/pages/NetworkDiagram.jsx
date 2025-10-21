@@ -432,7 +432,6 @@ const NetworkDiagram = () => {
       left: event.clientX - reactFlowBounds.left,
     });
   };
-  const onPaneContextMenu = (event) => handleContextMenu(event, "pane");
   const onNodeContextMenu = (event, node) =>
     handleContextMenu(event, "node", node);
   const onEdgeContextMenu = (event, edge) =>
@@ -456,6 +455,7 @@ const NetworkDiagram = () => {
     },
     [setNodes, isEditMode] // <-- Add isEditMode to the dependency array
   );
+
   const handleAction = (action, { id }) => {
     setContextMenu(null);
     switch (action) {
@@ -566,7 +566,6 @@ const NetworkDiagram = () => {
 
   const handleConfirmDelete = useCallback(async () => {
     const { id, type } = deleteModal;
-
     try {
       if (type === "device") {
         // Find the node in the state to get its name from the 'data' object
@@ -613,6 +612,7 @@ const NetworkDiagram = () => {
       // setLoading will be turned off by the data reload effect
     }
   }, [deleteModal, edges, nodes]); // <-- Add 'nodes' to the dependency array
+
   const handleUpdateNodeLabel = useCallback(
     async (nodeId, updatedFormData) => {
       try {

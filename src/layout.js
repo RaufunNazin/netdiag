@@ -9,9 +9,7 @@ const nodeHeight = 60;
 export const getLayoutedElements = (nodes, edges) => {
   dagreGraph.setGraph({
     rankdir: "LR",
-    // Increased ranksep for more horizontal space between layers
     ranksep: 250,
-    // Increased nodesep for more vertical space between nodes in the same layer
     nodesep: 50,
   });
 

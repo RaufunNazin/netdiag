@@ -4,19 +4,14 @@ button {
   cursor: pointer;
 }
 
-/* In your global CSS file (e.g., index.css) */
-
-/* Style for view-only mode */
 .view-only .react-flow__node {
   cursor: grab !important;
 }
 
 .view-only .react-flow__handle {
-  /* Hide connection handles when not in edit mode */
   display: none;
 }
 
-/* Make the background a bit dimmer in view-only mode */
 .view-only .react-flow__background {
   background-color: #f8f8f8;
 }
@@ -26,7 +21,6 @@ button {
     @apply block text-sm font-semibold text-slate-700 mb-1;
   }
 
-  /* --- THIS IS THE UPDATED STYLE --- */
   .input-style {
     @apply w-full p-2 border border-slate-300 rounded-md 
            transition-colors duration-200

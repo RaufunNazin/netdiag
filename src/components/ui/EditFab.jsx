@@ -1,5 +1,4 @@
 const EditFab = ({ isEditing, onClick }) => {
-  // Simple SVG icons for edit and lock
   const icons = {
     edit: (
       <svg

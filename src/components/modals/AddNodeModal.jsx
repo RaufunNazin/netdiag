@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   LINK_TYPES,
   NODE_TYPES,
@@ -7,10 +7,9 @@ import {
 } from "../../utils/constants";
 import SegmentedInput from "../ui/SegmentedInput";
 import ColorPicker from "../ui/ColorPicker";
-// --- LocalStorage Key ---
+
 const STORAGE_KEY = "addNodeFormData";
 
-// --- Initial state for the form ---
 const initialState = {
   link_type: "Fiber Optic",
   node_type: "",
@@ -35,7 +34,6 @@ const initialState = {
   remarks: "",
 };
 
-// --- Main Modal Component ---
 const AddNodeModal = ({
   isOpen,
   onClose,
@@ -53,7 +51,6 @@ const AddNodeModal = ({
         ? JSON.parse(savedDataJSON)
         : { ...initialState };
 
-      // Combine lat1/long1 from saved data into a location string for the UI
       if (dataToSet.lat1 && dataToSet.long1) {
         dataToSet.location = `${dataToSet.lat1}, ${dataToSet.long1}`;
       } else {
@@ -86,7 +83,6 @@ const AddNodeModal = ({
     if (formData.node_type && formData.name.trim()) {
       let finalObject = { ...formData, parent_id: parentNode?.id };
 
-      // Parse location string into lat1 and long1
       const locationString = finalObject.location || "";
       const coords = locationString.split(/[, ]+/).filter(Boolean);
       let lat = null;
@@ -101,9 +97,8 @@ const AddNodeModal = ({
       }
       finalObject.lat1 = lat;
       finalObject.long1 = lon;
-      delete finalObject.location; // Remove temporary field
+      delete finalObject.location;
 
-      // Convert other numeric fields
       finalObject.split_ratio =
         formData.node_type === "Splitter"
           ? parseInt(formData.split_ratio, 10) || null

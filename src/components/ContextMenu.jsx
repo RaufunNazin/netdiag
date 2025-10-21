@@ -1,5 +1,3 @@
-import React from "react";
-
 const ContextMenu = ({ id, top, left, onAction, ...props }) => {
   const { type } = props;
 
@@ -21,7 +19,7 @@ const ContextMenu = ({ id, top, left, onAction, ...props }) => {
     }
   };
   const menuItems = getMenuItems();
-  if (menuItems.length === 0) return null; // Don't render if there are no items
+  if (menuItems.length === 0) return null;
   return (
     <div
       style={{ top, left }}

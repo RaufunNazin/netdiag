@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   LINK_TYPES,
   NODE_TYPES,
@@ -8,16 +8,12 @@ import {
 import ColorPicker from "../ui/ColorPicker";
 import SegmentedInput from "../ui/SegmentedInput";
 
-// --- Main Edit Modal Component ---
 const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
-  // State to hold current form data
   const [formData, setFormData] = useState({});
-  // --- FIX: State to hold the original, unmodified data for comparison ---
   const [originalData, setOriginalData] = useState({});
 
   useEffect(() => {
     if (node?.data) {
-      // Create a clean object from the node data
       const initialData = {
         name: node.data.label || node.data.name || "",
         node_type: node.data.node_type || "",
@@ -37,7 +33,6 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
         cable_desc: node.data.cable_desc || "",
         vlan: node.data.vlan || "",
         remarks: node.data.remarks || "",
-        // Combine lat/lon into a single location string for the UI
         location:
           node.data.lat1 && node.data.long1
             ? `${node.data.lat1}, ${node.data.long1}`
@@ -45,7 +40,7 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
       };
 
       setFormData(initialData);
-      setOriginalData({ ...initialData }); // Save the original state for comparison on save
+      setOriginalData({ ...initialData });
     }
   }, [node]);
 
@@ -59,14 +54,12 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
   const handleSave = () => {
     let changes = {};
 
-    // Compare each field to find what has changed
     for (const key in formData) {
       if (formData[key] !== originalData[key]) {
         changes[key] = formData[key];
       }
     }
 
-    // If the location string was changed, parse it into lat1 and long1
     if ("location" in changes) {
       const coords = (changes.location || "").split(/[, ]+/).filter(Boolean);
       let lat = null;
@@ -81,10 +74,9 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
       }
       changes.lat1 = lat;
       changes.long1 = lon;
-      delete changes.location; // Remove the temporary field before sending
+      delete changes.location;
     }
 
-    // Convert any changed numeric fields
     const numericFields = [
       "split_ratio",
       "cable_start",
@@ -97,7 +89,6 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
       }
     });
 
-    // Only save if there are actual changes
     if (Object.keys(changes).length > 0) {
       onSave(node.id, changes);
     }
@@ -112,7 +103,6 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
           Edit Device Details
         </h3>
         <div className="overflow-y-auto pr-6 -mr-6 flex-grow">
-          {/* Form layout is copied directly from AddNodeModal */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
             <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-2">
               Basic Info

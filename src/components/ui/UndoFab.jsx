@@ -1,4 +1,3 @@
-import React from "react";
 import { IoArrowUndoOutline } from "react-icons/io5";
 
 const UndoFab = ({ onClick, disabled }) => {

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { fetchRootCandidates } from "../../utils/graphUtils";
 
 const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
@@ -7,7 +7,6 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    // Fetch nodes only when the modal is opened
     if (isOpen) {
       const fetchNodes = async () => {
         try {
@@ -28,11 +27,10 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
     : nodes;
 
   const handleSelect = (nodeId) => {
-    onSelect(nodeId); // Call the parent handler
-    onClose(); // Close the modal
+    onSelect(nodeId);
+    onClose();
   };
 
-  // Don't render anything if not open
   if (!isOpen) {
     return null;
   }
