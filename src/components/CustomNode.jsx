@@ -4,6 +4,8 @@ import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
 import { useParams } from "react-router-dom";
 import { GrClear } from "react-icons/gr";
+import { FaUnlock, FaLock, FaRegClock } from "react-icons/fa6";
+import { FaTimesCircle } from "react-icons/fa";
 
 const ICONS = {
   ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
@@ -220,9 +222,18 @@ const CustomNode = ({ data, isConnectable }) => {
                     <span
                       className={`h-2 w-2 rounded-full ${onlineStatusColor}`}
                     ></span>
-                    <span className="font-semibold">
-                      User: {customer.uname}
+                    <span>
+                      {customer.st2 === "OK" ? (
+                        <FaUnlock className="text-green-500" />
+                      ) : customer.st2 === "Locked" ? (
+                        <FaRegClock className="text-yellow-500" />
+                      ) : customer.st2 === "Expired" ? (
+                        <FaLock className="text-orange-500" />
+                      ) : customer.st2 === "Disabled" ? (
+                        <FaTimesCircle className="text-red-500" />
+                      ) : null}
                     </span>
+                    <span className="font-semibold">{customer.uname}</span>
                   </div>
                   <div
                     onMouseEnter={() => setIsDetailsExpanded(true)}
@@ -263,16 +274,30 @@ const CustomNode = ({ data, isConnectable }) => {
                       <DetailRow label="Owner" value={customer.owner} />
                       <DetailRow label="User Status" value={customer.st2} />
                       <DetailRow
-                        label="Last Seen (Days)"
-                        value={
-                          customer.diff
-                            ? `${parseInt(
-                                (customer.diff * 100000) / 60
-                              )}min ${parseInt(
-                                (customer.diff * 100000) % 60
-                              )}s ago`
-                            : "N/A"
-                        }
+                        label="MAC Found"
+                        value={(() => {
+                          if (!customer.diff) return "N/A";
+                          let seconds = Math.floor(customer.diff * 100000);
+
+                          const days = Math.floor(seconds / (24 * 60 * 60));
+                          seconds %= 24 * 60 * 60;
+
+                          const hours = Math.floor(seconds / (60 * 60));
+                          seconds %= 60 * 60;
+
+                          const minutes = Math.floor(seconds / 60);
+                          seconds %= 60;
+
+                          const parts = [];
+                          if (days) parts.push(`${days}d`);
+                          if (hours) parts.push(`${hours}h`);
+                          if (minutes) parts.push(`${minutes}min`);
+                          if (seconds) parts.push(`${seconds}s`);
+
+                          return parts.length
+                            ? `${parts.join(" ")} ago`
+                            : "Just now";
+                        })()}
                       />
                     </dl>
                   </div>
