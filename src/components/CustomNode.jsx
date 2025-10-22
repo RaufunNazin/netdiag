@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
 import { useParams } from "react-router-dom";
 import { GrClear } from "react-icons/gr";
-import { FaUnlock, FaLock, FaRegClock } from "react-icons/fa6";
+import { FaUnlock, FaLock, FaClock } from "react-icons/fa6";
 import { FaTimesCircle } from "react-icons/fa";
 
 const ICONS = {
@@ -54,10 +54,110 @@ const DetailRow = ({ label, value }) => (
   </div>
 );
 
+// NEW: CustomerRow Sub-Component
+// This component renders a single customer and manages its own expansion state
+// via props passed from the CustomNode.
+const CustomerRow = ({ customer, isExpanded, onExpand }) => {
+  const onlineStatusColor =
+    customer.online1 === 1 ? "bg-green-500" : "bg-red-500";
+
+  const formatMacFoundTime = (diff) => {
+    if (!diff) return "N/A";
+    // This calculation seems specific to your backend logic, keeping it as is.
+    let seconds = Math.floor(diff * 100000);
+
+    const days = Math.floor(seconds / (24 * 60 * 60));
+    seconds %= 24 * 60 * 60;
+
+    const hours = Math.floor(seconds / (60 * 60));
+    seconds %= 60 * 60;
+
+    const minutes = Math.floor(seconds / 60);
+    seconds %= 60;
+
+    const parts = [];
+    if (days) parts.push(`${days}d`);
+    if (hours) parts.push(`${hours}h`);
+    if (minutes) parts.push(`${minutes}min`);
+    if (seconds) parts.push(`${seconds}s`);
+
+    return parts.length ? `${parts.join(" ")} ago` : "Just now";
+  };
+
+  return (
+    <div className="py-2 border-b border-gray-100 last:border-b-0">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className={`h-2 w-2 rounded-full ${onlineStatusColor}`}></span>
+          <span>
+            {customer.st2 === "OK" ? (
+              <FaUnlock className="text-green-500" />
+            ) : customer.st2 === "Expired" ? (
+              <FaClock className="text-yellow-300" />
+            ) : customer.st2 === "Locked" ? (
+              <FaLock className="text-red-500" />
+            ) : customer.st2 === "Disabled" ? (
+              <FaTimesCircle className="text-red-500" />
+            ) : null}
+          </span>
+          <span className="font-semibold">{customer.uname}</span>
+        </div>
+        <div
+          onMouseEnter={onExpand} // Use the onExpand prop to set parent state
+          className="cursor-pointer p-1 text-gray-400"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4M12 8h.01"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div
+        className={`grid transition-all duration-300 ease-in-out ${
+          isExpanded // Use the isExpanded prop
+            ? "grid-rows-[1fr] opacity-100 mt-2"
+            : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <dl className="space-y-2">
+            <DetailRow label="Customer ID" value={customer.cid} />
+            <DetailRow label="MAC Address" value={customer.mac} />
+            <DetailRow
+              label="Package Expiry"
+              value={new Date(customer.expiry_date).toLocaleString()}
+            />
+            <DetailRow label="Owner" value={customer.owner} />
+            <DetailRow label="User Status" value={customer.st2} />
+            <DetailRow
+              label="MAC Found"
+              value={formatMacFoundTime(customer.diff)}
+            />
+          </dl>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CustomNode = ({ data, isConnectable }) => {
   const { id } = useParams();
   const [isHovered, setIsHovered] = useState(false);
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
+  // CHANGED: Replaced isDetailsExpanded with expandedCustomerMac
+  const [expandedCustomerMac, setExpandedCustomerMac] = useState(null);
+
   const [customerData, setCustomerData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -89,7 +189,8 @@ const CustomNode = ({ data, isConnectable }) => {
   const handleMouseLeaveFromArea = () => {
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
-      setIsDetailsExpanded(false);
+      // CHANGED: Also reset the expanded customer
+      setExpandedCustomerMac(null);
     }, 300);
   };
 
@@ -115,10 +216,11 @@ const CustomNode = ({ data, isConnectable }) => {
     if (data.onNavigateClick) data.onNavigateClick(data.id);
   };
 
-  const customer =
-    customerData && customerData.length > 0 ? customerData[0] : null;
-  const onlineStatusColor =
-    customer && customer.online1 === 1 ? "bg-green-500" : "bg-red-500";
+  // REMOVED: These lines are no longer needed as we are looping
+  // const customer =
+  //   customerData && customerData.length > 0 ? customerData[0] : null;
+  // const onlineStatusColor =
+  //   customer && customer.online1 === 1 ? "bg-green-500" : "bg-red-500";
 
   return (
     <div ref={nodeRef}>
@@ -215,93 +317,21 @@ const CustomNode = ({ data, isConnectable }) => {
                 <Spinner />
                 <span>Please wait...</span>
               </div>
-            ) : customer ? (
-              <div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`h-2 w-2 rounded-full ${onlineStatusColor}`}
-                    ></span>
-                    <span>
-                      {customer.st2 === "OK" ? (
-                        <FaUnlock className="text-green-500" />
-                      ) : customer.st2 === "Locked" ? (
-                        <FaRegClock className="text-yellow-500" />
-                      ) : customer.st2 === "Expired" ? (
-                        <FaLock className="text-orange-500" />
-                      ) : customer.st2 === "Disabled" ? (
-                        <FaTimesCircle className="text-red-500" />
-                      ) : null}
-                    </span>
-                    <span className="font-semibold">{customer.uname}</span>
-                  </div>
-                  <div
-                    onMouseEnter={() => setIsDetailsExpanded(true)}
-                    className="cursor-pointer p-1 text-gray-400"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="M12 16v-4M12 8h.01"></path>
-                    </svg>
-                  </div>
-                </div>
-
-                <div
-                  className={`grid transition-all duration-300 ease-in-out ${
-                    isDetailsExpanded
-                      ? "grid-rows-[1fr] opacity-100 mt-2"
-                      : "grid-rows-[0fr] opacity-0"
-                  }`}
-                >
-                  <div className="overflow-hidden">
-                    <dl className="space-y-2">
-                      <DetailRow label="Customer ID" value={customer.cid} />
-                      <DetailRow label="MAC Address" value={customer.mac} />
-                      <DetailRow
-                        label="Package Expiry"
-                        value={new Date(customer.expiry_date).toLocaleString()}
-                      />
-                      <DetailRow label="Owner" value={customer.owner} />
-                      <DetailRow label="User Status" value={customer.st2} />
-                      <DetailRow
-                        label="MAC Found"
-                        value={(() => {
-                          if (!customer.diff) return "N/A";
-                          let seconds = Math.floor(customer.diff * 100000);
-
-                          const days = Math.floor(seconds / (24 * 60 * 60));
-                          seconds %= 24 * 60 * 60;
-
-                          const hours = Math.floor(seconds / (60 * 60));
-                          seconds %= 60 * 60;
-
-                          const minutes = Math.floor(seconds / 60);
-                          seconds %= 60;
-
-                          const parts = [];
-                          if (days) parts.push(`${days}d`);
-                          if (hours) parts.push(`${hours}h`);
-                          if (minutes) parts.push(`${minutes}min`);
-                          if (seconds) parts.push(`${seconds}s`);
-
-                          return parts.length
-                            ? `${parts.join(" ")} ago`
-                            : "Just now";
-                        })()}
-                      />
-                    </dl>
-                  </div>
-                </div>
+            ) : // CHANGED: Check customerData array length instead of single 'customer'
+            customerData && customerData.length > 0 ? (
+              // CHANGED: Map over the customerData array and render a CustomerRow for each
+              <div className="flex flex-col">
+                {customerData.map((customer) => (
+                  <CustomerRow
+                    // Use a unique key, like mac or cid
+                    key={customer.mac || customer.cid}
+                    customer={customer}
+                    // Pass in whether this specific row should be expanded
+                    isExpanded={expandedCustomerMac === customer.mac}
+                    // Pass in a handler to set this row as expanded
+                    onExpand={() => setExpandedCustomerMac(customer.mac)}
+                  />
+                ))}
               </div>
             ) : (
               <div className="flex items-center justify-center">
