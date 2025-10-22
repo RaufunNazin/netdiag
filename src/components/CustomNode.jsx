@@ -171,7 +171,7 @@ const CustomNode = ({ data, isConnectable }) => {
     if (nodeRef.current) {
       const rect = nodeRef.current.getBoundingClientRect();
       setTooltipPosition({
-        top: rect.top,
+        top: rect.top -8,
         left: rect.left + rect.width / 2,
       });
     }
@@ -236,7 +236,8 @@ const CustomNode = ({ data, isConnectable }) => {
           type="target"
           position={Position.Left}
           id="left"
-          isConnectable={isConnectable}
+          isConnectableStart={false}
+          isConnectableEnd={isConnectable}
           className="!bg-blue-500 !w-3 !h-3"
         />
         <div className="w-6 h-6">{ICONS[data.icon] || ICONS["default"]}</div>
@@ -295,7 +296,8 @@ const CustomNode = ({ data, isConnectable }) => {
             type="source"
             position={Position.Right}
             id="right"
-            isConnectable={isConnectable}
+            isConnectableStart={isConnectable}
+            isConnectableEnd={false}
             className="!bg-orange-500 !w-3 !h-3"
           />
         )}

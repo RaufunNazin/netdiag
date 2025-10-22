@@ -61,7 +61,6 @@ const NetworkDiagram = () => {
   const reactFlowWrapper = useRef(null);
   const reactFlowInstance = useReactFlow();
   const initialNodesRef = useRef([]);
-  const edgeUpdateSuccessful = useRef(true);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -98,6 +97,9 @@ const NetworkDiagram = () => {
   const [contextMenu, setContextMenu] = useState(null);
   const [history, setHistory] = useState([]);
   const [newConnections, setNewConnections] = useState([]);
+  const [updatedConnections, setUpdatedConnections] = useState([]);
+  const [deletedNodes, setDeletedNodes] = useState([]);
+  const [deletedEdges, setDeletedEdges] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
 
   const [redirectInfo, setRedirectInfo] = useState({
@@ -143,9 +145,18 @@ const NetworkDiagram = () => {
         nodes: currentNodes,
         edges: currentEdges,
         newConnections: newConnections,
+        updatedConnections: updatedConnections,
+        deletedNodes: deletedNodes,
+        deletedEdges: deletedEdges,
       },
     ]);
-  }, [reactFlowInstance, newConnections]);
+  }, [
+    reactFlowInstance,
+    newConnections,
+    updatedConnections,
+    deletedNodes,
+    deletedEdges,
+  ]);
 
   const handleUndo = useCallback(() => {
     if (history.length === 0) return;
@@ -158,6 +169,9 @@ const NetworkDiagram = () => {
         setNodes(lastState.nodes);
         setEdges(lastState.edges);
         setNewConnections(lastState.newConnections);
+        setUpdatedConnections(lastState.updatedConnections);
+        setDeletedNodes(lastState.deletedNodes);
+        setDeletedEdges(lastState.deletedEdges);
       }
       return newHistory;
     });
@@ -308,12 +322,13 @@ const NetworkDiagram = () => {
         setNewConnections((prevConnections) => [...prevConnections, params]);
       }
     },
-    [nodes, setEdges, setNewConnections, isEditMode]
+    [nodes, setEdges, setNewConnections, isEditMode, pushStateToHistory]
   );
 
+  // --- THIS IS THE CORRECTED FUNCTION ---
   const handleFabClick = useCallback(async () => {
     if (isEditMode) {
-      setLoading(true);
+      setLoading(true); // Show loading overlay
 
       const originalNodes = initialNodesRef.current;
       const currentNodes = reactFlowInstance.getNodes();
@@ -330,12 +345,19 @@ const NetworkDiagram = () => {
         );
       });
 
-      if (movedNodes.length > 0 || newConnections.length > 0) {
+      const hasChanges =
+        movedNodes.length > 0 ||
+        newConnections.length > 0 ||
+        updatedConnections.length > 0 ||
+        deletedNodes.length > 0 ||
+        deletedEdges.length > 0;
+
+      if (hasChanges) {
         try {
           const connectionPromises = newConnections.map((conn) => {
             const newParentId = parseInt(conn.source, 10);
             const sourceNodeId = parseInt(conn.target, 10);
-            return copyNodeInfo(sourceNodeId, newParentId);
+            return copyNodeInfo(sourceNodeId, newParentId, true);
           });
 
           const positionSavePromises = movedNodes.map((node) => {
@@ -349,44 +371,102 @@ const NetworkDiagram = () => {
             return saveNodeInfo(payload, true);
           });
 
-          await Promise.all([...connectionPromises, ...positionSavePromises]);
+          const deleteNodePromises = deletedNodes.map((nodeInfo) =>
+            deleteNode(nodeInfo, true)
+          );
 
+          const deleteEdgePromises = deletedEdges.map((edgeInfo) =>
+            deleteEdge(edgeInfo, true)
+          );
+
+          const updatePromises = updatedConnections.map(async (conn) => {
+            const edgeInfo = {
+              name: conn.childNodeInfo.name,
+              source_id: parseInt(conn.oldParentId, 10),
+              sw_id: conn.childNodeInfo.sw_id,
+            };
+            await deleteEdge(edgeInfo, true);
+            return copyNodeInfo(
+              parseInt(conn.childId, 10),
+              parseInt(conn.newParentId, 10),
+              true
+            );
+          });
+
+          await Promise.all([
+            ...connectionPromises,
+            ...positionSavePromises,
+            ...updatePromises,
+            ...deleteNodePromises,
+            ...deleteEdgePromises,
+          ]);
+
+          toast.success("All changes saved successfully!");
+
+          // Clear all change tracking state
           setNewConnections([]);
-          setTimeout(() => window.location.reload(), 300);
+          setUpdatedConnections([]);
+          setDeletedNodes([]);
+          setDeletedEdges([]);
+          // Set the new "clean" state
+          initialNodesRef.current = reactFlowInstance.getNodes();
         } catch (error) {
           console.error("Failed to save changes:", error);
-          setLoading(false);
+          toast.error("Failed to save all changes. Please try again.");
+          // We don't reload, so the user can try saving again
+        } finally {
+          // --- THIS IS THE CRITICAL FIX ---
+          // This block runs whether the 'try' succeeded or the 'catch' was hit.
+          setLoading(false); // ALWAYS hide loading overlay
+          setIsEditMode(false); // ALWAYS exit edit mode
         }
       } else {
+        // No changes, just exit edit mode
         setLoading(false);
         setIsEditMode(false);
       }
     } else {
+      // Entering edit mode
       setHistory([]);
+      setDeletedNodes([]);
+      setDeletedEdges([]);
       setIsEditMode(true);
     }
-  }, [isEditMode, newConnections, rootId, reactFlowInstance]);
-
-  const onEdgeUpdateStart = useCallback(() => {
-    edgeUpdateSuccessful.current = false;
-  }, []);
+  }, [
+    isEditMode,
+    newConnections,
+    updatedConnections,
+    deletedNodes,
+    deletedEdges,
+    rootId,
+    reactFlowInstance,
+    nodes,
+  ]);
+  // --- END OF CORRECTED FUNCTION ---
 
   const onEdgeUpdate = useCallback(
     (oldEdge, newConnection) => {
-      edgeUpdateSuccessful.current = true;
+      if (!isEditMode) return;
+
+      pushStateToHistory();
+
+      const childNode = nodes.find((n) => n.id === newConnection.target);
+
+      if (childNode) {
+        setUpdatedConnections((prev) => [
+          ...prev,
+          {
+            oldParentId: oldEdge.source,
+            newParentId: newConnection.source,
+            childId: newConnection.target,
+            childNodeInfo: childNode.data,
+          },
+        ]);
+      }
+
       setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
     },
-    [setEdges]
-  );
-
-  const onEdgeUpdateEnd = useCallback(
-    (_, edge) => {
-      if (!edgeUpdateSuccessful.current) {
-        setEdges((eds) => eds.filter((e) => e.id !== edge.id));
-      }
-      edgeUpdateSuccessful.current = true;
-    },
-    [setEdges]
+    [setEdges, isEditMode, pushStateToHistory, nodes]
   );
 
   const isValidConnection = useCallback((connection) => {
@@ -487,6 +567,7 @@ const NetworkDiagram = () => {
     }
   };
 
+  // This function is for *new* nodes. Reload is OK here.
   const handleAddNodeSave = useCallback(
     async (formData, position) => {
       try {
@@ -522,7 +603,7 @@ const NetworkDiagram = () => {
           await createNode(payload);
         }
         sessionStorage.setItem("justAddedNode", "true");
-        window.location.reload();
+        window.location.reload(); // Reload is fine for a brand new node
       } catch (error) {
         console.error("Failed to save new node:", error);
         setLoading(false);
@@ -531,47 +612,72 @@ const NetworkDiagram = () => {
     [addModal, insertionEdge, nodes]
   );
 
+  // This function handles deletions
   const handleConfirmDelete = useCallback(async () => {
     const { id, type } = deleteModal;
+
+    if (isEditMode) {
+      pushStateToHistory();
+    }
+
     try {
       if (type === "device") {
         const nodeToDelete = nodes.find((n) => n.id === id);
+        if (!nodeToDelete) return;
 
-        if (nodeToDelete) {
-          if (id === dynamicRootId) {
-            localStorage.removeItem("dynamicRootId");
-            setDynamicRootId(null);
-          }
-          const nodeInfo = {
-            name: nodeToDelete.data.name,
-            sw_id: nodeToDelete.data.sw_id,
-          };
-          await deleteNode(nodeInfo);
+        if (id === dynamicRootId) {
+          localStorage.removeItem("dynamicRootId");
+          setDynamicRootId(null);
+        }
+        const nodeInfo = {
+          name: nodeToDelete.data.name,
+          sw_id: nodeToDelete.data.sw_id,
+        };
+
+        if (isEditMode) {
+          setDeletedNodes((prev) => [...prev, nodeInfo]);
+          setNodes((nds) => nds.filter((n) => n.id !== id));
+          setEdges((eds) =>
+            eds.filter((e) => e.source !== id && e.target !== id)
+          );
         } else {
-          throw new Error("Node to delete was not found in the current state.");
+          await deleteNode(nodeInfo);
+          window.location.reload();
         }
       } else {
         const edgeToDelete = edges.find((e) => e.id === id);
         const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
+        if (!edgeToDelete || !targetNode) return;
 
-        if (edgeToDelete && targetNode) {
-          const edgeInfo = {
-            name: targetNode.data.name,
-            source_id: parseInt(edgeToDelete.source, 10),
-            sw_id: targetNode.data.sw_id,
-          };
+        const edgeInfo = {
+          name: targetNode.data.name,
+          source_id: parseInt(edgeToDelete.source, 10),
+          sw_id: targetNode.data.sw_id,
+        };
+
+        if (isEditMode) {
+          setDeletedEdges((prev) => [...prev, edgeInfo]);
+          setEdges((eds) => eds.filter((e) => e.id !== id));
+        } else {
           await deleteEdge(edgeInfo);
+          window.location.reload();
         }
       }
-
-      window.location.reload();
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error);
     } finally {
       setDeleteModal({ isOpen: false, id: null, type: "" });
     }
-  }, [deleteModal, edges, nodes]);
+  }, [
+    deleteModal,
+    edges,
+    nodes,
+    isEditMode,
+    dynamicRootId,
+    pushStateToHistory,
+  ]);
 
+  // This function handles node edits (e.g., rename)
   const handleUpdateNodeLabel = useCallback(
     async (nodeId, updatedFormData) => {
       try {
@@ -585,12 +691,28 @@ const NetworkDiagram = () => {
           sw_id: nodeToUpdate.data.sw_id,
         };
         await saveNodeInfo(payload);
-        setTimeout(() => window.location.reload(), 300);
+
+        setNodes((nds) =>
+          nds.map((n) =>
+            n.id === nodeId
+              ? {
+                  ...n,
+                  data: {
+                    ...n.data,
+                    ...updatedFormData,
+                    label: updatedFormData.name || n.data.label,
+                    name: updatedFormData.name || n.data.name,
+                  },
+                }
+              : n
+          )
+        );
+        initialNodesRef.current = reactFlowInstance.getNodes();
       } catch (error) {
         console.error("Error saving node info:", error);
       }
     },
-    [nodes]
+    [nodes, reactFlowInstance]
   );
 
   const onNodeFound = (nodeId) => {
@@ -611,6 +733,8 @@ const NetworkDiagram = () => {
       );
     }, 3000);
   };
+
+  // This 'visibleEdges' hook contains the z-index fix
   const { visibleNodes, visibleEdges } = useMemo(() => {
     const allNodes = nodes.map((node) => {
       const isCollapsible = edges.some((edge) => edge.source === node.id);
@@ -640,6 +764,7 @@ const NetworkDiagram = () => {
         .map((edge) => ({
           ...edge,
           interactive: isEditMode,
+          zIndex: isEditMode ? 1000 : 0, // High z-index in edit mode
         })),
     };
   }, [nodes, edges, isEditMode]);
@@ -1089,18 +1214,19 @@ const NetworkDiagram = () => {
         isValidConnection={isValidConnection}
         nodesDraggable={isEditMode}
         nodesConnectable={isEditMode}
-        edgesUpdatable={false}
+        edgesUpdatable={isEditMode}
         onNodeDragStart={onNodeDragStart}
         panOnDrag={!isEditMode}
         onPaneClick={onPaneClick}
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}
         onEdgeUpdate={onEdgeUpdate}
-        onEdgeUpdateStart={onEdgeUpdateStart}
-        onEdgeUpdateEnd={onEdgeUpdateEnd}
         onNodeClick={onNodeClick}
         onSelectionChange={onSelectionChange}
         selectionOnDrag={true}
+        // These props fix the z-index "plus icon" bug
+        elevateEdgesOnSelect={true}
+        elevateNodesOnSelect={false}
         nodeTypes={nodeTypes}
       >
         <Background variant="dots" gap={12} size={1} />
