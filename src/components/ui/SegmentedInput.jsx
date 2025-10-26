@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useRef, useEffect } from "react";
-import MISC from "../../utils/enums";
+import { MISC } from "../../utils/enums";
 
 const SegmentedInput = ({
   count,
@@ -15,7 +15,10 @@ const SegmentedInput = ({
 
   useEffect(() => {
     const valueSegments = value.split(separator);
-    const newSegments = Array.from({ length: count }, (_, i) => valueSegments[i] || "");
+    const newSegments = Array.from(
+      { length: count },
+      (_, i) => valueSegments[i] || ""
+    );
     setSegments(newSegments);
   }, [value, count, separator]);
 
@@ -29,7 +32,7 @@ const SegmentedInput = ({
     } else {
       sanitizedValue = sanitizedValue.replace(/[^a-zA-Z0-9]/g, "");
     }
-    
+
     newSegments[index] = sanitizedValue.slice(0, maxLength);
     setSegments(newSegments);
 
@@ -54,13 +57,13 @@ const SegmentedInput = ({
 
     let currentSegment = index;
     for (let i = 0; i < pastedSegments.length && currentSegment < count; i++) {
-        newSegments[currentSegment] = pastedSegments[i].slice(0, maxLength);
-        currentSegment++;
+      newSegments[currentSegment] = pastedSegments[i].slice(0, maxLength);
+      currentSegment++;
     }
 
     setSegments(newSegments);
     onChange(newSegments.join(separator));
-  }
+  };
 
   return (
     <div className="flex items-center gap-1">

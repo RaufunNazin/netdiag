@@ -8,7 +8,7 @@ import {
   GRID_Y_SPACING,
   PADDING_BETWEEN_GRIDS,
 } from "../utils/constants";
-import MISC from "../utils/enums";
+import { MISC } from "../utils/enums";
 
 const useNetworkLayout = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
