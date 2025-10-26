@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
 import { useParams } from "react-router-dom";
 import { GrClear } from "react-icons/gr";
-import { FaUnlock, FaLock, FaClock } from "react-icons/fa6";
+import { FaUnlock, FaLock, FaClock, FaLightbulb } from "react-icons/fa6";
 import { FaTimesCircle } from "react-icons/fa";
 import { CUST_STATUS, NODE_TYPES_ENUM } from "../utils/enums";
 
@@ -59,9 +59,6 @@ const DetailRow = ({ label, value }) => (
 // This component renders a single customer and manages its own expansion state
 // via props passed from the CustomNode.
 const CustomerRow = ({ customer, isExpanded, onExpand }) => {
-  const onlineStatusColor =
-    customer.online1 === 1 ? "bg-green-500" : "bg-red-500";
-
   const formatMacFoundTime = (diff) => {
     if (!diff) return "N/A";
     // This calculation seems specific to your backend logic, keeping it as is.
@@ -89,7 +86,13 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
     <div className="py-2 border-b border-gray-100 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`h-2 w-2 rounded-full ${onlineStatusColor}`}></span>
+          <span>
+            <FaLightbulb
+              className={
+                customer.online1 === 1 ? "text-yellow-400" : "text-gray-800"
+              }
+            />
+          </span>
           <span>
             {customer.st2 === CUST_STATUS.OK ? (
               <FaUnlock className="text-green-500" />
@@ -172,7 +175,7 @@ const CustomNode = ({ data, isConnectable }) => {
     if (nodeRef.current) {
       const rect = nodeRef.current.getBoundingClientRect();
       setTooltipPosition({
-        top: rect.top -8,
+        top: rect.top - 8,
         left: rect.left + rect.width / 2,
       });
     }
