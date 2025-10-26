@@ -1,18 +1,20 @@
+import { ACTIONS, LABELS, MISC } from "../utils/enums";
+
 const ContextMenu = ({ id, top, left, onAction, ...props }) => {
   const { type } = props;
 
   const getMenuItems = () => {
     switch (type) {
-      case "node":
+      case MISC.NODE:
         return [
-          { label: "Edit Device", action: "editNode" },
-          { label: "Reset Position", action: "resetPosition" },
-          { label: "Delete Device", action: "deleteNode" },
+          { label: LABELS.EDIT_DEVICE, action: ACTIONS.EDIT_NODE },
+          { label: LABELS.RESET_POSITION, action: ACTIONS.RESET_POSITION },
+          { label: LABELS.DELETE_DEVICE, action: ACTIONS.DELETE_NODE },
         ];
-      case "edge":
+      case MISC.EDGE:
         return [
-          { label: "Insert Device on Line", action: "insertNode" },
-          { label: "Delete Connection", action: "deleteEdge" },
+          { label: LABELS.INSERT_DEVICE_ON_LINE, action: ACTIONS.INSERT_NODE },
+          { label: LABELS.DELETE_CONNECTION, action: ACTIONS.DELETE_EDGE },
         ];
       default:
         return [];
@@ -31,7 +33,7 @@ const ContextMenu = ({ id, top, left, onAction, ...props }) => {
             key={action}
             onClick={() => onAction(action, { id })}
             className={`px-4 py-2 cursor-pointer ${
-              action === "deleteNode" || action === "deleteEdge"
+              action === ACTIONS.DELETE_NODE || action === ACTIONS.DELETE_EDGE
                 ? "hover:bg-[#d43c3c]/10 text-[#d43c3c]"
                 : "hover:bg-gray-100 text-gray-700"
             }`}

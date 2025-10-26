@@ -7,6 +7,7 @@ import {
 } from "../../utils/constants";
 import SegmentedInput from "../ui/SegmentedInput";
 import ColorPicker from "../ui/ColorPicker";
+import { NODE_TYPES_ENUM, MISC } from "../../utils/enums";
 
 const STORAGE_KEY = "addNodeFormData";
 
@@ -100,7 +101,7 @@ const AddNodeModal = ({
       delete finalObject.location;
 
       finalObject.split_ratio =
-        formData.node_type === "Splitter"
+        formData.node_type === NODE_TYPES_ENUM.SPLITTER
           ? parseInt(formData.split_ratio, 10) || null
           : null;
       finalObject.cable_start = formData.cable_start
@@ -113,7 +114,7 @@ const AddNodeModal = ({
         ? parseInt(formData.cable_length, 10)
         : null;
 
-      if (finalObject.brand === "Other") {
+      if (finalObject.brand === MISC.OTHER) {
         finalObject.brand = finalObject.brand_other;
       }
       delete finalObject.brand_other;
@@ -219,7 +220,7 @@ const AddNodeModal = ({
                     placeholder="Enter serial number"
                   />
                 </div>
-                {formData.node_type === "ONU" && (
+                {formData.node_type === NODE_TYPES_ENUM.ONU && (
                   <>
                     <div>
                       <label className="label-style">Device Type</label>
@@ -270,7 +271,7 @@ const AddNodeModal = ({
                 )}
               </>
             )}
-            {formData.node_type === "Splitter" && (
+            {formData.node_type === NODE_TYPES_ENUM.SPLITTER && (
               <>
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
                   Splitter Detail
@@ -384,7 +385,7 @@ const AddNodeModal = ({
                   Other Info
                 </h4>
                 <div className="flex flex-col gap-y-6">
-                  {formData.node_type === "ONU" && (
+                  {formData.node_type === NODE_TYPES_ENUM.ONU && (
                     <div>
                       <label className="label-style">VLAN</label>
                       <input

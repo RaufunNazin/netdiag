@@ -1,5 +1,6 @@
 import React from "react";
 import { useState, useRef, useEffect } from "react";
+import MISC from "../../utils/misc";
 
 const SegmentedInput = ({
   count,
@@ -23,7 +24,7 @@ const SegmentedInput = ({
     const newSegments = [...segments];
 
     let sanitizedValue = inputValue;
-    if (inputMode === "numeric") {
+    if (inputMode === MISC.NUMERIC) {
       sanitizedValue = sanitizedValue.replace(/[^0-9]/g, "");
     } else {
       sanitizedValue = sanitizedValue.replace(/[^a-zA-Z0-9]/g, "");

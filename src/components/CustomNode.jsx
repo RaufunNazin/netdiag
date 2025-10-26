@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { GrClear } from "react-icons/gr";
 import { FaUnlock, FaLock, FaClock } from "react-icons/fa6";
 import { FaTimesCircle } from "react-icons/fa";
+import { CUST_STATUS, NODE_TYPES_ENUM } from "../utils/enums";
 
 const ICONS = {
   ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
@@ -90,13 +91,13 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
         <div className="flex items-center gap-2">
           <span className={`h-2 w-2 rounded-full ${onlineStatusColor}`}></span>
           <span>
-            {customer.st2 === "OK" ? (
+            {customer.st2 === CUST_STATUS.OK ? (
               <FaUnlock className="text-green-500" />
-            ) : customer.st2 === "Expired" ? (
+            ) : customer.st2 === CUST_STATUS.EXPIRED ? (
               <FaClock className="text-yellow-300" />
-            ) : customer.st2 === "Locked" ? (
+            ) : customer.st2 === CUST_STATUS.LOCKED ? (
               <FaLock className="text-red-500" />
-            ) : customer.st2 === "Disabled" ? (
+            ) : customer.st2 === CUST_STATUS.DISABLED ? (
               <FaTimesCircle className="text-red-500" />
             ) : null}
           </span>
@@ -178,7 +179,7 @@ const CustomNode = ({ data, isConnectable }) => {
 
     setIsHovered(true);
 
-    if (data.node_type === "ONU" && !customerData) {
+    if (data.node_type === NODE_TYPES_ENUM.ONU && !customerData) {
       setIsLoading(true);
       const result = await fetchOnuCustomerInfo(data.sw_id, data.name);
       setCustomerData(result);
@@ -199,7 +200,7 @@ const CustomNode = ({ data, isConnectable }) => {
   };
 
   let statusBorderClass = "";
-  if (data.node_type === "ONU") {
+  if (data.node_type === NODE_TYPES_ENUM.ONU) {
     if (data.status === 1)
       statusBorderClass =
         "border-r-4 border-t-4 border-r-green-500 border-t-green-500";
@@ -269,7 +270,7 @@ const CustomNode = ({ data, isConnectable }) => {
               <path d="M12 16v-4M12 8h.01"></path>
             </svg>
           </button>
-          {data.node_type === "OLT" && !id && (
+          {data.node_type === NODE_TYPES_ENUM.OLT && !id && (
             <button
               onClick={handleNavigateClick}
               className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
@@ -303,7 +304,7 @@ const CustomNode = ({ data, isConnectable }) => {
         )}
       </div>
       {isHovered &&
-        data.node_type === "ONU" &&
+        data.node_type === NODE_TYPES_ENUM.ONU &&
         createPortal(
           <div
             onMouseEnter={handleTooltipMouseEnter}

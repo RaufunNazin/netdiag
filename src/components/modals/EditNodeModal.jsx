@@ -7,6 +7,7 @@ import {
 } from "../../utils/constants";
 import ColorPicker from "../ui/ColorPicker";
 import SegmentedInput from "../ui/SegmentedInput";
+import { NODE_TYPES_ENUM, MISC } from "../../utils/enums";
 
 const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({});
@@ -84,7 +85,7 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
       "cable_length",
     ];
     numericFields.forEach((field) => {
-      if (field in changes && typeof changes[field] === "string") {
+      if (field in changes && typeof changes[field] === MISC.STRING) {
         changes[field] = parseInt(changes[field], 10) || null;
       }
     });
@@ -191,7 +192,7 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                     placeholder="Enter serial number"
                   />
                 </div>
-                {formData.node_type === "ONU" && (
+                {formData.node_type === NODE_TYPES_ENUM.ONU && (
                   <>
                     <div>
                       <label className="label-style">Device Type</label>
@@ -243,7 +244,7 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
               </>
             )}
 
-            {formData.node_type === "Splitter" && (
+            {formData.node_type === NODE_TYPES_ENUM.SPLITTER && (
               <>
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
                   Splitter Detail
@@ -360,12 +361,12 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                 </h4>
                 <div
                   className={`md:col-span-2 grid grid-cols-1 ${
-                    formData.node_type === "ONU"
+                    formData.node_type === NODE_TYPES_ENUM.ONU
                       ? "md:grid-cols-3"
                       : "md:grid-cols-2"
                   } gap-x-8 gap-y-6`}
                 >
-                  {formData.node_type === "ONU" && (
+                  {formData.node_type === NODE_TYPES_ENUM.ONU && (
                     <div>
                       <label className="label-style">VLAN</label>
                       <input

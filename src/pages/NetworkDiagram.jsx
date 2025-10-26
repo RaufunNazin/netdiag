@@ -25,6 +25,7 @@ import {
   insertNode,
   resetPositions,
 } from "../utils/graphUtils";
+import { ACTIONS, NODE_TYPES_ENUM, MISC } from "../utils/enums";
 import CustomNode from "../components/CustomNode.jsx";
 import ContextMenu from "../components/ContextMenu.jsx";
 import UserStatus from "../components/ui/UserStatus";
@@ -472,7 +473,7 @@ const NetworkDiagram = () => {
   const isValidConnection = useCallback((connection) => {
     if (connection.source === connection.target) return false;
     return (
-      connection.sourceHandle === "right" && connection.targetHandle === "left"
+      connection.sourceHandle === MISC.RIGHT && connection.targetHandle === MISC.LEFT
     );
   }, []);
 
@@ -515,7 +516,7 @@ const NetworkDiagram = () => {
   const handleAction = (action, { id }) => {
     setContextMenu(null);
     switch (action) {
-      case "addNode": {
+      case ACTIONS.ADD_NODE: {
         const position = reactFlowInstance.screenToFlowPosition({
           x: contextMenu.left,
           y: contextMenu.top,
@@ -530,18 +531,18 @@ const NetworkDiagram = () => {
         });
         break;
       }
-      case "editNode": {
+      case ACTIONS.EDIT_NODE: {
         const nodeToEdit = nodes.find((n) => n.id === id);
         if (nodeToEdit) setEditModal({ isOpen: true, node: nodeToEdit });
         break;
       }
-      case "deleteNode":
+      case ACTIONS.DELETE_NODE:
         setDeleteModal({ isOpen: true, id, type: "device" });
         break;
-      case "deleteEdge":
+      case ACTIONS.DELETE_EDGE:
         setDeleteModal({ isOpen: true, id, type: "connection" });
         break;
-      case "insertNode": {
+      case ACTIONS.INSERT_NODE: {
         const edge = edges.find((e) => e.id === id);
         if (edge) {
           setInsertionEdge(edge);
@@ -554,7 +555,7 @@ const NetworkDiagram = () => {
         }
         break;
       }
-      case "resetPosition": {
+      case ACTIONS.RESET_POSITION: {
         const nodeToReset = nodes.find((n) => n.id === id);
         setResetConfirmModal({
           isOpen: true,
@@ -621,7 +622,7 @@ const NetworkDiagram = () => {
     }
 
     try {
-      if (type === "device") {
+      if (type === MISC.DEVICE) {
         const nodeToDelete = nodes.find((n) => n.id === id);
         if (!nodeToDelete) return;
 
@@ -828,7 +829,7 @@ const NetworkDiagram = () => {
 
         deviceIdentityMap.forEach((item, key) => {
           uniqueNodesMap.set(String(item.id), item);
-          if (item.node_type === "ONU") {
+          if (item.node_type === NODE_TYPES_ENUM.ONU) {
             nameSwIdToNodeIdMap.set(key, String(item.id));
           }
         });
@@ -837,7 +838,7 @@ const NetworkDiagram = () => {
         apiData.forEach((item) => {
           if (item.parent_id !== null && item.parent_id !== 0) {
             let targetId =
-              item.node_type === "ONU" && item.name && item.sw_id
+              item.node_type === NODE_TYPES_ENUM.ONU && item.name && item.sw_id
                 ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
                 : String(item.id);
             if (targetId) {
@@ -854,7 +855,7 @@ const NetworkDiagram = () => {
 
         const initialNodes = Array.from(uniqueNodesMap.values()).map((item) => {
           const nodeId =
-            item.node_type === "ONU" && item.name && item.sw_id
+            item.node_type === NODE_TYPES_ENUM.ONU && item.name && item.sw_id
               ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
               : String(item.id);
 
@@ -1324,7 +1325,7 @@ const NetworkDiagram = () => {
           resetConfirmModal.nodeName
             ? `${resetConfirmModal.nodeName}`
             : `all ${
-                resetConfirmModal.scope === "manual"
+                resetConfirmModal.scope === MISC.MANUAL
                   ? "manually positioned"
                   : ""
               } devices`

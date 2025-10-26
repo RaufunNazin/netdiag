@@ -8,6 +8,7 @@ import {
   GRID_Y_SPACING,
   PADDING_BETWEEN_GRIDS,
 } from "../utils/constants";
+import MISC from "../utils/misc";
 
 const useNetworkLayout = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -55,7 +56,7 @@ const useNetworkLayout = () => {
         // Step 3: Manually Stack PONs and their ONU Grids Vertically
         const ponNodesByParent = {};
         const oltNode = nodesWithFinalLayout.find(
-          (n) => n.data.icon === "input"
+          (n) => n.data.icon === MISC.INPUT
         );
 
         layoutedEdges.forEach((edge) => {
@@ -63,7 +64,7 @@ const useNetworkLayout = () => {
             const targetNode = nodesWithFinalLayout.find(
               (n) => n.id === edge.target
             );
-            if (targetNode && targetNode.data.icon === "default") {
+            if (targetNode && targetNode.data.icon === MISC.DEFAULT) {
               if (!ponNodesByParent[edge.source]) {
                 ponNodesByParent[edge.source] = [];
               }
