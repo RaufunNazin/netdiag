@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useRef, useEffect } from "react";
-import MISC from "../../utils/misc";
+import MISC from "../../utils/enums";
 
 const SegmentedInput = ({
   count,
