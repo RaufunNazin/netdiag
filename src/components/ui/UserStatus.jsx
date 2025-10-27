@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { FaSignOutAlt } from "react-icons/fa";
+import { UI_ICONS } from "../../utils/icons";
 
 const UserStatus = () => {
   const [user, setUser] = useState(null);
@@ -48,7 +48,7 @@ const UserStatus = () => {
           className="ml-3 text-gray-500 hover:text-[#ef4444] transition-colors"
           title="Logout"
         >
-          <FaSignOutAlt />
+          {UI_ICONS.signOut}
         </button>
       </div>
 

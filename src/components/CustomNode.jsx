@@ -3,11 +3,12 @@ import { Handle, Position } from "reactflow";
 import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
 import { useParams } from "react-router-dom";
-import { GrClear } from "react-icons/gr";
-import { FaUnlock, FaLock, FaClock, FaLightbulb } from "react-icons/fa6";
-import { FaTimesCircle } from "react-icons/fa";
 import { CUST_STATUS, NODE_TYPES_ENUM } from "../utils/enums";
+import { UI_ICONS } from "../utils/icons";
 
+// ---
+// ICONS for Node Types (Your existing, efficient code)
+// ---
 const ICONS = {
   ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
   bamboo: <img src="/bamboo.png" alt="Bamboo" width="24" height="24" />,
@@ -23,29 +24,6 @@ const ICONS = {
   default: <img src="/other.png" alt="Default" width="24" height="24" />,
 };
 
-const Spinner = () => (
-  <svg
-    className="animate-spin h-4 w-4 text-gray-700"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-  >
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    ></circle>
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-    ></path>
-  </svg>
-);
-
 const DetailRow = ({ label, value }) => (
   <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
     <dt className="text-xs font-medium text-gray-500 shrink-0 pr-2">{label}</dt>
@@ -55,13 +33,9 @@ const DetailRow = ({ label, value }) => (
   </div>
 );
 
-// NEW: CustomerRow Sub-Component
-// This component renders a single customer and manages its own expansion state
-// via props passed from the CustomNode.
 const CustomerRow = ({ customer, isExpanded, onExpand }) => {
   const formatMacFoundTime = (diff) => {
     if (!diff) return "N/A";
-    // This calculation seems specific to your backend logic, keeping it as is.
     let seconds = Math.floor(diff * 100000);
 
     const days = Math.floor(seconds / (24 * 60 * 60));
@@ -82,54 +56,45 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
     return parts.length ? `${parts.join(" ")} ago` : "Just now";
   };
 
+  const LightbulbIcon = UI_ICONS.lightbulb; // Get the component function
+
   return (
     <div className="py-2 border-b border-gray-100 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span>
-            <FaLightbulb
+            {/* REPLACED: react-icon with SVG */}
+            <LightbulbIcon
               className={
                 customer.online1 === 1 ? "text-yellow-400" : "text-gray-800"
               }
             />
           </span>
           <span>
-            {customer.st2 === CUST_STATUS.OK ? (
-              <FaUnlock className="text-green-500" />
-            ) : customer.st2 === CUST_STATUS.EXPIRED ? (
-              <FaClock className="text-yellow-300" />
-            ) : customer.st2 === CUST_STATUS.LOCKED ? (
-              <FaLock className="text-red-500" />
-            ) : customer.st2 === CUST_STATUS.DISABLED ? (
-              <FaTimesCircle className="text-red-500" />
-            ) : null}
+            {customer.st2 === CUST_STATUS.OK
+              ? UI_ICONS.unlock
+              : customer.st2 === CUST_STATUS.EXPIRED
+              ? UI_ICONS.clock
+              : customer.st2 === CUST_STATUS.LOCKED
+              ? UI_ICONS.lock
+              : customer.st2 === CUST_STATUS.DISABLED
+              ? UI_ICONS.timesCircle
+              : null}
           </span>
           <span className="font-semibold">{customer.uname}</span>
         </div>
         <div
-          onMouseEnter={onExpand} // Use the onExpand prop to set parent state
+          onMouseEnter={onExpand}
           className="cursor-pointer p-1 text-gray-400"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 16v-4M12 8h.01"></path>
-          </svg>
+          {/* REPLACED: react-icon with SVG */}
+          {UI_ICONS.info_main}
         </div>
       </div>
 
       <div
         className={`grid transition-all duration-300 ease-in-out ${
-          isExpanded // Use the isExpanded prop
+          isExpanded
             ? "grid-rows-[1fr] opacity-100 mt-2"
             : "grid-rows-[0fr] opacity-0"
         }`}
@@ -158,10 +123,7 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
 const CustomNode = ({ data, isConnectable }) => {
   const { id } = useParams();
   const [isHovered, setIsHovered] = useState(false);
-
-  // CHANGED: Replaced isDetailsExpanded with expandedCustomerMac
   const [expandedCustomerMac, setExpandedCustomerMac] = useState(null);
-
   const [customerData, setCustomerData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -193,7 +155,6 @@ const CustomNode = ({ data, isConnectable }) => {
   const handleMouseLeaveFromArea = () => {
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
-      // CHANGED: Also reset the expanded customer
       setExpandedCustomerMac(null);
     }, 300);
   };
@@ -219,12 +180,6 @@ const CustomNode = ({ data, isConnectable }) => {
     e.stopPropagation();
     if (data.onNavigateClick) data.onNavigateClick(data.id);
   };
-
-  // REMOVED: These lines are no longer needed as we are looping
-  // const customer =
-  //   customerData && customerData.length > 0 ? customerData[0] : null;
-  // const onlineStatusColor =
-  //   customer && customer.online1 === 1 ? "bg-green-500" : "bg-red-500";
 
   return (
     <div ref={nodeRef}>
@@ -258,20 +213,8 @@ const CustomNode = ({ data, isConnectable }) => {
             className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
             title="View Details"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 16v-4M12 8h.01"></path>
-            </svg>
+            {/* REPLACED: react-icon with SVG */}
+            {UI_ICONS.info_main}
           </button>
           {data.node_type === NODE_TYPES_ENUM.OLT && !id && (
             <button
@@ -279,19 +222,8 @@ const CustomNode = ({ data, isConnectable }) => {
               className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
               title="Go to OLT View"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 18l6-6-6-6"></path>
-              </svg>
+              {/* REPLACED: react-icon with SVG */}
+              {UI_ICONS.chevronRight_main}
             </button>
           )}
         </div>
@@ -320,28 +252,24 @@ const CustomNode = ({ data, isConnectable }) => {
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
-                <Spinner />
+                {UI_ICONS.spinner}
                 <span>Please wait...</span>
               </div>
-            ) : // CHANGED: Check customerData array length instead of single 'customer'
-            customerData && customerData.length > 0 ? (
-              // CHANGED: Map over the customerData array and render a CustomerRow for each
+            ) : customerData && customerData.length > 0 ? (
               <div className="flex flex-col">
                 {customerData.map((customer) => (
                   <CustomerRow
-                    // Use a unique key, like mac or cid
                     key={customer.mac || customer.cid}
                     customer={customer}
-                    // Pass in whether this specific row should be expanded
                     isExpanded={expandedCustomerMac === customer.mac}
-                    // Pass in a handler to set this row as expanded
                     onExpand={() => setExpandedCustomerMac(customer.mac)}
                   />
                 ))}
               </div>
             ) : (
-              <div className="flex items-center justify-center">
-                <GrClear className="mr-2" />
+              <div className="flex items-center justify-center gap-2">
+                {/* REPLACED: react-icon with SVG */}
+                <span className="text-gray-500">{UI_ICONS.clear}</span>
                 <span>No customer found</span>
               </div>
             )}

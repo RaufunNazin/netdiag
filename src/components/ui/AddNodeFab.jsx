@@ -1,3 +1,5 @@
+import { UI_ICONS } from "../../utils/icons";
+
 const AddNodeFab = ({ onClick }) => {
   return (
     <button
@@ -5,20 +7,7 @@ const AddNodeFab = ({ onClick }) => {
       className="z-10  p-3 rounded-full text-white transition-all duration-200 hover:bg-green-600 bg-green-500"
       title="Add New Device"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M12 5v14"></path>
-        <path d="M5 12h14"></path>
-      </svg>
+      {UI_ICONS.add_main}
     </button>
   );
 };

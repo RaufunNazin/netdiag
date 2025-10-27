@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaChevronUp } from "react-icons/fa";
+import { UI_ICONS } from "../../utils/icons";
 
 const IconDock = ({ children }) => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -36,10 +36,12 @@ const IconDock = ({ children }) => {
                    duration-500 ease-in-out ${isOpen ? "ml-2" : "ml-0"}`}
         title={isOpen ? "Hide Toolbar" : "Show Toolbar"}
       >
-        <FaChevronUp
+        <span
           className={`transition-transform duration-500 ease-in-out 
                      ${isOpen ? "rotate-180" : "rotate-0"}`}
-        />
+        >
+          {UI_ICONS.chevronUp}
+        </span>
       </button>
     </div>
   );

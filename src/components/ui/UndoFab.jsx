@@ -1,4 +1,4 @@
-import { IoArrowUndoOutline } from "react-icons/io5";
+import { UI_ICONS } from "../../utils/icons";
 
 const UndoFab = ({ onClick, disabled }) => {
   return (
@@ -6,14 +6,14 @@ const UndoFab = ({ onClick, disabled }) => {
       <button
         onClick={onClick}
         disabled={disabled}
-        className={`p-2 bg-[#ef4444] rounded-full text-white transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none ${
+        className={`p-2.5 bg-[#ef4444] rounded-full text-white transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none ${
           disabled
             ? "cursor-not-allowed bg-gray-400 hover:bg-gray-400"
             : "cursor-pointer"
         }`}
         title="Undo Last Action"
       >
-        <IoArrowUndoOutline size={24} />
+        {UI_ICONS.undo_main}
       </button>
     </div>
   );

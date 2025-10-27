@@ -1,25 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { UI_ICONS } from "../../utils/icons";
 
 const ResetPositionsFab = ({ onReset, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-
-  const resetIcon = (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="1 4 1 10 7 10"></polyline>
-      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-    </svg>
-  );
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -65,7 +49,7 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
         className="p-3 rounded-full shadow-lg text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rotate-90 hover:rotate-0"
         title="Reset Positions"
       >
-        {resetIcon}
+        {UI_ICONS.reset_main}
       </button>
     </div>
   );

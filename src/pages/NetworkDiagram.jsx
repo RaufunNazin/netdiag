@@ -1,6 +1,14 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+  Suspense,
+  lazy,
+} from "react";
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -11,7 +19,7 @@ import ReactFlow, {
   MarkerType,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { FaChevronLeft } from "react-icons/fa6";
+import { UI_ICONS } from "../utils/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -41,13 +49,27 @@ import HelpBox from "../components/ui/HelpBox.jsx";
 import GuidanceToast from "../components/ui/GuidanceToast";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
-import NodeDetailModal from "../components/modals/NodeDetailModal.jsx";
-import AddNodeModal from "../components/modals/AddNodeModal.jsx";
-import EditNodeModal from "../components/modals/EditNodeModal.jsx";
-import ConfirmResetModal from "../components/modals/ConfirmResetModal.jsx";
-import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
-import SelectRootNodeModal from "../components/modals/SelectRootNodeModal.jsx";
-import ConfirmSaveModal from "../components/modals/ConfirmSaveModal.jsx";
+const NodeDetailModal = lazy(() =>
+  import("../components/modals/NodeDetailModal.jsx")
+);
+const AddNodeModal = lazy(() =>
+  import("../components/modals/AddNodeModal.jsx")
+);
+const EditNodeModal = lazy(() =>
+  import("../components/modals/EditNodeModal.jsx")
+);
+const ConfirmResetModal = lazy(() =>
+  import("../components/modals/ConfirmResetModal.jsx")
+);
+const ConfirmDeleteModal = lazy(() =>
+  import("../components/modals/ConfirmDeleteModal.jsx")
+);
+const SelectRootNodeModal = lazy(() =>
+  import("../components/modals/SelectRootNodeModal.jsx")
+);
+const ConfirmSaveModal = lazy(() =>
+  import("../components/modals/ConfirmSaveModal.jsx")
+);
 
 const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8;
@@ -1323,7 +1345,7 @@ const NetworkDiagram = () => {
             title={"Go Back"}
             onClick={() => window.location.replace("/")}
           >
-            <FaChevronLeft />
+            {UI_ICONS.chevronLeft}
           </button>
         </div>
       )}
@@ -1355,65 +1377,66 @@ const NetworkDiagram = () => {
           </IconDock>
         </>
       )}
-
-      <EditNodeModal
-        isOpen={editModal.isOpen}
-        node={editModal.node}
-        onClose={() => setEditModal({ isOpen: false, node: null })}
-        onSave={handleUpdateNodeLabel}
-      />
-      <AddNodeModal
-        isOpen={addModal.isOpen}
-        onClose={() =>
-          setAddModal({ isOpen: false, position: null, isInsertion: false })
-        }
-        onSave={handleAddNodeSave}
-        parentNode={addModal.parentNode}
-        defaultPosition={addModal.position}
-        isInsertion={addModal.isInsertion}
-      />
-      <ConfirmSaveModal
-        isOpen={isSaveConfirmModalOpen}
-        onClose={() => setIsSaveConfirmModalOpen(false)}
-        onConfirm={handleConfirmSave}
-      />
-      <ConfirmDeleteModal
-        isOpen={deleteModal.isOpen}
-        onClose={() => setDeleteModal({ isOpen: false, id: null, type: "" })}
-        onConfirm={handleConfirmDelete}
-        itemType={deleteModal.type}
-      />
-      <ConfirmResetModal
-        isOpen={resetConfirmModal.isOpen}
-        onClose={() =>
-          setResetConfirmModal({
-            isOpen: false,
-            scope: null,
-            nodeId: null,
-            nodeName: "",
-          })
-        }
-        onConfirm={handleConfirmReset}
-        itemInfo={
-          resetConfirmModal.nodeName
-            ? `${resetConfirmModal.nodeName}`
-            : `all ${
-                resetConfirmModal.scope === MISC.MANUAL
-                  ? "manually positioned"
-                  : ""
-              } devices`
-        }
-      />
-      <NodeDetailModal
-        isOpen={detailModal.isOpen}
-        onClose={() => setDetailModal({ isOpen: false, node: null })}
-        node={detailModal.node}
-      />
-      <SelectRootNodeModal
-        isOpen={isSelectRootModalOpen}
-        onClose={() => setSelectRootModalOpen(false)}
-        onSelect={handleSelectRoot}
-      />
+      <Suspense fallback={<LoadingOverlay />}>
+        <EditNodeModal
+          isOpen={editModal.isOpen}
+          node={editModal.node}
+          onClose={() => setEditModal({ isOpen: false, node: null })}
+          onSave={handleUpdateNodeLabel}
+        />
+        <AddNodeModal
+          isOpen={addModal.isOpen}
+          onClose={() =>
+            setAddModal({ isOpen: false, position: null, isInsertion: false })
+          }
+          onSave={handleAddNodeSave}
+          parentNode={addModal.parentNode}
+          defaultPosition={addModal.position}
+          isInsertion={addModal.isInsertion}
+        />
+        <ConfirmSaveModal
+          isOpen={isSaveConfirmModalOpen}
+          onClose={() => setIsSaveConfirmModalOpen(false)}
+          onConfirm={handleConfirmSave}
+        />
+        <ConfirmDeleteModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, id: null, type: "" })}
+          onConfirm={handleConfirmDelete}
+          itemType={deleteModal.type}
+        />
+        <ConfirmResetModal
+          isOpen={resetConfirmModal.isOpen}
+          onClose={() =>
+            setResetConfirmModal({
+              isOpen: false,
+              scope: null,
+              nodeId: null,
+              nodeName: "",
+            })
+          }
+          onConfirm={handleConfirmReset}
+          itemInfo={
+            resetConfirmModal.nodeName
+              ? `${resetConfirmModal.nodeName}`
+              : `all ${
+                  resetConfirmModal.scope === MISC.MANUAL
+                    ? "manually positioned"
+                    : ""
+                } devices`
+          }
+        />
+        <NodeDetailModal
+          isOpen={detailModal.isOpen}
+          onClose={() => setDetailModal({ isOpen: false, node: null })}
+          node={detailModal.node}
+        />
+        <SelectRootNodeModal
+          isOpen={isSelectRootModalOpen}
+          onClose={() => setSelectRootModalOpen(false)}
+          onSelect={handleSelectRoot}
+        />
+      </Suspense>
     </div>
   );
 };

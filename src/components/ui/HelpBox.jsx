@@ -1,43 +1,8 @@
 import { useState } from "react";
-import { FaExpand } from "react-icons/fa6";
-import { IoArrowUndoOutline } from "react-icons/io5";
+import { UI_ICONS } from "../../utils/icons";
 
 const HelpBox = ({ isEmpty }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const icons = {
-    question: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M9.09 9a3 3 0 0 1 5.818 0c0 2-3 3-3 3v.01"></path>
-        <path d="M12 17h.01"></path>
-      </svg>
-    ),
-    cross: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    ),
-  };
 
   const helpContent = isEmpty
     ? {
@@ -60,25 +25,8 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Click{" "}
             {
-              <button
-                className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="8.5" y="3" width="7" height="7" rx="1"></rect>
-                  <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                  <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                  <path d="M12 10 V 13 H 6.5 V 14 M12 13 H 17.5 V 14"></path>
-                </svg>
+              <button className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600">
+                {UI_ICONS.root}
               </button>
             }{" "}
             to select a new <b>root device</b> for the main view.
@@ -86,23 +34,8 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Click{" "}
             {
-              <button
-                className="z-10 p-1 rounded-full text-white transition-all duration-200 hover:bg-green-600 bg-green-500"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 5v14"></path>
-                  <path d="M5 12h14"></path>
-                </svg>
+              <button className="z-10 p-1 rounded-full text-white transition-all duration-200 hover:bg-green-600 bg-green-500">
+                {UI_ICONS.add}
               </button>
             }{" "}
             to <b>add</b> a new device to the diagram.
@@ -113,19 +46,7 @@ const HelpBox = ({ isEmpty }) => {
               <button
                 className={`z-10 p-1.5 rounded-full text-white transition-all duration-200 bg-blue-500 hover:bg-blue-600`}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="8"
-                  height="8"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                </svg>
+                {UI_ICONS.edit}
               </button>
             }{" "}
             to enter <b>Edit Mode</b> to move nodes, create connections, or
@@ -137,7 +58,7 @@ const HelpBox = ({ isEmpty }) => {
               <button
                 className={`p-1 bg-[#ef4444] rounded-full text-white transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none cursor-pointer`}
               >
-                <IoArrowUndoOutline size={12} />
+                {UI_ICONS.undo}
               </button>
             }{" "}
             to <b>undo</b> the last change in Edit Mode.
@@ -145,10 +66,8 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Click{" "}
             {
-              <button
-                className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600"
-              >
-                <FaExpand size={12} />
+              <button className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600">
+                {UI_ICONS.expand}
               </button>
             }{" "}
             to <b>adjust</b> the view and fit all nodes on screen.
@@ -160,20 +79,7 @@ const HelpBox = ({ isEmpty }) => {
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-1 rounded-full shadow-lg text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rotate-90 hover:rotate-0"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="1 4 1 10 7 10"></polyline>
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                </svg>
+                {UI_ICONS.reset}
               </button>
             }{" "}
             to <b>reset</b> the layout.
@@ -190,23 +96,8 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Hover on{" "}
             {
-              <button
-                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 16v-4M12 8h.01"></path>
-                </svg>
+              <button className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700">
+                {UI_ICONS.info}
               </button>
             }{" "}
             on an ONU node to view <b>customer details.</b>
@@ -214,23 +105,8 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Click on{" "}
             {
-              <button
-                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 16v-4M12 8h.01"></path>
-                </svg>
+              <button className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700">
+                {UI_ICONS.info}
               </button>
             }{" "}
             on any device to view <b>device details.</b>
@@ -238,22 +114,8 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Click{" "}
             {
-              <button
-                className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 18l6-6-6-6"></path>
-                </svg>
+              <button className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700">
+                {UI_ICONS.chevronRight}
               </button>
             }{" "}
             on an OLT node to enter <b>OLT view.</b>
@@ -282,7 +144,7 @@ const HelpBox = ({ isEmpty }) => {
           onClick={() => setIsOpen(!isOpen)}
           className="bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200"
         >
-          {isOpen ? icons.cross : icons.question}
+          {isOpen ? UI_ICONS.cross : UI_ICONS.question}
         </button>
       </div>
     </div>
