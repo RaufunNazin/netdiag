@@ -1284,7 +1284,7 @@ const NetworkDiagram = () => {
         isValidConnection={isValidConnection}
         nodesDraggable={isEditMode}
         nodesConnectable={isEditMode}
-        edgesUpdatable={isEditMode}
+        edgesUpdatable={false}
         onNodeDragStart={onNodeDragStart}
         panOnDrag={!isEditMode}
         onPaneClick={onPaneClick}
