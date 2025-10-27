@@ -473,7 +473,8 @@ const NetworkDiagram = () => {
   const isValidConnection = useCallback((connection) => {
     if (connection.source === connection.target) return false;
     return (
-      connection.sourceHandle === MISC.RIGHT && connection.targetHandle === MISC.LEFT
+      connection.sourceHandle === MISC.RIGHT &&
+      connection.targetHandle === MISC.LEFT
     );
   }, []);
 
@@ -537,10 +538,18 @@ const NetworkDiagram = () => {
         break;
       }
       case ACTIONS.DELETE_NODE:
-        setDeleteModal({ isOpen: true, id, type: "device" });
+        if (isEditMode) {
+          handleOptimisticDelete(id, MISC.DEVICE);
+        } else {
+          setDeleteModal({ isOpen: true, id, type: MISC.DEVICE });
+        }
         break;
       case ACTIONS.DELETE_EDGE:
-        setDeleteModal({ isOpen: true, id, type: "connection" });
+        if (isEditMode) {
+          handleOptimisticDelete(id, "connection");
+        } else {
+          setDeleteModal({ isOpen: true, id, type: "connection" });
+        }
         break;
       case ACTIONS.INSERT_NODE: {
         const edge = edges.find((e) => e.id === id);
@@ -613,13 +622,71 @@ const NetworkDiagram = () => {
     [addModal, insertionEdge, nodes]
   );
 
+  const handleOptimisticDelete = useCallback(
+    (id, type) => {
+      pushStateToHistory(); // Save the state before deleting
+
+      try {
+        if (type === MISC.DEVICE) {
+          const nodeToDelete = nodes.find((n) => n.id === id);
+          if (!nodeToDelete) return;
+
+          if (id === dynamicRootId) {
+            localStorage.removeItem("dynamicRootId");
+            setDynamicRootId(null);
+          }
+          const nodeInfo = {
+            name: nodeToDelete.data.name,
+            sw_id: nodeToDelete.data.sw_id,
+          };
+
+          // Add to deletedNodes (for saving) and remove from React Flow
+          setDeletedNodes((prev) => [...prev, nodeInfo]);
+          setNodes((nds) => nds.filter((n) => n.id !== id));
+          setEdges((eds) =>
+            eds.filter((e) => e.source !== id && e.target !== id)
+          );
+        } else {
+          // type is "connection"
+          const edgeToDelete = edges.find((e) => e.id === id);
+          const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
+          if (!edgeToDelete || !targetNode) return;
+
+          const edgeInfo = {
+            name: targetNode.data.name,
+            source_id: parseInt(edgeToDelete.source, 10),
+            sw_id: targetNode.data.sw_id,
+          };
+
+          // Add to deletedEdges (for saving) and remove from React Flow
+          setDeletedEdges((prev) => [...prev, edgeInfo]);
+          setEdges((eds) => eds.filter((e) => e.id !== id));
+        }
+      } catch (error) {
+        console.error(`Failed to optimistically delete ${type}:`, error);
+        toast.error("Failed to delete item locally.");
+        // Note: We don't need a finally block to close a modal
+      }
+    },
+    [
+      nodes,
+      edges,
+      dynamicRootId,
+      pushStateToHistory,
+      setNodes,
+      setEdges,
+      setDeletedNodes,
+      setDeletedEdges,
+    ]
+  );
+
+  // This function handles deletions
   // This function handles deletions
   const handleConfirmDelete = useCallback(async () => {
     const { id, type } = deleteModal;
 
-    if (isEditMode) {
-      pushStateToHistory();
-    }
+    // No isEditMode check needed. This modal only opens when isEditMode is false.
+    // This function now *only* handles "live" deletes (API call + reload).
 
     try {
       if (type === MISC.DEVICE) {
@@ -635,17 +702,11 @@ const NetworkDiagram = () => {
           sw_id: nodeToDelete.data.sw_id,
         };
 
-        if (isEditMode) {
-          setDeletedNodes((prev) => [...prev, nodeInfo]);
-          setNodes((nds) => nds.filter((n) => n.id !== id));
-          setEdges((eds) =>
-            eds.filter((e) => e.source !== id && e.target !== id)
-          );
-        } else {
-          await deleteNode(nodeInfo);
-          window.location.reload();
-        }
+        // This is the "live" delete path
+        await deleteNode(nodeInfo);
+        window.location.reload();
       } else {
+        // type is "connection"
         const edgeToDelete = edges.find((e) => e.id === id);
         const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
         if (!edgeToDelete || !targetNode) return;
@@ -656,13 +717,9 @@ const NetworkDiagram = () => {
           sw_id: targetNode.data.sw_id,
         };
 
-        if (isEditMode) {
-          setDeletedEdges((prev) => [...prev, edgeInfo]);
-          setEdges((eds) => eds.filter((e) => e.id !== id));
-        } else {
-          await deleteEdge(edgeInfo);
-          window.location.reload();
-        }
+        // This is the "live" delete path
+        await deleteEdge(edgeInfo);
+        window.location.reload();
       }
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error);
@@ -673,9 +730,8 @@ const NetworkDiagram = () => {
     deleteModal,
     edges,
     nodes,
-    isEditMode,
     dynamicRootId,
-    pushStateToHistory,
+    // We can remove isEditMode and pushStateToHistory from the dependency array
   ]);
 
   // This function handles node edits (e.g., rename)
@@ -829,18 +885,16 @@ const NetworkDiagram = () => {
 
         deviceIdentityMap.forEach((item, key) => {
           uniqueNodesMap.set(String(item.id), item);
-          if (item.node_type === NODE_TYPES_ENUM.ONU) {
-            nameSwIdToNodeIdMap.set(key, String(item.id));
-          }
+          nameSwIdToNodeIdMap.set(key, String(item.id));
         });
 
         const initialEdges = [];
         apiData.forEach((item) => {
           if (item.parent_id !== null && item.parent_id !== 0) {
-            let targetId =
-              item.node_type === NODE_TYPES_ENUM.ONU && item.name && item.sw_id
-                ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
-                : String(item.id);
+            const identityKey = `${item.name}-${item.sw_id ?? -1}`;
+            let targetId = nameSwIdToNodeIdMap.has(identityKey)
+              ? nameSwIdToNodeIdMap.get(identityKey)
+              : String(item.id);
             if (targetId) {
               initialEdges.push({
                 id: `e-${item.id}`,
