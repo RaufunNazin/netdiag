@@ -7,25 +7,35 @@ export const fetchRootCandidates = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching root candidates:", error);
-    toast.error("Could not load the list of root devices to search.");
+    toast.error(
+      error.response?.data?.detail ||
+        "Could not load the list of root devices to search."
+    );
     throw error;
   }
 };
 
 export const saveNodeInfo = async (updatedInfo, muted = false) => {
   try {
-    const response = await api.put(`/device`, updatedInfo).catch((error) => {
-      console.error("Failed to update node label:", error);
-    });
+    // Removed the .catch() here to let the outer try/catch handle all errors
+    const response = await api.put(`/device`, updatedInfo);
     if (!muted) {
       if (response.status === 200) {
         toast.success("Device update successful!");
       } else {
-        toast.error("Failed to update device");
+        // Show detail message from response if available
+        toast.error(response.data?.detail || "Failed to update device");
       }
     }
   } catch (error) {
     console.error("Error saving device info:", error);
+    if (!muted) {
+      // Show detail message from error if available
+      toast.error(
+        error.response?.data?.detail ||
+          "An error occurred while saving device info."
+      );
+    }
     throw error;
   }
 };
@@ -36,7 +46,7 @@ export const resetPositions = async (payload) => {
     if (response.status === 200) {
       toast.success("Positions reset successfully!");
     } else {
-      toast.error("Failed to reset positions.");
+      toast.error(response.data?.detail || "Failed to reset positions.");
     }
     return response.data;
   } catch (error) {
@@ -55,7 +65,7 @@ export const insertNode = async (payload) => {
     if (response.status === 201) {
       toast.success("Device inserted successfully!");
     } else {
-      toast.error("Failed to insert device.");
+      toast.error(response.data?.detail || "Failed to insert device.");
     }
     return response.data;
   } catch (error) {
@@ -74,7 +84,7 @@ export const createNode = async (nodeData) => {
     if (response.status === 201) {
       toast.success("Device created successfully!");
     } else {
-      toast.error("Failed to create device.");
+      toast.error(response.data?.detail || "Failed to create device.");
     }
     return response.data;
   } catch (error) {
@@ -99,18 +109,18 @@ export const copyNodeInfo = async (
     };
     const response = await api.post(`/device/copy`, payload);
 
-    // Wrap toast in !muted check
     if (!muted) {
       if (response.status === 201) {
         toast.success("Connection update successful!");
       } else {
-        toast.error("Failed to update connection");
+        // Show detail message from response if available
+        toast.error(response.data?.detail || "Failed to update connection");
       }
     }
   } catch (error) {
     console.error("Error copying connection info:", error);
-    // Wrap toast in !muted check
     if (!muted) {
+      // Show detail message from error if available
       toast.error(
         error.response?.data?.detail ||
           "An error occurred while copying connection info."
@@ -131,6 +141,10 @@ export const fetchData = async (swId) => {
     if (error.response && error.response.status === 404) {
       return [];
     }
+    // Show detail message from error if available
+    toast.error(
+      error.response?.data?.detail || `Error fetching data for SW_ID ${swId}`
+    );
     throw error;
   }
 };
@@ -163,19 +177,22 @@ export const deleteNode = async (nodeInfo, muted = false) => {
   try {
     const response = await api.delete(`/node`, { data: nodeInfo });
     if (!muted) {
-      // Add this check
       if (response.status === 200) {
         toast.success("Device and all its connections deleted successfully!");
       } else {
-        toast.error("Failed to delete device.");
+        // Show detail message from response if available
+        toast.error(response.data?.detail || "Failed to delete device.");
       }
     }
     return response.data;
   } catch (error) {
     console.error(`Error deleting node ${nodeInfo.name}:`, error);
     if (!muted) {
-      // Add this check
-      toast.error("An error occurred while deleting the device.");
+      // Show detail message from error if available
+      toast.error(
+        error.response?.data?.detail ||
+          "An error occurred while deleting the device."
+      );
     }
     throw error;
   }
@@ -187,6 +204,10 @@ export const fetchOnuCustomerInfo = async (oltId, portName) => {
     return response.data;
   } catch (error) {
     console.error(`Error fetching customer info for ${portName}:`, error);
+    // Show detail message from error if available
+    toast.error(
+      error.response?.data?.detail || "Could not load customer info."
+    );
     return [];
   }
 };
@@ -195,20 +216,23 @@ export const deleteEdge = async (edgeInfo, muted = false) => {
   try {
     const response = await api.delete(`/edge`, { data: edgeInfo });
 
-    // Wrap toast in !muted check
     if (!muted) {
       if (response.status === 200) {
         toast.success("Connection deleted successfully!");
       } else {
-        toast.error("Failed to delete connection.");
+        // Show detail message from response if available
+        toast.error(response.data?.detail || "Failed to delete connection.");
       }
     }
     return response.data;
   } catch (error) {
     console.error("Error deleting edge:", error);
-    // Wrap toast in !muted check
     if (!muted) {
-      toast.error("An error occurred while deleting the connection.");
+      // Show detail message from error if available
+      toast.error(
+        error.response?.data?.detail ||
+          "An error occurred while deleting the connection."
+      );
     }
     throw error;
   }

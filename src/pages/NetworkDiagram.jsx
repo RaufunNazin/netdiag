@@ -332,7 +332,10 @@ const NetworkDiagram = () => {
       setIsEditMode(false);
     } catch (error) {
       console.error("Failed to save changes:", error);
-      toast.error("Failed to save all changes. Please try again.");
+      toast.error(
+        error.response?.data?.detail ||
+          "Failed to save all changes. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -694,7 +697,7 @@ const NetworkDiagram = () => {
         }
       } catch (error) {
         console.error(`Failed to optimistically delete ${type}:`, error);
-        toast.error("Failed to delete item locally.");
+        toast.error(`Failed to delete item locally: ${error.message}`);
       }
     },
     [
@@ -746,12 +749,7 @@ const NetworkDiagram = () => {
     } finally {
       setDeleteModal({ isOpen: false, id: null, type: "" });
     }
-  }, [
-    deleteModal,
-    edges,
-    nodes,
-    dynamicRootId,
-  ]);
+  }, [deleteModal, edges, nodes, dynamicRootId]);
 
   const handleUpdateNodeLabel = useCallback(
     async (nodeId, updatedFormData) => {
