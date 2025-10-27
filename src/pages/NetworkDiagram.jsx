@@ -47,6 +47,7 @@ import EditNodeModal from "../components/modals/EditNodeModal.jsx";
 import ConfirmResetModal from "../components/modals/ConfirmResetModal.jsx";
 import ConfirmDeleteModal from "../components/modals/ConfirmDeleteModal.jsx";
 import SelectRootNodeModal from "../components/modals/SelectRootNodeModal.jsx";
+import ConfirmSaveModal from "../components/modals/ConfirmSaveModal.jsx";
 
 const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8;
@@ -102,6 +103,7 @@ const NetworkDiagram = () => {
   const [deletedNodes, setDeletedNodes] = useState([]);
   const [deletedEdges, setDeletedEdges] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
+  const [isSaveConfirmModalOpen, setIsSaveConfirmModalOpen] = useState(false);
 
   const [redirectInfo, setRedirectInfo] = useState({
     shouldRedirect: false,
@@ -249,6 +251,107 @@ const NetworkDiagram = () => {
     return desiredPosition;
   };
 
+  const handleConfirmSave = useCallback(async () => {
+    setIsSaveConfirmModalOpen(false);
+    setLoading(true);
+
+    const originalNodes = initialNodesRef.current;
+    const currentNodes = reactFlowInstance.getNodes();
+    const originalNodeMap = new Map(
+      originalNodes.map((node) => [node.id, node])
+    );
+
+    const movedNodes = currentNodes.filter((currentNode) => {
+      const originalNode = originalNodeMap.get(currentNode.id);
+      return (
+        originalNode &&
+        (currentNode.position.x !== originalNode.position.x ||
+          currentNode.position.y !== originalNode.position.y)
+      );
+    });
+
+    try {
+      const connectionPromises = newConnections.map((conn) => {
+        const newParentId = parseInt(conn.source, 10);
+        const sourceNodeId = parseInt(conn.target, 10);
+        return copyNodeInfo(sourceNodeId, newParentId, true);
+      });
+
+      const positionSavePromises = movedNodes.map((node) => {
+        const payload = {
+          original_name: node.data.name,
+          sw_id: node.data.sw_id,
+          position_x: node.position.x,
+          position_y: node.position.y,
+          position_mode: 1,
+        };
+        return saveNodeInfo(payload, true);
+      });
+
+      const deleteNodePromises = deletedNodes.map((nodeInfo) =>
+        deleteNode(nodeInfo, true)
+      );
+
+      const deleteEdgePromises = deletedEdges.map((edgeInfo) =>
+        deleteEdge(edgeInfo, true)
+      );
+
+      const updatePromises = updatedConnections.map(async (conn) => {
+        const edgeInfo = {
+          name: conn.childNodeInfo.name,
+          source_id: parseInt(conn.oldParentId, 10),
+          sw_id: conn.childNodeInfo.sw_id,
+        };
+        await deleteEdge(edgeInfo, true);
+        return copyNodeInfo(
+          parseInt(conn.childId, 10),
+          parseInt(conn.newParentId, 10),
+          true
+        );
+      });
+
+      await Promise.all([
+        ...connectionPromises,
+        ...positionSavePromises,
+        ...updatePromises,
+        ...deleteNodePromises,
+        ...deleteEdgePromises,
+      ]);
+
+      toast.success("All changes saved successfully!");
+
+      setNewConnections([]);
+      setUpdatedConnections([]);
+      setDeletedNodes([]);
+      setDeletedEdges([]);
+
+      setHistory([]);
+
+      initialNodesRef.current = reactFlowInstance.getNodes();
+
+      setIsEditMode(false);
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+      toast.error("Failed to save all changes. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    reactFlowInstance,
+    newConnections,
+    updatedConnections,
+    deletedNodes,
+    deletedEdges,
+    setNewConnections,
+    setUpdatedConnections,
+    setDeletedNodes,
+    setDeletedEdges,
+    setHistory,
+    setIsEditMode,
+    setLoading,
+    setIsSaveConfirmModalOpen,
+  ]);
+
   const handleResetPositions = useCallback(
     async (scope, nodeId = null) => {
       try {
@@ -326,11 +429,8 @@ const NetworkDiagram = () => {
     [nodes, setEdges, setNewConnections, isEditMode, pushStateToHistory]
   );
 
-  // --- THIS IS THE CORRECTED FUNCTION ---
   const handleFabClick = useCallback(async () => {
     if (isEditMode) {
-      setLoading(true); // Show loading overlay
-
       const originalNodes = initialNodesRef.current;
       const currentNodes = reactFlowInstance.getNodes();
       const originalNodeMap = new Map(
@@ -354,80 +454,12 @@ const NetworkDiagram = () => {
         deletedEdges.length > 0;
 
       if (hasChanges) {
-        try {
-          const connectionPromises = newConnections.map((conn) => {
-            const newParentId = parseInt(conn.source, 10);
-            const sourceNodeId = parseInt(conn.target, 10);
-            return copyNodeInfo(sourceNodeId, newParentId, true);
-          });
-
-          const positionSavePromises = movedNodes.map((node) => {
-            const payload = {
-              original_name: node.data.name,
-              sw_id: node.data.sw_id,
-              position_x: node.position.x,
-              position_y: node.position.y,
-              position_mode: 1,
-            };
-            return saveNodeInfo(payload, true);
-          });
-
-          const deleteNodePromises = deletedNodes.map((nodeInfo) =>
-            deleteNode(nodeInfo, true)
-          );
-
-          const deleteEdgePromises = deletedEdges.map((edgeInfo) =>
-            deleteEdge(edgeInfo, true)
-          );
-
-          const updatePromises = updatedConnections.map(async (conn) => {
-            const edgeInfo = {
-              name: conn.childNodeInfo.name,
-              source_id: parseInt(conn.oldParentId, 10),
-              sw_id: conn.childNodeInfo.sw_id,
-            };
-            await deleteEdge(edgeInfo, true);
-            return copyNodeInfo(
-              parseInt(conn.childId, 10),
-              parseInt(conn.newParentId, 10),
-              true
-            );
-          });
-
-          await Promise.all([
-            ...connectionPromises,
-            ...positionSavePromises,
-            ...updatePromises,
-            ...deleteNodePromises,
-            ...deleteEdgePromises,
-          ]);
-
-          toast.success("All changes saved successfully!");
-
-          // Clear all change tracking state
-          setNewConnections([]);
-          setUpdatedConnections([]);
-          setDeletedNodes([]);
-          setDeletedEdges([]);
-          // Set the new "clean" state
-          initialNodesRef.current = reactFlowInstance.getNodes();
-        } catch (error) {
-          console.error("Failed to save changes:", error);
-          toast.error("Failed to save all changes. Please try again.");
-          // We don't reload, so the user can try saving again
-        } finally {
-          // --- THIS IS THE CRITICAL FIX ---
-          // This block runs whether the 'try' succeeded or the 'catch' was hit.
-          setLoading(false); // ALWAYS hide loading overlay
-          setIsEditMode(false); // ALWAYS exit edit mode
-        }
+        setIsSaveConfirmModalOpen(true);
       } else {
-        // No changes, just exit edit mode
-        setLoading(false);
+        toast.info("No changes to save.");
         setIsEditMode(false);
       }
     } else {
-      // Entering edit mode
       setHistory([]);
       setDeletedNodes([]);
       setDeletedEdges([]);
@@ -439,11 +471,13 @@ const NetworkDiagram = () => {
     updatedConnections,
     deletedNodes,
     deletedEdges,
-    rootId,
     reactFlowInstance,
-    nodes,
+    setIsEditMode,
+    setHistory,
+    setDeletedNodes,
+    setDeletedEdges,
+    setIsSaveConfirmModalOpen,
   ]);
-  // --- END OF CORRECTED FUNCTION ---
 
   const onEdgeUpdate = useCallback(
     (oldEdge, newConnection) => {
@@ -577,7 +611,6 @@ const NetworkDiagram = () => {
     }
   };
 
-  // This function is for *new* nodes. Reload is OK here.
   const handleAddNodeSave = useCallback(
     async (formData, position) => {
       try {
@@ -613,7 +646,7 @@ const NetworkDiagram = () => {
           await createNode(payload);
         }
         sessionStorage.setItem("justAddedNode", "true");
-        window.location.reload(); // Reload is fine for a brand new node
+        window.location.reload();
       } catch (error) {
         console.error("Failed to save new node:", error);
         setLoading(false);
@@ -624,7 +657,7 @@ const NetworkDiagram = () => {
 
   const handleOptimisticDelete = useCallback(
     (id, type) => {
-      pushStateToHistory(); // Save the state before deleting
+      pushStateToHistory();
 
       try {
         if (type === MISC.DEVICE) {
@@ -640,14 +673,12 @@ const NetworkDiagram = () => {
             sw_id: nodeToDelete.data.sw_id,
           };
 
-          // Add to deletedNodes (for saving) and remove from React Flow
           setDeletedNodes((prev) => [...prev, nodeInfo]);
           setNodes((nds) => nds.filter((n) => n.id !== id));
           setEdges((eds) =>
             eds.filter((e) => e.source !== id && e.target !== id)
           );
         } else {
-          // type is "connection"
           const edgeToDelete = edges.find((e) => e.id === id);
           const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
           if (!edgeToDelete || !targetNode) return;
@@ -658,14 +689,12 @@ const NetworkDiagram = () => {
             sw_id: targetNode.data.sw_id,
           };
 
-          // Add to deletedEdges (for saving) and remove from React Flow
           setDeletedEdges((prev) => [...prev, edgeInfo]);
           setEdges((eds) => eds.filter((e) => e.id !== id));
         }
       } catch (error) {
         console.error(`Failed to optimistically delete ${type}:`, error);
         toast.error("Failed to delete item locally.");
-        // Note: We don't need a finally block to close a modal
       }
     },
     [
@@ -680,14 +709,8 @@ const NetworkDiagram = () => {
     ]
   );
 
-  // This function handles deletions
-  // This function handles deletions
   const handleConfirmDelete = useCallback(async () => {
     const { id, type } = deleteModal;
-
-    // No isEditMode check needed. This modal only opens when isEditMode is false.
-    // This function now *only* handles "live" deletes (API call + reload).
-
     try {
       if (type === MISC.DEVICE) {
         const nodeToDelete = nodes.find((n) => n.id === id);
@@ -702,11 +725,9 @@ const NetworkDiagram = () => {
           sw_id: nodeToDelete.data.sw_id,
         };
 
-        // This is the "live" delete path
         await deleteNode(nodeInfo);
         window.location.reload();
       } else {
-        // type is "connection"
         const edgeToDelete = edges.find((e) => e.id === id);
         const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
         if (!edgeToDelete || !targetNode) return;
@@ -717,7 +738,6 @@ const NetworkDiagram = () => {
           sw_id: targetNode.data.sw_id,
         };
 
-        // This is the "live" delete path
         await deleteEdge(edgeInfo);
         window.location.reload();
       }
@@ -731,10 +751,8 @@ const NetworkDiagram = () => {
     edges,
     nodes,
     dynamicRootId,
-    // We can remove isEditMode and pushStateToHistory from the dependency array
   ]);
 
-  // This function handles node edits (e.g., rename)
   const handleUpdateNodeLabel = useCallback(
     async (nodeId, updatedFormData) => {
       try {
@@ -791,7 +809,6 @@ const NetworkDiagram = () => {
     }, 3000);
   };
 
-  // This 'visibleEdges' hook contains the z-index fix
   const { visibleNodes, visibleEdges } = useMemo(() => {
     const allNodes = nodes.map((node) => {
       const isCollapsible = edges.some((edge) => edge.source === node.id);
@@ -821,7 +838,7 @@ const NetworkDiagram = () => {
         .map((edge) => ({
           ...edge,
           interactive: isEditMode,
-          zIndex: isEditMode ? 1000 : 0, // High z-index in edit mode
+          zIndex: isEditMode ? 1000 : 0,
         })),
     };
   }, [nodes, edges, isEditMode]);
@@ -1279,7 +1296,6 @@ const NetworkDiagram = () => {
         onNodeClick={onNodeClick}
         onSelectionChange={onSelectionChange}
         selectionOnDrag={true}
-        // These props fix the z-index "plus icon" bug
         elevateEdgesOnSelect={true}
         elevateNodesOnSelect={false}
         nodeTypes={nodeTypes}
@@ -1357,6 +1373,11 @@ const NetworkDiagram = () => {
         parentNode={addModal.parentNode}
         defaultPosition={addModal.position}
         isInsertion={addModal.isInsertion}
+      />
+      <ConfirmSaveModal
+        isOpen={isSaveConfirmModalOpen}
+        onClose={() => setIsSaveConfirmModalOpen(false)}
+        onConfirm={handleConfirmSave}
       />
       <ConfirmDeleteModal
         isOpen={deleteModal.isOpen}
