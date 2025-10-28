@@ -342,6 +342,8 @@ const NetworkDiagram = () => {
 
       toast.success("All changes saved successfully!");
 
+      window.location.reload();
+
       setNewConnections([]);
       setUpdatedConnections([]);
       setDeletedNodes([]);
@@ -358,7 +360,6 @@ const NetworkDiagram = () => {
         error.response?.data?.detail ||
           "Failed to save all changes. Please try again."
       );
-    } finally {
       setLoading(false);
     }
   }, [

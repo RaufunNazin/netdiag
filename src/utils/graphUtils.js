@@ -17,20 +17,17 @@ export const fetchRootCandidates = async () => {
 
 export const saveNodeInfo = async (updatedInfo, muted = false) => {
   try {
-    // Removed the .catch() here to let the outer try/catch handle all errors
     const response = await api.put(`/device`, updatedInfo);
     if (!muted) {
       if (response.status === 200) {
         toast.success("Device update successful!");
       } else {
-        // Show detail message from response if available
         toast.error(response.data?.detail || "Failed to update device");
       }
     }
   } catch (error) {
     console.error("Error saving device info:", error);
     if (!muted) {
-      // Show detail message from error if available
       toast.error(
         error.response?.data?.detail ||
           "An error occurred while saving device info."
@@ -113,14 +110,12 @@ export const copyNodeInfo = async (
       if (response.status === 201) {
         toast.success("Connection update successful!");
       } else {
-        // Show detail message from response if available
         toast.error(response.data?.detail || "Failed to update connection");
       }
     }
   } catch (error) {
     console.error("Error copying connection info:", error);
     if (!muted) {
-      // Show detail message from error if available
       toast.error(
         error.response?.data?.detail ||
           "An error occurred while copying connection info."
@@ -141,7 +136,6 @@ export const fetchData = async (swId) => {
     if (error.response && error.response.status === 404) {
       return [];
     }
-    // Show detail message from error if available
     toast.error(
       error.response?.data?.detail || `Error fetching data for SW_ID ${swId}`
     );
@@ -180,7 +174,6 @@ export const deleteNode = async (nodeInfo, muted = false) => {
       if (response.status === 200) {
         toast.success("Device and all its connections deleted successfully!");
       } else {
-        // Show detail message from response if available
         toast.error(response.data?.detail || "Failed to delete device.");
       }
     }
@@ -188,7 +181,6 @@ export const deleteNode = async (nodeInfo, muted = false) => {
   } catch (error) {
     console.error(`Error deleting node ${nodeInfo.name}:`, error);
     if (!muted) {
-      // Show detail message from error if available
       toast.error(
         error.response?.data?.detail ||
           "An error occurred while deleting the device."
@@ -204,7 +196,6 @@ export const fetchOnuCustomerInfo = async (oltId, portName) => {
     return response.data;
   } catch (error) {
     console.error(`Error fetching customer info for ${portName}:`, error);
-    // Show detail message from error if available
     toast.error(
       error.response?.data?.detail || "Could not load customer info."
     );
@@ -220,7 +211,6 @@ export const deleteEdge = async (edgeInfo, muted = false) => {
       if (response.status === 200) {
         toast.success("Connection deleted successfully!");
       } else {
-        // Show detail message from response if available
         toast.error(response.data?.detail || "Failed to delete connection.");
       }
     }
@@ -228,7 +218,6 @@ export const deleteEdge = async (edgeInfo, muted = false) => {
   } catch (error) {
     console.error("Error deleting edge:", error);
     if (!muted) {
-      // Show detail message from error if available
       toast.error(
         error.response?.data?.detail ||
           "An error occurred while deleting the connection."

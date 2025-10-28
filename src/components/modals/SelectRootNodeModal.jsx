@@ -13,7 +13,7 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
           const data = await fetchRootCandidates();
           setNodes(data);
         } catch (error) {
-          // Error is handled in graphUtils
+          console.log(error)
         }
       };
       fetchNodes();

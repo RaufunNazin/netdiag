@@ -118,7 +118,7 @@ const LoginPage = () => {
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white
                      disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          {loading ? "Please wait..." : "Login"}
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>

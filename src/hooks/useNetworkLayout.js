@@ -17,7 +17,6 @@ const useNetworkLayout = () => {
   const [visibleNodes, setVisibleNodes] = useState([]);
   const [visibleEdges, setVisibleEdges] = useState([]);
 
-  // --- Data Fetching and Layout Effect ---
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
@@ -25,7 +24,6 @@ const useNetworkLayout = () => {
         const apiData = await fetchData();
         if (!apiData) return;
 
-        // Step 1: Create nodes and edges from API data
         const initialNodes = apiData.map((item) => ({
           id: String(item.id),
           type: "custom",
@@ -47,13 +45,11 @@ const useNetworkLayout = () => {
             style: { stroke: item.cable_color || "#1e293b" },
           }));
 
-        // Step 2: Get base horizontal layout from Dagre
         const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
           getLayoutedElements(initialNodes, initialEdges);
 
         const nodesWithFinalLayout = [...dagreLayoutedNodes];
 
-        // Step 3: Manually Stack PONs and their ONU Grids Vertically
         const ponNodesByParent = {};
         const oltNode = nodesWithFinalLayout.find(
           (n) => n.data.icon === MISC.INPUT
@@ -128,7 +124,6 @@ const useNetworkLayout = () => {
     loadInitialData();
   }, [setNodes, setEdges]);
 
-  // --- Collapse/Expand Memoization ---
   useMemo(() => {
     const allNodes = nodes.map((node) => {
       const isCollapsible = edges.some((edge) => edge.source === node.id);

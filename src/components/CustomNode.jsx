@@ -6,9 +6,6 @@ import { useParams } from "react-router-dom";
 import { CUST_STATUS, NODE_TYPES_ENUM } from "../utils/enums";
 import { UI_ICONS } from "../utils/icons";
 
-// ---
-// ICONS for Node Types (Your existing, efficient code)
-// ---
 const ICONS = {
   ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
   bamboo: <img src="/bamboo.png" alt="Bamboo" width="24" height="24" />,
@@ -56,14 +53,13 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
     return parts.length ? `${parts.join(" ")} ago` : "Just now";
   };
 
-  const LightbulbIcon = UI_ICONS.lightbulb; // Get the component function
+  const LightbulbIcon = UI_ICONS.lightbulb;
 
   return (
     <div className="py-2 border-b border-gray-100 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span>
-            {/* REPLACED: react-icon with SVG */}
             <LightbulbIcon
               className={
                 customer.online1 === 1 ? "text-yellow-400" : "text-gray-800"
@@ -87,7 +83,6 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
           onMouseEnter={onExpand}
           className="cursor-pointer p-1 text-gray-400"
         >
-          {/* REPLACED: react-icon with SVG */}
           {UI_ICONS.info_main}
         </div>
       </div>
@@ -188,17 +183,31 @@ const CustomNode = ({ data, isConnectable }) => {
         className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-gray-800 ${
           data.isCollapsed ? "bg-gray-300" : "bg-white"
         } border-2 ${
-          data.isHighlighted ? "border-red-500" : "border-gray-400"
+          data.isHighlighted ? "border-blue-500" : "border-gray-400"
         } ${statusBorderClass} transition-all`}
       >
-        <Handle
-          type="target"
-          position={Position.Left}
-          id="left"
-          isConnectableStart={false}
-          isConnectableEnd={isConnectable}
-          className="!bg-blue-500 !w-3 !h-3"
-        />
+        {id ? (
+          data.node_type !== NODE_TYPES_ENUM.OLT && (
+            <Handle
+              type="target"
+              position={Position.Left}
+              id="left"
+              isConnectableStart={false}
+              isConnectableEnd={isConnectable}
+              className="!bg-blue-500 !w-3 !h-3"
+            />
+          )
+        ) : (
+          <Handle
+            type="target"
+            position={Position.Left}
+            id="left"
+            isConnectableStart={false}
+            isConnectableEnd={isConnectable}
+            className="!bg-blue-500 !w-3 !h-3"
+          />
+        )}
+
         <div className="w-6 h-6">{ICONS[data.icon] || ICONS["default"]}</div>
         <div className="text-sm font-semibold">
           {data.label.length > 10
@@ -213,7 +222,6 @@ const CustomNode = ({ data, isConnectable }) => {
             className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
             title="View Details"
           >
-            {/* REPLACED: react-icon with SVG */}
             {UI_ICONS.info_main}
           </button>
           {data.node_type === NODE_TYPES_ENUM.OLT && !id && (
@@ -222,12 +230,11 @@ const CustomNode = ({ data, isConnectable }) => {
               className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
               title="Go to OLT View"
             >
-              {/* REPLACED: react-icon with SVG */}
               {UI_ICONS.chevronRight_main}
             </button>
           )}
         </div>
-        {data.node_type !== "ONU" && (
+        {data.node_type !== NODE_TYPES_ENUM.ONU && (
           <Handle
             type="source"
             position={Position.Right}
@@ -268,7 +275,6 @@ const CustomNode = ({ data, isConnectable }) => {
               </div>
             ) : (
               <div className="flex items-center justify-center gap-2">
-                {/* REPLACED: react-icon with SVG */}
                 <span className="text-gray-500">{UI_ICONS.clear}</span>
                 <span>No customer found</span>
               </div>

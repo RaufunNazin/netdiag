@@ -1,5 +1,4 @@
 export const UI_ICONS = {
-  // Corresponds to FaExpand
   expand_main: (
     <svg
       width="16"
@@ -61,7 +60,6 @@ export const UI_ICONS = {
     </svg>
   ),
 
-  // Corresponds to IoArrowUndoOutline
   undo: (
     <svg
       width="12"
@@ -267,7 +265,6 @@ export const UI_ICONS = {
     </svg>
   ),
 
-  // Corresponds to FaChevronUp
   chevronUp: (
     <svg
       width="16"
@@ -284,7 +281,6 @@ export const UI_ICONS = {
     </svg>
   ),
 
-  // Corresponds to FaSignOutAlt
   signOut: (
     <svg
       width="16"
@@ -337,7 +333,6 @@ export const UI_ICONS = {
     </svg>
   ),
 
-  // Corresponds to FaChevronLeft
   chevronLeft: (
     <svg
       width="16"
@@ -431,7 +426,7 @@ export const UI_ICONS = {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      {...props} // Pass props to set className (e.g., text-yellow-400)
+      {...props}
     >
       <path d="M15 14c.2-1 .7-1.7 1.5-2.5C17.7 10.2 18 9 18 8A6 6 0 0 0 6 8c0 1 .3 2.2 1.5 3.5.7.8 1.3 1.5 1.5 2.5" />
       <path d="M9 18h6" />
