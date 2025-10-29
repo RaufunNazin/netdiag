@@ -4,6 +4,7 @@ export const ACTIONS = {
   DELETE_NODE: "deleteNode",
   INSERT_NODE: "insertNode",
   DELETE_EDGE: "deleteEdge",
+  SEND_TO_INVENTORY: "sendToInventory",
 };
 
 export const CUST_STATUS = {
@@ -19,6 +20,7 @@ export const LABELS = {
   DELETE_DEVICE: "Delete Device",
   INSERT_DEVICE_ON_LINE: "Insert Device on Line",
   DELETE_CONNECTION: "Delete Connection",
+  SEND_TO_INVENTORY: "Send to Inventory",
 };
 
 export const NODE_TYPES_ENUM = {

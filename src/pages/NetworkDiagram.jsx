@@ -70,6 +70,7 @@ const SelectRootNodeModal = lazy(() =>
 const ConfirmSaveModal = lazy(() =>
   import("../components/modals/ConfirmSaveModal.jsx")
 );
+const OrphanDrawer = lazy(() => import("../components/ui/OrphanDrawer.jsx"));
 
 const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8;
@@ -88,7 +89,9 @@ const NetworkDiagram = () => {
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [orphanNodes, setOrphanNodes] = useState([]);
 
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [addModal, setAddModal] = useState({
@@ -549,8 +552,17 @@ const NetworkDiagram = () => {
     });
   };
 
-  const onNodeContextMenu = (event, node) =>
-    handleContextMenu(event, "node", node);
+  const onNodeContextMenu = (event, node) => {
+    event.preventDefault();
+    const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
+    setContextMenu({
+      id: node.id, // Keep ID for convenience
+      type: "node",
+      top: event.clientY - reactFlowBounds.top,
+      left: event.clientX - reactFlowBounds.left,
+      node: node, // Pass the full node object
+    });
+  };
 
   const onEdgeContextMenu = (event, edge) =>
     handleContextMenu(event, "edge", edge);
@@ -574,7 +586,7 @@ const NetworkDiagram = () => {
     [setNodes, isEditMode]
   );
 
-  const handleAction = (action, { id }) => {
+  const handleAction = (action, { id, node }) => {
     setContextMenu(null);
     switch (action) {
       case ACTIONS.ADD_NODE: {
@@ -590,6 +602,33 @@ const NetworkDiagram = () => {
           isInsertion: false,
           parentNode,
         });
+        break;
+      }
+      case ACTIONS.SEND_TO_INVENTORY: {
+        const nodeToSend = nodes.find((n) => n.id === id);
+        if (nodeToSend) {
+          // Add to drawer
+          setOrphanNodes((prev) => [...prev, nodeToSend]);
+          // Remove from canvas nodes
+          setNodes((nds) => nds.filter((n) => n.id !== id));
+          // Remove related edges (important!)
+          setEdges((eds) =>
+            eds.filter((e) => e.source !== id && e.target !== id)
+          );
+
+          // Update position in DB to NULL/0 (don't reload)
+          saveNodeInfo(
+            {
+              original_name: nodeToSend.data.name,
+              sw_id: nodeToSend.data.sw_id,
+              position_x: null,
+              position_y: null,
+              position_mode: 0,
+            },
+            true // Muted toast
+          );
+          toast.info(`${nodeToSend.data.label} sent to inventory.`);
+        }
         break;
       }
       case ACTIONS.EDIT_NODE: {
@@ -662,23 +701,53 @@ const NetworkDiagram = () => {
 
           await insertNode(payload);
         } else {
+          // --- THIS IS THE "CREATE NEW NODE" LOGIC ---
           const payload = {
             ...formData,
             sw_id: parentNode ? parentNode.data.sw_id : null,
-            position_x: position.x,
-            position_y: position.y,
-            position_mode: 1,
+            // We DON'T send position, as it's an orphan
+            position_x: null,
+            position_y: null,
+            position_mode: 0,
           };
-          await createNode(payload);
+
+          // 1. Call createNode and get the new node back
+          const newNodeData = await createNode(payload);
+
+          if (newNodeData) {
+            // 2. Format it as a React Flow node (like in loadInitialData)
+            const newNode = {
+              id: String(newNodeData.id),
+              type: "custom",
+              data: {
+                ...newNodeData,
+                label: newNodeData.name || `Node ${newNodeData.id}`,
+                icon: getNodeIcon(newNodeData.node_type),
+                hasCustomPosition: false,
+                onDetailsClick: handleDetailsClick,
+                onNavigateClick: handleNavigateClick,
+              },
+              position: { x: 0, y: 0 }, // Position doesn't matter, it's in the drawer
+            };
+
+            // 3. Add it to the orphanNodes state
+            setOrphanNodes((prev) => [...prev, newNode]);
+
+            // 4. Close modal, show toast, and open drawer
+            setAddModal({ isOpen: false, position: null, isInsertion: false });
+            toast.success("Node created! Find it in the inventory drawer.");
+            setIsDrawerOpen(true);
+          }
+
+          // 5. REMOVE the reload
+          // window.location.reload();
         }
-        sessionStorage.setItem("justAddedNode", "true");
-        window.location.reload();
       } catch (error) {
         console.error("Failed to save new node:", error);
         setLoading(false);
       }
     },
-    [addModal, insertionEdge, nodes]
+    [addModal, insertionEdge, nodes, setOrphanNodes, setIsDrawerOpen]
   );
 
   const handleOptimisticDelete = useCallback(
@@ -773,6 +842,67 @@ const NetworkDiagram = () => {
       setDeleteModal({ isOpen: false, id: null, type: "" });
     }
   }, [deleteModal, edges, nodes, dynamicRootId]);
+
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      const dataString = event.dataTransfer.getData("application/reactflow");
+      if (!dataString) {
+        return;
+      }
+
+      const nodeData = JSON.parse(dataString);
+
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const newNode = {
+        id: nodeData.id,
+        type: nodeData.type,
+        position,
+        // --- MODIFICATION HERE: Set hasCustomPosition AND pass position to data ---
+        // We still need hasCustomPosition=true for the layout logic,
+        // but we also store the raw position in data for consistency if needed.
+        data: {
+          ...nodeData.data,
+          hasCustomPosition: true,
+          position_x: position.x, // Store the actual dropped X
+          position_y: position.y, // Store the actual dropped Y
+          position_mode: 1, // Mark as manual
+        },
+        // --- END MODIFICATION ---
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+      setOrphanNodes((nds) => nds.filter((n) => n.id !== nodeData.id));
+
+      // --- CONFIRM SAVE LOGIC IS CORRECT ---
+      // This call correctly saves the position and mode without reloading.
+      saveNodeInfo(
+        {
+          original_name: nodeData.data.name,
+          sw_id: nodeData.data.sw_id,
+          position_x: position.x,
+          position_y: position.y,
+          position_mode: 1, // 1 = manual
+        },
+        true // true = muted toast
+      );
+      // --- END CONFIRMATION ---
+
+      toast.success(`Added ${nodeData.data.name} to the diagram.`);
+    },
+    // Add setEdges to dependencies
+    [reactFlowInstance, setNodes, setOrphanNodes, setEdges]
+  );
 
   const handleUpdateNodeLabel = useCallback(
     async (nodeId, updatedFormData) => {
@@ -1165,6 +1295,22 @@ const NetworkDiagram = () => {
             layoutBranch(rootNode);
           }
 
+          const diagramNodes = [];
+          const orphanDrawerNodes = [];
+
+          initialNodes.forEach((node) => {
+            // A node belongs on the diagram if EITHER:
+            // 1. It's part of the calculated tree (node.level !== -1)
+            // OR
+            // 2. It has been manually positioned (node.data.hasCustomPosition is true)
+            if (node.level !== -1 || node.data.hasCustomPosition) {
+              diagramNodes.push(node);
+            } else {
+              // Only add to the drawer if it's an orphan AND hasn't been manually placed
+              orphanDrawerNodes.push(node);
+            }
+          });
+
           const nodesToSave = initialNodes.filter((n) => {
             const shouldSave = !n.data.hasCustomPosition && n.level !== -1;
 
@@ -1195,15 +1341,17 @@ const NetworkDiagram = () => {
               .catch((err) => console.error("Auto-save failed:", err));
           }
 
-          setNodes(initialNodes);
+          setNodes(diagramNodes); // Set ONLY diagram nodes
+          setOrphanNodes(orphanDrawerNodes); // Set orphan nodes
           setEdges(initialEdges);
-          initialNodesRef.current = initialNodes;
+          initialNodesRef.current = diagramNodes;
 
           setTimeout(() => {
             reactFlowInstance.fitView({ padding: 0.3, duration: 500 });
           }, 300);
         } else {
           setNodes([]);
+          setOrphanNodes([]);
           setEdges([]);
         }
       } catch (error) {
@@ -1213,7 +1361,7 @@ const NetworkDiagram = () => {
       }
     };
     loadInitialData();
-  }, [rootId, dynamicRootId, navigate]);
+  }, [rootId, dynamicRootId, navigate, reactFlowInstance]);
 
   useEffect(() => {
     const newRootId = id ? parseInt(id, 10) : null;
@@ -1297,7 +1445,12 @@ const NetworkDiagram = () => {
   }, [nodes, loading, isEmpty, dynamicRootId, rootId]);
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
+    <div
+      style={{ width: "100vw", height: "100vh" }}
+      ref={reactFlowWrapper}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <ReactFlow
         nodes={visibleNodes}
         edges={visibleEdges}
@@ -1328,6 +1481,14 @@ const NetworkDiagram = () => {
       </ReactFlow>
       <UserStatus />
 
+      <button
+        onClick={() => setIsDrawerOpen(true)}
+        className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md shadow-md hover:bg-blue-600 transition-all duration-200 text-white"
+        title="Open Inventory"
+      >
+        {UI_ICONS.chevronRight_main}
+      </button>
+
       {loading && <LoadingOverlay />}
       {!loading && isEmpty && (
         <>
@@ -1340,7 +1501,7 @@ const NetworkDiagram = () => {
       )}
 
       {window.location.pathname !== "/" && (
-        <div className="absolute top-4 left-4 z-10 text-gray-700">
+        <div className="absolute top-4 left-0 p-2 z-10 text-gray-700">
           <button
             className=""
             title={"Go Back"}
@@ -1379,6 +1540,11 @@ const NetworkDiagram = () => {
         </>
       )}
       <Suspense fallback={<LoadingOverlay />}>
+        <OrphanDrawer
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          nodes={orphanNodes}
+        />
         <EditNodeModal
           isOpen={editModal.isOpen}
           node={editModal.node}
