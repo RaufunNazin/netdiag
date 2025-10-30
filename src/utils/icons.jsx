@@ -1,4 +1,4 @@
-export const UI_ICONS = {
+export const  UI_ICONS = {
   expand_main: (
     <svg
       width="16"
@@ -496,6 +496,27 @@ export const UI_ICONS = {
       strokeLinejoin="round"
     >
       <path d="M9 18l6-6-6-6"></path>
+    </svg>
+  ),
+  delete: (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      role="img"
+      aria-label="Delete"
+    >
+      <path d="M4 6h16" />
+      <path d="M9 6l.8-2h4.4l.8 2" />
+      <rect x="5" y="6" width="14" height="16" rx="2" />
+      <line x1="10" y1="11" x2="10" y2="18" />
+      <line x1="14" y1="11" x2="14" y2="18" />
     </svg>
   ),
   chevronRight: (
