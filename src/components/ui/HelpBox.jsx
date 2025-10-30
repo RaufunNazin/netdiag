@@ -85,6 +85,18 @@ const HelpBox = ({ isEmpty }) => {
             to <b>reset</b> the layout.
           </>,
           <>
+            Click{" "}
+            {
+              <button
+                className="px-0 py-1 bg-blue-500 rounded-r-sm shadow-md hover:bg-blue-600 transition-all duration-200 text-white"
+                title="Open Inventory"
+              >
+                {UI_ICONS.chevronRight_main}
+              </button>
+            }{" "}
+            to access your <b>inventory</b>.
+          </>,
+          <>
             Connection possible from{" "}
             <span className="inline-block w-3 h-3 bg-orange-500 rounded-full mr-1" />{" "}
             ⟶{" "}

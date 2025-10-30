@@ -178,7 +178,6 @@ const CustomNode = ({ data, isConnectable }) => {
 
   return (
     <div ref={nodeRef}>
-      {" "}
       <div
         className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-gray-800 ${
           data.isCollapsed ? "bg-gray-300" : "bg-white"
@@ -234,16 +233,27 @@ const CustomNode = ({ data, isConnectable }) => {
             </button>
           )}
         </div>
-        {data.node_type !== NODE_TYPES_ENUM.ONU && (
-          <Handle
-            type="source"
-            position={Position.Right}
-            id="right"
-            isConnectableStart={isConnectable}
-            isConnectableEnd={false}
-            className="!bg-orange-500 !w-3 !h-3"
-          />
-        )}
+        {!id
+          ? data.node_type !== NODE_TYPES_ENUM.OLT && (
+              <Handle
+                type="source"
+                position={Position.Right}
+                id="right"
+                isConnectableStart={isConnectable}
+                isConnectableEnd={false}
+                className="!bg-orange-500 !w-3 !h-3"
+              />
+            )
+          : data.node_type !== NODE_TYPES_ENUM.ONU && (
+              <Handle
+                type="source"
+                position={Position.Right}
+                id="right"
+                isConnectableStart={isConnectable}
+                isConnectableEnd={false}
+                className="!bg-orange-500 !w-3 !h-3"
+              />
+            )}
       </div>
       {isHovered &&
         data.node_type === NODE_TYPES_ENUM.ONU &&
