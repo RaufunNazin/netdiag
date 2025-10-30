@@ -205,13 +205,16 @@ const NetworkDiagram = () => {
     });
   }, [history, setNodes, setEdges, setNewConnections]);
 
-  const handleDetailsClick = (nodeData) => {
+  const handleDetailsClick = useCallback((nodeData) => {
     setDetailModal({ isOpen: true, node: { data: nodeData } });
-  };
+  }, []);
 
-  const handleNavigateClick = (nodeId) => {
-    navigate(`/${nodeId}`);
-  };
+  const handleNavigateClick = useCallback(
+    (nodeId) => {
+      navigate(`/${nodeId}`);
+    },
+    [navigate]
+  );
 
   const handleAddNodeClick = () => {
     const viewportBounds = reactFlowWrapper.current.getBoundingClientRect();
@@ -699,7 +702,7 @@ const NetworkDiagram = () => {
         } else {
           const payload = {
             ...formData,
-            sw_id: parentNode ? parentNode.data.sw_id : null,
+            sw_id: parentNode ? parentNode.data.sw_id : rootId,
             position_x: null,
             position_y: null,
             position_mode: 0,
@@ -725,7 +728,6 @@ const NetworkDiagram = () => {
             setOrphanNodes((prev) => [...prev, newNode]);
 
             setAddModal({ isOpen: false, position: null, isInsertion: false });
-            toast.success("Node created! Find it in the inventory drawer.");
             setIsDrawerOpen(true);
           }
         }
@@ -734,7 +736,16 @@ const NetworkDiagram = () => {
         setLoading(false);
       }
     },
-    [addModal, insertionEdge, nodes, setOrphanNodes, setIsDrawerOpen]
+    [
+      addModal,
+      insertionEdge,
+      nodes,
+      setOrphanNodes,
+      setIsDrawerOpen,
+      rootId,
+      handleDetailsClick,
+      handleNavigateClick,
+    ]
   );
 
   const handleOptimisticDelete = useCallback(
@@ -861,11 +872,20 @@ const NetworkDiagram = () => {
           position_x: position.x,
           position_y: position.y,
           position_mode: 1,
+          onDetailsClick: handleDetailsClick,
+          onNavigateClick: handleNavigateClick,
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
+
+      initialNodesRef.current.push(newNode);
+
       setOrphanNodes((nds) => nds.filter((n) => n.id !== nodeData.id));
+
+      setIsEditMode(true);
+
+      toast.info("Edit mode enabled.");
 
       saveNodeInfo(
         {
@@ -880,7 +900,13 @@ const NetworkDiagram = () => {
 
       toast.success(`Added ${nodeData.data.name} to the diagram.`);
     },
-    [reactFlowInstance, setNodes, setOrphanNodes, setEdges]
+    [
+      reactFlowInstance,
+      setNodes,
+      setOrphanNodes,
+      handleDetailsClick,
+      handleNavigateClick,
+    ]
   );
 
   const handleUpdateNodeLabel = useCallback(

@@ -62,7 +62,7 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
           <span>
             <LightbulbIcon
               className={
-                customer.online1 === 1 ? "text-yellow-400" : "text-gray-800"
+                customer.online1 === 1 ? "text-yellow-400" : "text-gray-600"
               }
             />
           </span>
@@ -165,7 +165,7 @@ const CustomNode = ({ data, isConnectable }) => {
         "border-r-4 border-t-4 border-r-green-500 border-t-green-500";
     else if (data.status === 2)
       statusBorderClass =
-        "border-r-4 border-t-4 border-r-red-500 border-t-red-500";
+        "border-r-4 border-t-4 border-r-[#d43c3c] border-t-[#d43c3c]";
   }
   const handleDetailsClick = (e) => {
     e.stopPropagation();

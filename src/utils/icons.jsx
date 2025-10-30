@@ -1,4 +1,4 @@
-export const  UI_ICONS = {
+export const UI_ICONS = {
   expand_main: (
     <svg
       width="16"
@@ -392,7 +392,7 @@ export const  UI_ICONS = {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-red-500"
+      className="text-[#d43c3c]"
     >
       <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
       <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" />
@@ -444,7 +444,7 @@ export const  UI_ICONS = {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-red-500"
+      className="text-[#d43c3c]"
     >
       <circle cx="12" cy="12" r="10" />
       <path d="m15 9-6 6" fill="none" stroke="white" />

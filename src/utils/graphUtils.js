@@ -79,13 +79,13 @@ export const createNode = async (nodeData) => {
   try {
     const response = await api.post(`/device`, nodeData);
     if (response.status === 201) {
-      toast.success("Device created successfully!");
+      toast.success("Device created! Find it in the inventory drawer.");
     } else {
       toast.error(response.data?.detail || "Failed to create device.");
     }
     return response.data;
   } catch (error) {
-    console.error("Error creating node:", error);
+    console.error("Error creating device:", error);
     toast.error(
       error.response?.data?.detail ||
         "An error occurred while creating the device."

@@ -110,7 +110,7 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
             </h4>
             <div className="md:col-span-2">
               <label className="label-style">
-                Name <span className="text-red-500">*</span>
+                Name <span className="text-[#d43c3c]">*</span>
               </label>
               <input
                 type="text"
@@ -138,7 +138,7 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
             </div>
             <div>
               <label className="label-style">
-                Device <span className="text-red-500">*</span>
+                Device <span className="text-[#d43c3c]">*</span>
               </label>
               <select
                 name="node_type"
@@ -251,7 +251,7 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                 </h4>
                 <div>
                   <label className="label-style">
-                    Split Ratio <span className="text-red-500">*</span>
+                    Split Ratio <span className="text-[#d43c3c]">*</span>
                   </label>
                   <select
                     name="split_ratio"

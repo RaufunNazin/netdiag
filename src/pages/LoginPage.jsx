@@ -64,7 +64,7 @@ const LoginPage = () => {
         </p>
 
         {error && (
-          <p className="text-red-500 text-center mb-6 font-medium">{error}</p>
+          <p className="text-[#d43c3c] text-center mb-6 font-medium">{error}</p>
         )}
 
         <div className="mb-5 flex flex-col">
