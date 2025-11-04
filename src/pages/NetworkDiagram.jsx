@@ -1104,6 +1104,8 @@ const NetworkDiagram = () => {
           }
         });
 
+        const parentNodeIds = new Set(initialEdges.map((edge) => edge.source));
+
         const initialNodes = Array.from(uniqueNodesMap.values()).map((item) => {
           const nodeId =
             item.node_type === NODE_TYPES_ENUM.ONU && item.name && item.sw_id
@@ -1175,22 +1177,38 @@ const NetworkDiagram = () => {
             node.level = -1;
           });
 
-          if (rootNode) {
-            rootNode.level = 0;
-            const queue = [rootNode];
+          // Find ALL root nodes (the main one, plus orphan tree roots)
+          const orphanRoots = initialNodes.filter(
+            (n) =>
+              n.id !== (rootNode ? rootNode.id : null) && // Not the main root
+              !n.data.hasCustomPosition && // Not manually placed
+              (n.data.parent_id === null || n.data.parent_id === 0) && // Is a root
+              parentNodeIds.has(n.id) // And is a parent
+          );
+
+          const allRoots = [rootNode, ...orphanRoots].filter(Boolean);
+
+          // Set levels for all nodes in all trees
+          allRoots.forEach((root) => {
+            // Check if level is already set (e.g., rootNode might be null but its tree set by dynamicRootId)
+            if (root.level !== -1) return;
+
+            root.level = 0; // Set this root to level 0
+            const queue = [root];
             let head = 0;
             while (head < queue.length) {
               const parent = queue[head++];
               initialNodes.forEach((potentialChild) => {
                 if (String(potentialChild.data.parent_id) === parent.id) {
                   if (potentialChild.level === -1) {
+                    // Only set if not already set
                     potentialChild.level = parent.level + 1;
                     queue.push(potentialChild);
                   }
                 }
               });
             }
-          }
+          });
 
           const manuallyPositionedOrphanCount = initialNodes.filter(
             (n) => n.level === -1 && n.data.hasCustomPosition
@@ -1208,12 +1226,15 @@ const NetworkDiagram = () => {
                 .filter((n) => n.level === -1 && !n.data.hasCustomPosition)
                 .indexOf(node);
 
+              // 💡 --- THIS IS THE FIX ---
+              // All auto-positioned nodes should start at x: 0
               node.position = {
-                x: -GRID_X_SPACING,
+                x: 0,
                 y:
                   (manuallyPositionedOrphanCount + autoOrphanIndex) *
                   GRID_Y_SPACING,
               };
+              // 💡 --- END OF FIX ---
             }
           });
 
@@ -1320,15 +1341,93 @@ const NetworkDiagram = () => {
             return totalHeight;
           }
 
-          if (rootNode) {
-            layoutBranch(rootNode);
+          function getMinY(node, nodeMap, getBranchChildren, getGridChildren) {
+            if (!node || !node.position) return Infinity;
+
+            let minY = node.position.y;
+
+            const allChildren = [
+              ...getBranchChildren(node.id),
+              ...getGridChildren(node.id),
+            ];
+
+            allChildren.forEach((childRef) => {
+              const childNode = nodeMap.get(childRef.id);
+              if (childNode) {
+                minY = Math.min(
+                  minY,
+                  getMinY(
+                    childNode,
+                    nodeMap,
+                    getBranchChildren,
+                    getGridChildren
+                  )
+                );
+              }
+            });
+            return minY;
           }
 
+          // Find all "root" nodes for layout
+          const mainRoot = rootNode;
+
+          // Sort all roots for a consistent layout order
+          const allRootsForLayout = [mainRoot, ...orphanRoots]
+            .filter(Boolean) // Remove null mainRoot if it exists
+            .sort(compareNodesByLabel); // Sort trees alphabetically
+
+          const orphanTreeNodes = new Set();
+          let currentGlobalY = 0; // This will track where to place the next tree
+
+          // Layout each tree and stack it vertically
+          allRootsForLayout.forEach((root) => {
+            // 1. Layout the tree (it will be centered at y=0)
+            const treeHeight = layoutBranch(root);
+
+            // 2. Find the top of this newly laid-out tree
+            const minY = getMinY(
+              root,
+              nodeMap,
+              getBranchChildren,
+              getGridChildren
+            );
+
+            // 3. Shift the entire tree down to stack it
+            // We shift by -minY to bring its top to y=0
+            // Then we shift it by currentGlobalY to place it
+            const yOffset = currentGlobalY - minY;
+            offsetBranch(root, yOffset);
+
+            // 4. Update the global Y offset for the next tree
+            currentGlobalY += treeHeight + PADDING_BETWEEN_GRIDS;
+
+            // 5. Add all nodes from this tree to the set
+            const queue = [root];
+            orphanTreeNodes.add(root.id);
+            let head = 0;
+            while (head < queue.length) {
+              const parent = queue[head++];
+              initialNodes.forEach((potentialChild) => {
+                if (String(potentialChild.data.parent_id) === parent.id) {
+                  if (!orphanTreeNodes.has(potentialChild.id)) {
+                    orphanTreeNodes.add(potentialChild.id);
+                    queue.push(potentialChild);
+                  }
+                }
+              });
+            }
+          });
+
+          // Now, separate the nodes for the diagram vs. the drawer
           const diagramNodes = [];
           const orphanDrawerNodes = [];
 
           initialNodes.forEach((node) => {
-            if (node.level !== -1 || node.data.hasCustomPosition) {
+            if (
+              node.level !== -1 || // In main tree (if mainRoot existed)
+              node.data.hasCustomPosition || // Manually placed
+              orphanTreeNodes.has(node.id) // In a plotted orphan tree
+            ) {
               diagramNodes.push(node);
             } else {
               orphanDrawerNodes.push(node);
