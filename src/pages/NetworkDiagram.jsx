@@ -1178,25 +1178,22 @@ const NetworkDiagram = () => {
             node.level = -1;
           });
 
-          // Find ALL root nodes (the main one, plus orphan tree roots)
           const orphanRoots = initialNodes.filter(
             (n) =>
-              n.id !== (rootNode ? rootNode.id : null) && // Not the main root
-              !n.data.hasCustomPosition && // Not manually placed
-              (n.data.parent_id === null || n.data.parent_id === 0) && // Is a root
-              parentNodeIds.has(n.id) // And is a parent
+              n.id !== (rootNode ? rootNode.id : null) &&
+              !n.data.hasCustomPosition &&
+              (n.data.parent_id === null || n.data.parent_id === 0) &&
+              parentNodeIds.has(n.id)
           );
 
           setDiagramRoots({ main: rootNode, sub: orphanRoots });
 
           const allRoots = [rootNode, ...orphanRoots].filter(Boolean);
 
-          // Set levels for all nodes in all trees
           allRoots.forEach((root) => {
-            // Check if level is already set (e.g., rootNode might be null but its tree set by dynamicRootId)
             if (root.level !== -1) return;
 
-            root.level = 0; // Set this root to level 0
+            root.level = 0;
             const queue = [root];
             let head = 0;
             while (head < queue.length) {
@@ -1204,7 +1201,6 @@ const NetworkDiagram = () => {
               initialNodes.forEach((potentialChild) => {
                 if (String(potentialChild.data.parent_id) === parent.id) {
                   if (potentialChild.level === -1) {
-                    // Only set if not already set
                     potentialChild.level = parent.level + 1;
                     queue.push(potentialChild);
                   }
@@ -1213,22 +1209,17 @@ const NetworkDiagram = () => {
             }
           });
 
-          // 3. Now, filter that list *again* to find just the ones
-          //    we want to auto-layout (not manual AND are parents).
           const autoLayoutOrphanRoots = initialNodes.filter(
             (n) =>
-              (n.data.parent_id === null || n.data.parent_id === 0) && // Is a root
-              n.id !== (rootNode ? rootNode.id : null) && // Not main root
-              !n.data.hasCustomPosition && // Not manually placed
-              parentNodeIds.has(n.id) // And is a parent
+              (n.data.parent_id === null || n.data.parent_id === 0) &&
+              n.id !== (rootNode ? rootNode.id : null) &&
+              !n.data.hasCustomPosition &&
+              parentNodeIds.has(n.id)
           );
 
-          // 4. The list for the layout logic remains the same as before.
           const allRootsForLayout = [rootNode, ...autoLayoutOrphanRoots].filter(
             Boolean
           );
-
-          // 💡 --- END OF REPLACEMENT BLOCK --- 💡
 
           const manuallyPositionedOrphanCount = initialNodes.filter(
             (n) => n.level === -1 && n.data.hasCustomPosition
@@ -1246,19 +1237,16 @@ const NetworkDiagram = () => {
                 .filter((n) => n.level === -1 && !n.data.hasCustomPosition)
                 .indexOf(node);
 
-              // 💡 --- THIS IS THE FIX ---
-              // All auto-positioned nodes should start at x: 0
               node.position = {
                 x: 0,
                 y:
                   (manuallyPositionedOrphanCount + autoOrphanIndex) *
                   GRID_Y_SPACING,
               };
-              // 💡 --- END OF FIX ---
             }
           });
 
-          const gridNodeType = "ONU";
+          const gridNodeType = NODE_TYPES_ENUM.ONU;
           const nodeHeight = 60;
 
           const getGridChildren = (parentId) => {
@@ -1389,31 +1377,22 @@ const NetworkDiagram = () => {
           }
 
           const orphanTreeNodes = new Set();
-          let currentGlobalY = 0; // This will track where to place the next tree
+          let currentGlobalY = 0;
 
-          // Layout each tree and stack it vertically
           allRootsForLayout.forEach((root) => {
-            // 1. Layout the tree (it will be centered at y=0)
             const treeHeight = layoutBranch(root);
 
-            // 2. Find the top of this newly laid-out tree
             const minY = getMinY(
               root,
               nodeMap,
               getBranchChildren,
               getGridChildren
             );
-
-            // 3. Shift the entire tree down to stack it
-            // We shift by -minY to bring its top to y=0
-            // Then we shift it by currentGlobalY to place it
             const yOffset = currentGlobalY - minY;
             offsetBranch(root, yOffset);
 
-            // 4. Update the global Y offset for the next tree
             currentGlobalY += treeHeight + PADDING_BETWEEN_GRIDS;
 
-            // 5. Add all nodes from this tree to the set
             const queue = [root];
             orphanTreeNodes.add(root.id);
             let head = 0;
@@ -1430,15 +1409,14 @@ const NetworkDiagram = () => {
             }
           });
 
-          // Now, separate the nodes for the diagram vs. the drawer
           const diagramNodes = [];
           const orphanDrawerNodes = [];
 
           initialNodes.forEach((node) => {
             if (
-              node.level !== -1 || // In main tree (if mainRoot existed)
-              node.data.hasCustomPosition || // Manually placed
-              orphanTreeNodes.has(node.id) // In a plotted orphan tree
+              node.level !== -1 ||
+              node.data.hasCustomPosition ||
+              orphanTreeNodes.has(node.id)
             ) {
               diagramNodes.push(node);
             } else {
@@ -1446,19 +1424,12 @@ const NetworkDiagram = () => {
             }
           });
 
-          // 💡 --- ADD THIS NEW BLOCK --- 💡
-          //
-          // Find all roots that are VISIBLE on the diagram
           const diagramOrphanRoots = diagramNodes.filter(
             (n) =>
-              // It's a root
               (n.data.parent_id === null || n.data.parent_id === 0) &&
-              // And it's NOT the main root node
               n.id !== (rootNode ? rootNode.id : null)
           );
-          // Set the search box state using only visible nodes
           setDiagramRoots({ main: rootNode, sub: diagramOrphanRoots });
-          // 💡 --- END OF NEW BLOCK --- 💡
 
           const nodesToSave = initialNodes.filter((n) => {
             const shouldSave = !n.data.hasCustomPosition && n.level !== -1;
@@ -1633,7 +1604,7 @@ const NetworkDiagram = () => {
       {!isDrawerOpen && (
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md shadow-md hover:bg-blue-600 transition-all duration-200 text-white"
+          className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md  hover:bg-blue-600 transition-all duration-200 text-white"
           title="Open Inventory"
         >
           {UI_ICONS.chevronRight_main}

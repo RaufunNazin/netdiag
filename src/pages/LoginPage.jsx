@@ -54,7 +54,7 @@ const LoginPage = () => {
     <div className="flex items-center justify-center h-screen w-screen bg-gray-50 bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:16px_16px]">
       <form
         onSubmit={handleLogin}
-        className="p-8 bg-white/10 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl flex flex-col w-full max-w-sm"
+        className="p-8 bg-white/10 backdrop-blur-sm border border-gray-200 shadow-xl rounded-lg flex flex-col w-full max-w-sm"
       >
         <h2 className="text-xl font-extrabold text-center text-gray-800">
           Network Diagram Login

@@ -16,7 +16,7 @@ const DrawerNode = ({ node }) => {
   return (
     <div
       className="p-3 m-2 rounded-md flex items-center space-x-2 
-                 bg-white/70 border border-gray-300 cursor-move"
+                 bg-white/80 border border-gray-300 cursor-move"
       onDragStart={(event) => onDragStart(event, nodeToDrag)}
       draggable
     >
@@ -42,7 +42,7 @@ const OrphanDrawer = ({ isOpen, onClose, nodes }) => {
         onClick={onClose}
       />
       <div
-        className={`fixed top-0 left-0 h-[calc(100%-16px)] w-64 m-2 ml-0 rounded-lg bg-white/80 shadow-xl
+        className={`fixed top-0 left-0 h-[calc(100%-16px)] w-64 m-2 ml-0 rounded-lg bg-white/80 backdrop-blur-sm shadow-xl
                    z-40 transition-transform duration-300 ease-in-out
                    ${isOpen ? "transform-none ml-2" : "-translate-x-full"}`}
       >

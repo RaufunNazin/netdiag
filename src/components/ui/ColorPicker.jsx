@@ -43,7 +43,7 @@ const ColorPicker = ({ selectedColor, onChange }) => {
         <span className="text-slate-500">▼</span>
       </button>
       {isOpen && (
-        <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg z-20 p-2 grid grid-cols-4 gap-2">
+        <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-md z-20 p-2 grid grid-cols-4 gap-2">
           {CORE_COLORS_DATA.map((color) => (
             <button
               key={color.name}

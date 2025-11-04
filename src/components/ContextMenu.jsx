@@ -35,7 +35,7 @@ const ContextMenu = ({ id, top, left, onAction, node, ...props }) => {
   return (
     <div
       style={{ top, left }}
-      className="absolute z-50 bg-white rounded-md shadow-lg border border-gray-200 text-sm"
+      className="absolute z-50 bg-white rounded-md shadow-md border border-gray-200 text-sm"
     >
       <ul className="py-1">
         {menuItems.map(({ label, action }) => (

@@ -19,7 +19,7 @@ const IconDock = ({ children }) => {
     <div
       className="fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 
                  items-center rounded-full border border-gray-200/70 
-                 bg-white/50 p-2 shadow-sm backdrop-blur-sm"
+                 bg-white/80 p-2 shadow-none backdrop-blur-sm"
     >
       <div
         className={`flex items-center gap-2 overflow-hidden transition-all 

@@ -31,7 +31,7 @@ button {
     @apply w-full p-2 border border-slate-200 rounded-md bg-slate-100 text-slate-500 cursor-not-allowed;
   }
   .btn-primary {
-    @apply px-5 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm 
+    @apply px-5 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md 
            hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
            disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors duration-200;
   }

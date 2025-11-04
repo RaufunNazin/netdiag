@@ -77,7 +77,7 @@ const HelpBox = ({ isEmpty }) => {
             {
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-1 rounded-full shadow-lg text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rotate-90 hover:rotate-0"
+                className="p-1 rounded-full shadow-md text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rotate-90 hover:rotate-0"
               >
                 {UI_ICONS.reset}
               </button>
@@ -138,7 +138,7 @@ const HelpBox = ({ isEmpty }) => {
   return (
     <div className="absolute bottom-4 right-4 z-10">
       <div
-        className={`w-84 rounded-lg border border-gray-200 bg-white/70 p-4 shadow-lg backdrop-blur-sm z-20 ${
+        className={`w-84 rounded-lg border border-gray-200 bg-white/80 p-4 shadow-md backdrop-blur-sm z-20 ${
           isOpen ? "block" : "hidden"
         }`}
       >
@@ -154,7 +154,7 @@ const HelpBox = ({ isEmpty }) => {
       <div className="flex justify-end mt-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-200"
+          className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600 transition-all duration-200"
         >
           {isOpen ? UI_ICONS.cross : UI_ICONS.question}
         </button>
