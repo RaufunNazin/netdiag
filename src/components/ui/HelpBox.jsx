@@ -150,11 +150,23 @@ const HelpBox = ({ isEmpty }) => {
             <li key={index}>{point}</li>
           ))}
         </ul>
+        <div className="mt-2 border-t border-gray-300 pt-1 text-[10px] text-gray-400 text-center">
+          Built using{" "}
+          <a
+            href="https://github.com/xyflow/xyflow"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-gray-500 transition-colors duration-200"
+          >
+            xyflow
+          </a>{" "}
+          © webkid GmbH (MIT License)
+        </div>
       </div>
       <div className="flex justify-end mt-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600 transition-all duration-200"
+          className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-all duration-200"
         >
           {isOpen ? UI_ICONS.cross : UI_ICONS.question}
         </button>

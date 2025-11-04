@@ -41,3 +41,7 @@ button {
            transition-colors duration-200;
   }
 }
+
+.react-flow__attribution {
+  display: none !important;
+}
