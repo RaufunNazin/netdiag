@@ -119,6 +119,7 @@ const NetworkDiagram = () => {
   const [dynamicRootId, setDynamicRootId] = useState(() =>
     id ? null : localStorage.getItem("dynamicRootId")
   );
+  const [diagramRoots, setDiagramRoots] = useState({ main: null, sub: [] });
 
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
@@ -1186,6 +1187,8 @@ const NetworkDiagram = () => {
               parentNodeIds.has(n.id) // And is a parent
           );
 
+          setDiagramRoots({ main: rootNode, sub: orphanRoots });
+
           const allRoots = [rootNode, ...orphanRoots].filter(Boolean);
 
           // Set levels for all nodes in all trees
@@ -1209,6 +1212,23 @@ const NetworkDiagram = () => {
               });
             }
           });
+
+          // 3. Now, filter that list *again* to find just the ones
+          //    we want to auto-layout (not manual AND are parents).
+          const autoLayoutOrphanRoots = initialNodes.filter(
+            (n) =>
+              (n.data.parent_id === null || n.data.parent_id === 0) && // Is a root
+              n.id !== (rootNode ? rootNode.id : null) && // Not main root
+              !n.data.hasCustomPosition && // Not manually placed
+              parentNodeIds.has(n.id) // And is a parent
+          );
+
+          // 4. The list for the layout logic remains the same as before.
+          const allRootsForLayout = [rootNode, ...autoLayoutOrphanRoots].filter(
+            Boolean
+          );
+
+          // 💡 --- END OF REPLACEMENT BLOCK --- 💡
 
           const manuallyPositionedOrphanCount = initialNodes.filter(
             (n) => n.level === -1 && n.data.hasCustomPosition
@@ -1368,14 +1388,6 @@ const NetworkDiagram = () => {
             return minY;
           }
 
-          // Find all "root" nodes for layout
-          const mainRoot = rootNode;
-
-          // Sort all roots for a consistent layout order
-          const allRootsForLayout = [mainRoot, ...orphanRoots]
-            .filter(Boolean) // Remove null mainRoot if it exists
-            .sort(compareNodesByLabel); // Sort trees alphabetically
-
           const orphanTreeNodes = new Set();
           let currentGlobalY = 0; // This will track where to place the next tree
 
@@ -1433,6 +1445,20 @@ const NetworkDiagram = () => {
               orphanDrawerNodes.push(node);
             }
           });
+
+          // 💡 --- ADD THIS NEW BLOCK --- 💡
+          //
+          // Find all roots that are VISIBLE on the diagram
+          const diagramOrphanRoots = diagramNodes.filter(
+            (n) =>
+              // It's a root
+              (n.data.parent_id === null || n.data.parent_id === 0) &&
+              // And it's NOT the main root node
+              n.id !== (rootNode ? rootNode.id : null)
+          );
+          // Set the search box state using only visible nodes
+          setDiagramRoots({ main: rootNode, sub: diagramOrphanRoots });
+          // 💡 --- END OF NEW BLOCK --- 💡
 
           const nodesToSave = initialNodes.filter((n) => {
             const shouldSave = !n.data.hasCustomPosition && n.level !== -1;
@@ -1639,7 +1665,11 @@ const NetworkDiagram = () => {
 
       {!isEmpty && (
         <>
-          <SearchControl nodes={nodes} onNodeFound={onNodeFound} />
+          <SearchControl
+            nodes={nodes}
+            onNodeFound={onNodeFound}
+            diagramRoots={diagramRoots}
+          />
 
           <HelpBox isEmpty={isEmpty} />
           <ResetPositionsFab
