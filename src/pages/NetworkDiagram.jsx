@@ -921,10 +921,12 @@ const NetworkDiagram = () => {
           original_name: nodeToUpdate.data.name,
           sw_id: nodeToUpdate.data.sw_id,
         };
+
         await saveNodeInfo(payload);
 
-        setNodes((nds) =>
-          nds.map((n) =>
+        let newNodes;
+        setNodes((nds) => {
+          newNodes = nds.map((n) =>
             n.id === nodeId
               ? {
                   ...n,
@@ -933,17 +935,39 @@ const NetworkDiagram = () => {
                     ...updatedFormData,
                     label: updatedFormData.name || n.data.label,
                     name: updatedFormData.name || n.data.name,
+                    icon: updatedFormData.node_type
+                      ? getNodeIcon(updatedFormData.node_type)
+                      : n.data.icon,
                   },
                 }
               : n
-          )
-        );
-        initialNodesRef.current = reactFlowInstance.getNodes();
+          );
+          return newNodes;
+        });
+
+        if (updatedFormData.cable_color !== undefined) {
+          setEdges((eds) =>
+            eds.map((edge) => {
+              if (edge.target === nodeId) {
+                return {
+                  ...edge,
+                  style: {
+                    ...edge.style,
+                    stroke: updatedFormData.cable_color || "#1e293b",
+                  },
+                };
+              }
+              return edge;
+            })
+          );
+        }
+
+        initialNodesRef.current = newNodes;
       } catch (error) {
         console.error("Error saving node info:", error);
       }
     },
-    [nodes, reactFlowInstance]
+    [nodes, reactFlowInstance, setNodes, setEdges]
   );
 
   const onNodeFound = (nodeId) => {
