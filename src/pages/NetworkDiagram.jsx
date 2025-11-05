@@ -421,6 +421,7 @@ const NetworkDiagram = () => {
 
   const handleResetView = useCallback(() => {
     reactFlowInstance.fitView({ padding: 0.2, duration: 500 });
+    localStorage.removeItem("react-flow-viewport");
   }, [reactFlowInstance]);
 
   const compareNodesByLabel = (a, b) => {
@@ -846,6 +847,18 @@ const NetworkDiagram = () => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
   }, []);
+
+  const onMoveEnd = useCallback(() => {
+    if (reactFlowInstance) {
+      const viewport = reactFlowInstance.getViewport();
+      const viewportData = {
+        viewport,
+        rootId: rootId,
+        dynamicRootId: dynamicRootId,
+      };
+      localStorage.setItem("react-flow-viewport", JSON.stringify(viewportData));
+    }
+  }, [reactFlowInstance, rootId, dynamicRootId]);
 
   const onDrop = useCallback(
     (event) => {
@@ -1467,6 +1480,27 @@ const NetworkDiagram = () => {
           initialNodesRef.current = diagramNodes;
 
           setTimeout(() => {
+            const savedData = localStorage.getItem("react-flow-viewport");
+            if (savedData) {
+              try {
+                const {
+                  viewport,
+                  rootId: savedRootId,
+                  dynamicRootId: savedDynamicRootId,
+                } = JSON.parse(savedData);
+
+                if (
+                  savedRootId === rootId &&
+                  savedDynamicRootId === dynamicRootId
+                ) {
+                  reactFlowInstance.setViewport(viewport, { duration: 0 });
+                  return;
+                }
+              } catch (e) {
+                console.error("Failed to parse saved viewport:", e);
+                localStorage.removeItem("react-flow-viewport");
+              }
+            }
             reactFlowInstance.fitView({ padding: 0.3, duration: 500 });
           }, 300);
         } else {
@@ -1593,6 +1627,7 @@ const NetworkDiagram = () => {
         elevateEdgesOnSelect={true}
         elevateNodesOnSelect={false}
         nodeTypes={nodeTypes}
+        onMoveEnd={onMoveEnd}
       >
         <Background variant="dots" gap={12} size={1} />
         {contextMenu && (
