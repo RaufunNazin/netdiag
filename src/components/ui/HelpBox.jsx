@@ -136,7 +136,7 @@ const HelpBox = ({ isEmpty }) => {
       };
 
   return (
-    <div className="absolute bottom-4 right-4 z-10">
+    <div className="absolute bottom-4 right-2 md:right-4 z-10">
       <div
         className={`w-84 rounded-lg border border-gray-200 bg-white/80 p-4 shadow-md backdrop-blur-sm z-20 ${
           isOpen ? "block" : "hidden"

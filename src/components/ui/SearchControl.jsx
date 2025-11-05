@@ -33,7 +33,7 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots }) => {
     (diagramRoots?.main || diagramRoots?.sub?.length > 0);
 
   return (
-    <div className="absolute top-4 right-4 z-10 bg-white/80 rounded-lg w-80 backdrop-blur-sm">
+    <div className="absolute top-4 right-4 z-10 bg-white/80 rounded-lg w-76 backdrop-blur-sm">
       <input
         type="text"
         value={query}

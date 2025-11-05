@@ -56,8 +56,8 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
 
   return (
     <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="flex w-full max-w-3xl flex-col rounded-lg bg-white p-8 shadow-md max-h-[90vh]">
-        <h3 className="mb-6 text-2xl font-bold text-slate-800">
+      <div className="flex w-full max-w-3xl flex-col rounded-lg bg-white p-4 md:p-8 shadow-md max-h-[90vh]">
+        <h3 className="mb-6 text-lg md:text-2xl font-bold text-slate-800">
           Device Details: {data.label || data.name}
         </h3>
 

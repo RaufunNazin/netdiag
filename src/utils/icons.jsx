@@ -467,6 +467,21 @@ export const UI_ICONS = {
       <path d="M12 16v-4M12 8h.01"></path>
     </svg>
   ),
+  user: (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-4 h-4"
+    >
+      <circle cx="12" cy="7" r="4" />
+      <path d="M5.5 21a7.5 7.5 0 0 1 13 0" />
+    </svg>
+  ),
   info_main: (
     <svg
       xmlns="http://www.w3.org/2000/svg"

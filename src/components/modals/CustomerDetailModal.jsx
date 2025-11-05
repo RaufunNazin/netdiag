@@ -1,0 +1,181 @@
+import { useState, useEffect } from "react";
+import { fetchOnuCustomerInfo } from "../../utils/graphUtils";
+import { CUST_STATUS, NODE_TYPES_ENUM } from "../../utils/enums";
+import { UI_ICONS } from "../../utils/icons";
+
+const DetailRow = ({ label, value }) => (
+  <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
+    <dt className="text-sm font-medium text-gray-500 shrink-0 pr-2">{label}</dt>
+    <dd className="text-sm text-gray-800 text-right break-words">
+      {value || "N/A"}
+    </dd>
+  </div>
+);
+
+const CustomerRow = ({ customer, isExpanded, onExpand }) => {
+  const formatMacFoundTime = (diff) => {
+    if (!diff) return "N/A";
+    let seconds = Math.floor(diff * 100000);
+
+    const days = Math.floor(seconds / (24 * 60 * 60));
+    seconds %= 24 * 60 * 60;
+    const hours = Math.floor(seconds / (60 * 60));
+    seconds %= 60 * 60;
+    const minutes = Math.floor(seconds / 60);
+    seconds %= 60;
+
+    const parts = [];
+    if (days) parts.push(`${days}d`);
+    if (hours) parts.push(`${hours}h`);
+    if (minutes) parts.push(`${minutes}min`);
+    if (seconds) parts.push(`${seconds}s`);
+    return parts.length ? `${parts.join(" ")} ago` : "Just now";
+  };
+
+  const LightbulbIcon = UI_ICONS.lightbulb;
+
+  return (
+    <div className="py-3 border-b border-gray-200 last:border-b-0">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span>
+            <LightbulbIcon
+              className={`w-5 h-5 ${
+                customer.online1 === 1 ? "text-yellow-400" : "text-gray-600"
+              }`}
+            />
+          </span>
+          <span className="w-5 h-5">
+            {customer.st2 === CUST_STATUS.OK
+              ? UI_ICONS.unlock
+              : customer.st2 === CUST_STATUS.EXPIRED
+              ? UI_ICONS.clock
+              : customer.st2 === CUST_STATUS.LOCKED
+              ? UI_ICONS.lock
+              : customer.st2 === CUST_STATUS.DISABLED
+              ? UI_ICONS.timesCircle
+              : null}
+          </span>
+          <span className="font-semibold text-base text-slate-800">
+            {customer.uname}
+          </span>
+        </div>
+        <button
+          onClick={onExpand}
+          className="p-1 text-gray-400 hover:text-gray-700 transition-transform duration-200"
+        >
+          <span
+            className={`inline-block transform transition-transform duration-200 ${
+              isExpanded ? "rotate-0" : "rotate-180"
+            }`}
+          >
+            {UI_ICONS.chevronUp}
+          </span>
+        </button>
+      </div>
+
+      <div
+        className={`grid transition-all duration-300 ease-in-out ${
+          isExpanded
+            ? "grid-rows-[1fr] opacity-100 mt-3"
+            : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <dl className="space-y-2 pl-8">
+            <DetailRow label="Customer ID" value={customer.cid} />
+            <DetailRow label="MAC Address" value={customer.mac} />
+            <DetailRow
+              label="Package Expiry"
+              value={new Date(customer.expiry_date).toLocaleString()}
+            />
+            <DetailRow label="Owner" value={customer.owner} />
+            <DetailRow label="User Status" value={customer.st2} />
+            <DetailRow
+              label="MAC Found"
+              value={formatMacFoundTime(customer.diff)}
+            />
+          </dl>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
+  const [customerData, setCustomerData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [expandedCustomerMac, setExpandedCustomerMac] = useState(null);
+
+  useEffect(() => {
+    if (isOpen && nodeData && nodeData.node_type === NODE_TYPES_ENUM.ONU) {
+      const loadData = async () => {
+        setIsLoading(true);
+        setCustomerData([]);
+        setExpandedCustomerMac(null);
+        const result = await fetchOnuCustomerInfo(
+          nodeData.sw_id,
+          nodeData.name
+        );
+        setCustomerData(result);
+        setIsLoading(false);
+      };
+      loadData();
+    }
+  }, [isOpen, nodeData]);
+
+  if (!isOpen || !nodeData) return null;
+
+  return (
+    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div
+        className="flex w-full max-w-lg flex-col bg-white p-4 shadow-md 
+                   max-h-[90vh]
+                   rounded-lg 
+                   md:p-8"
+      >
+
+        <h3 className="mb-6 text-lg md:text-2xl font-bold text-slate-800">
+          Customers on {nodeData.label || nodeData.name}
+        </h3>
+
+        <div className="flex-grow overflow-y-auto pr-4 -mr-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 h-32">
+              {UI_ICONS.spinner}
+              <span className="text-slate-600">Loading customers...</span>
+            </div>
+          ) : customerData && customerData.length > 0 ? (
+            <div className="flex flex-col">
+              {customerData.map((customer) => (
+                <CustomerRow
+                  key={customer.mac || customer.cid}
+                  customer={customer}
+                  isExpanded={expandedCustomerMac === customer.mac}
+                  onExpand={() =>
+                    setExpandedCustomerMac(
+                      expandedCustomerMac === customer.mac ? null : customer.mac
+                    )
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2 h-32">
+              <span className="text-gray-500">{UI_ICONS.clear}</span>
+              <span className="text-slate-600">No customers found</span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 flex justify-end">
+          <button onClick={onClose} className="btn-secondary">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CustomerDetailModal;

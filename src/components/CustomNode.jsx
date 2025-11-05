@@ -5,6 +5,7 @@ import { fetchOnuCustomerInfo } from "../utils/graphUtils";
 import { useParams } from "react-router-dom";
 import { CUST_STATUS, NODE_TYPES_ENUM } from "../utils/enums";
 import { UI_ICONS } from "../utils/icons";
+import { useIsMobile } from "../utils/useIsMobile";
 
 const ICONS = {
   ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
@@ -117,16 +118,27 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
 
 const CustomNode = ({ data, isConnectable }) => {
   const { id } = useParams();
-  const [isHovered, setIsHovered] = useState(false);
+  const [isPopoverVisible, setIsPopoverVisible] = useState(false);
   const [expandedCustomerMac, setExpandedCustomerMac] = useState(null);
   const [customerData, setCustomerData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const hoverTimeoutRef = useRef(null);
-
   const nodeRef = useRef(null);
+  const isMobile = useIsMobile();
 
-  const handleMouseEnterOnIcon = async () => {
+  const loadCustomerData = async () => {
+    if (data.node_type === NODE_TYPES_ENUM.ONU && !customerData) {
+      setIsLoading(true);
+      const result = await fetchOnuCustomerInfo(data.sw_id, data.name);
+      setCustomerData(result);
+      setIsLoading(false);
+    }
+  };
+
+  const showCustomerPopover = async () => {
+    if (isMobile) return;
+
     clearTimeout(hoverTimeoutRef.current);
 
     if (nodeRef.current) {
@@ -137,25 +149,30 @@ const CustomNode = ({ data, isConnectable }) => {
       });
     }
 
-    setIsHovered(true);
-
-    if (data.node_type === NODE_TYPES_ENUM.ONU && !customerData) {
-      setIsLoading(true);
-      const result = await fetchOnuCustomerInfo(data.sw_id, data.name);
-      setCustomerData(result);
-      setIsLoading(false);
-    }
+    setIsPopoverVisible(true);
+    await loadCustomerData();
   };
 
-  const handleMouseLeaveFromArea = () => {
+  const startHidePopoverTimer = () => {
+    if (isMobile) return;
+
     hoverTimeoutRef.current = setTimeout(() => {
-      setIsHovered(false);
+      setIsPopoverVisible(false);
       setExpandedCustomerMac(null);
     }, 300);
   };
 
-  const handleTooltipMouseEnter = () => {
+  const cancelHidePopoverTimer = () => {
+    if (isMobile) return;
     clearTimeout(hoverTimeoutRef.current);
+  };
+
+  const handleShowCustomers = (e) => {
+    e.stopPropagation();
+    if (data.onShowCustomers) {
+      data.onShowCustomers(data);
+    }
+    setIsPopoverVisible(false);
   };
 
   let statusBorderClass = "";
@@ -167,10 +184,16 @@ const CustomNode = ({ data, isConnectable }) => {
       statusBorderClass =
         "border-r-4 border-t-4 border-r-[#d43c3c] border-t-[#d43c3c]";
   }
+
   const handleDetailsClick = (e) => {
     e.stopPropagation();
+    if (isPopoverVisible) {
+      setIsPopoverVisible(false);
+      setExpandedCustomerMac(null);
+    }
     if (data.onDetailsClick) data.onDetailsClick(data);
   };
+
   const handleNavigateClick = (e) => {
     e.stopPropagation();
     if (data.onNavigateClick) data.onNavigateClick(data.id);
@@ -213,16 +236,28 @@ const CustomNode = ({ data, isConnectable }) => {
             ? `${data.label.slice(0, 10)}...`
             : data.label}
         </div>
+
         <div className="flex items-center space-x-2">
           <button
             onClick={handleDetailsClick}
-            onMouseEnter={handleMouseEnterOnIcon}
-            onMouseLeave={handleMouseLeaveFromArea}
+            onMouseEnter={showCustomerPopover}
+            onMouseLeave={startHidePopoverTimer}
             className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
             title="View Details"
           >
             {UI_ICONS.info_main}
           </button>
+
+          {data.node_type === NODE_TYPES_ENUM.ONU && isMobile && (
+            <button
+              onClick={handleShowCustomers}
+              className="rounded-full p-1 text-gray-400"
+              title="View Customers"
+            >
+              {UI_ICONS.user}
+            </button>
+          )}
+
           {data.node_type === NODE_TYPES_ENUM.OLT && !id && (
             <button
               onClick={handleNavigateClick}
@@ -233,6 +268,7 @@ const CustomNode = ({ data, isConnectable }) => {
             </button>
           )}
         </div>
+
         {!id
           ? data.node_type !== NODE_TYPES_ENUM.OLT && (
               <Handle
@@ -255,12 +291,14 @@ const CustomNode = ({ data, isConnectable }) => {
               />
             )}
       </div>
-      {isHovered &&
+
+      {isPopoverVisible &&
+        !isMobile &&
         data.node_type === NODE_TYPES_ENUM.ONU &&
         createPortal(
           <div
-            onMouseEnter={handleTooltipMouseEnter}
-            onMouseLeave={handleMouseLeaveFromArea}
+            onMouseEnter={cancelHidePopoverTimer}
+            onMouseLeave={startHidePopoverTimer}
             style={{
               top: tooltipPosition.top,
               left: tooltipPosition.left,

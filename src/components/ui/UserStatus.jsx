@@ -36,7 +36,7 @@ const UserStatus = () => {
 
   return (
     <>
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center p-2 rounded-lg bg-gray-100/10">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 items-center p-2 rounded-lg bg-gray-100/10 hidden md:flex">
         <div className="flex items-center">
           <span className="text-xs text-gray-500 mr-1.5">Logged in as</span>
           <span className="text-xs font-medium text-gray-700">
@@ -52,11 +52,26 @@ const UserStatus = () => {
         </button>
       </div>
 
+      <div className="absolute bottom-16 left-2 z-20 flex items-center md:hidden rounded-lg bg-gray-100/10">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="p-3 rounded-full text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200"
+          title="Logout"
+        >
+          {UI_ICONS.signOut}
+        </button>
+      </div>
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-[100] flex justify-center items-center p-4">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 space-y-4">
             <h3 className="text-xl font-bold text-[#ef4444]">Confirm Logout</h3>
-            <p className="text-gray-600">Are you sure you want to log out?</p>
+            <span className="text-gray-600">
+              Are you sure you want to log out from
+            </span>{" "}
+            <span className="text-xs font-medium text-gray-700">
+              {user.firstName}?
+            </span>
             <div className="flex justify-end space-x-2 pt-2">
               <button
                 onClick={() => setIsModalOpen(false)}

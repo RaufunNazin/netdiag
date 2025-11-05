@@ -49,6 +49,9 @@ import HelpBox from "../components/ui/HelpBox.jsx";
 import GuidanceToast from "../components/ui/GuidanceToast";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
+const CustomerDetailModal = lazy(() =>
+  import("../components/modals/CustomerDetailModal.jsx")
+);
 const NodeDetailModal = lazy(() =>
   import("../components/modals/NodeDetailModal.jsx")
 );
@@ -120,7 +123,7 @@ const NetworkDiagram = () => {
     id ? null : localStorage.getItem("dynamicRootId")
   );
   const [diagramRoots, setDiagramRoots] = useState({ main: null, sub: [] });
-
+  const [customerModalNode, setCustomerModalNode] = useState(null);
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [history, setHistory] = useState([]);
@@ -186,6 +189,10 @@ const NetworkDiagram = () => {
     deletedNodes,
     deletedEdges,
   ]);
+
+  const handleShowCustomers = useCallback((nodeData) => {
+    setCustomerModalNode(nodeData);
+  }, []);
 
   const handleUndo = useCallback(() => {
     if (history.length === 0) return;
@@ -723,6 +730,7 @@ const NetworkDiagram = () => {
                 hasCustomPosition: false,
                 onDetailsClick: handleDetailsClick,
                 onNavigateClick: handleNavigateClick,
+                onShowCustomers: handleShowCustomers,
               },
               position: { x: 0, y: 0 },
             };
@@ -747,6 +755,7 @@ const NetworkDiagram = () => {
       rootId,
       handleDetailsClick,
       handleNavigateClick,
+      handleShowCustomers,
     ]
   );
 
@@ -888,6 +897,7 @@ const NetworkDiagram = () => {
           position_mode: 1,
           onDetailsClick: handleDetailsClick,
           onNavigateClick: handleNavigateClick,
+          onShowCustomers: handleShowCustomers,
         },
       };
 
@@ -920,6 +930,7 @@ const NetworkDiagram = () => {
       setOrphanNodes,
       handleDetailsClick,
       handleNavigateClick,
+      handleShowCustomers,
     ]
   );
 
@@ -1139,6 +1150,7 @@ const NetworkDiagram = () => {
               hasCustomPosition: hasCustomPosition,
               onDetailsClick: handleDetailsClick,
               onNavigateClick: handleNavigateClick,
+              onShowCustomers: handleShowCustomers,
             },
             position: hasCustomPosition
               ? {
@@ -1515,7 +1527,7 @@ const NetworkDiagram = () => {
       }
     };
     loadInitialData();
-  }, [rootId, dynamicRootId, navigate, reactFlowInstance]);
+  }, [rootId, dynamicRootId, navigate, reactFlowInstance, handleShowCustomers]);
 
   useEffect(() => {
     const newRootId = id ? parseInt(id, 10) : null;
@@ -1701,6 +1713,11 @@ const NetworkDiagram = () => {
         </>
       )}
       <Suspense fallback={<LoadingOverlay />}>
+      <CustomerDetailModal
+    isOpen={!!customerModalNode}
+    onClose={() => setCustomerModalNode(null)}
+    nodeData={customerModalNode}
+  />
         <OrphanDrawer
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
