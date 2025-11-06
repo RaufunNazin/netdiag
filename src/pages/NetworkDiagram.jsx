@@ -727,7 +727,6 @@ const NetworkDiagram = () => {
                 ...newNodeData,
                 label: newNodeData.name || `Node ${newNodeData.id}`,
                 icon: getNodeIcon(newNodeData.node_type),
-                hasCustomPosition: false,
                 onDetailsClick: handleDetailsClick,
                 onNavigateClick: handleNavigateClick,
                 onShowCustomers: handleShowCustomers,
@@ -891,7 +890,6 @@ const NetworkDiagram = () => {
         position,
         data: {
           ...nodeData.data,
-          hasCustomPosition: true,
           position_x: position.x,
           position_y: position.y,
           position_mode: 1,
@@ -909,7 +907,7 @@ const NetworkDiagram = () => {
 
       setIsEditMode(true);
 
-      toast.info("Edit mode enabled.");
+      if (!isEditMode) toast.info("Edit mode enabled.");
 
       saveNodeInfo(
         {
@@ -1137,9 +1135,6 @@ const NetworkDiagram = () => {
               ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
               : String(item.id);
 
-          const hasCustomPosition =
-            item.position_x != null && item.position_y != null;
-
           return {
             id: nodeId,
             type: "custom",
@@ -1147,17 +1142,17 @@ const NetworkDiagram = () => {
               ...item,
               label: item.name || `Node ${item.id}`,
               icon: getNodeIcon(item.node_type),
-              hasCustomPosition: hasCustomPosition,
               onDetailsClick: handleDetailsClick,
               onNavigateClick: handleNavigateClick,
               onShowCustomers: handleShowCustomers,
             },
-            position: hasCustomPosition
-              ? {
-                  x: parseFloat(item.position_x),
-                  y: parseFloat(item.position_y),
-                }
-              : { x: 0, y: 0 },
+            position:
+              item.position_mode === 1
+                ? {
+                    x: parseFloat(item.position_x),
+                    y: parseFloat(item.position_y),
+                  }
+                : { x: 0, y: 0 },
           };
         });
 
@@ -1165,7 +1160,7 @@ const NetworkDiagram = () => {
           if (!isGeneralView) {
             initialNodes.forEach((node) => {
               if (String(node.data.id) === String(rootId)) {
-                node.data.hasCustomPosition = false;
+                node.data.position_mode = 0;
               }
             });
           }
@@ -1206,7 +1201,7 @@ const NetworkDiagram = () => {
           const orphanRoots = initialNodes.filter(
             (n) =>
               n.id !== (rootNode ? rootNode.id : null) &&
-              !n.data.hasCustomPosition &&
+              n.data.position_mode !== 1 &&
               (n.data.parent_id === null || n.data.parent_id === 0) &&
               parentNodeIds.has(n.id)
           );
@@ -1238,7 +1233,7 @@ const NetworkDiagram = () => {
             (n) =>
               (n.data.parent_id === null || n.data.parent_id === 0) &&
               n.id !== (rootNode ? rootNode.id : null) &&
-              !n.data.hasCustomPosition &&
+              n.data.position_mode !== 1 &&
               parentNodeIds.has(n.id)
           );
 
@@ -1247,11 +1242,11 @@ const NetworkDiagram = () => {
           );
 
           const manuallyPositionedOrphanCount = initialNodes.filter(
-            (n) => n.level === -1 && n.data.hasCustomPosition
+            (n) => n.level === -1 && n.data.position_mode === 1
           ).length;
 
           initialNodes.forEach((node) => {
-            if (node.data.hasCustomPosition) {
+            if (node.data.position_mode === 1) {
               return;
             }
 
@@ -1259,7 +1254,7 @@ const NetworkDiagram = () => {
               node.position = { x: node.level * GRID_X_SPACING, y: 0 };
             } else {
               const autoOrphanIndex = initialNodes
-                .filter((n) => n.level === -1 && !n.data.hasCustomPosition)
+                .filter((n) => n.level === -1 && n.data.position_mode !== 1)
                 .indexOf(node);
 
               node.position = {
@@ -1296,7 +1291,7 @@ const NetworkDiagram = () => {
           function offsetBranch(node, offsetY) {
             if (!node || !node.position) return;
 
-            if (!node.data.hasCustomPosition) {
+            if (node.data.position_mode !== 1) {
               node.position.y += offsetY;
             }
 
@@ -1347,7 +1342,7 @@ const NetworkDiagram = () => {
               const startX = node.position.x + GRID_X_SPACING;
               gridChildren.forEach((childNode, index) => {
                 const nodeToUpdate = nodeMap.get(childNode.id);
-                if (nodeToUpdate && !nodeToUpdate.data.hasCustomPosition) {
+                if (nodeToUpdate && nodeToUpdate.data.position_mode !== 1) {
                   const row = index % NODES_PER_COLUMN;
                   const column = Math.floor(index / NODES_PER_COLUMN);
                   nodeToUpdate.position.y = currentY + row * GRID_Y_SPACING;
@@ -1363,7 +1358,7 @@ const NetworkDiagram = () => {
 
             const totalHeight = Math.max(currentY, nodeHeight);
 
-            if (!node.data.hasCustomPosition) {
+            if (node.data.position_mode !== 1) {
               if (totalHeight === nodeHeight) {
                 node.position.y = 0;
               } else {
@@ -1440,7 +1435,7 @@ const NetworkDiagram = () => {
           initialNodes.forEach((node) => {
             if (
               node.level !== -1 ||
-              node.data.hasCustomPosition ||
+              node.data.position_mode === 1 ||
               orphanTreeNodes.has(node.id)
             ) {
               diagramNodes.push(node);
@@ -1457,7 +1452,7 @@ const NetworkDiagram = () => {
           setDiagramRoots({ main: rootNode, sub: diagramOrphanRoots });
 
           const nodesToSave = initialNodes.filter((n) => {
-            const shouldSave = !n.data.hasCustomPosition && n.level !== -1;
+            const shouldSave = n.data.position_mode !== 1 && n.level !== -1;
 
             const isRootNodeInOltView =
               !isGeneralView && String(n.data.id) === String(rootId);
@@ -1713,11 +1708,11 @@ const NetworkDiagram = () => {
         </>
       )}
       <Suspense fallback={<LoadingOverlay />}>
-      <CustomerDetailModal
-    isOpen={!!customerModalNode}
-    onClose={() => setCustomerModalNode(null)}
-    nodeData={customerModalNode}
-  />
+        <CustomerDetailModal
+          isOpen={!!customerModalNode}
+          onClose={() => setCustomerModalNode(null)}
+          nodeData={customerModalNode}
+        />
         <OrphanDrawer
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
