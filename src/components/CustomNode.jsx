@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { memo, useState, useRef } from "react";
 import { Handle, Position } from "reactflow";
 import { createPortal } from "react-dom";
@@ -116,6 +117,12 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
   );
 };
 
+// --- CONSTANTS FOR POPOVER ---
+const POPOVER_WIDTH_PX = 256; // 16rem (w-64)
+const POPOVER_PADDING_PX = 16; // 1rem
+const POPOVER_ESTIMATED_HEIGHT = 300; // An estimate to check for flipping
+const POPOVER_MARGIN_PX = 8; // 0.5rem (mb-2 or mt-2)
+
 const CustomNode = ({ data, isConnectable }) => {
   const { id } = useParams();
   const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -127,6 +134,10 @@ const CustomNode = ({ data, isConnectable }) => {
   const nodeRef = useRef(null);
   const isMobile = useIsMobile();
 
+  // 💡 --- NEW STATE ---
+  // Tracks whether the popover should render 'up' or 'down'
+  const [popoverDirectionY, setPopoverDirectionY] = useState("up");
+
   const loadCustomerData = async () => {
     if (data.node_type === NODE_TYPES_ENUM.ONU && !customerData) {
       setIsLoading(true);
@@ -136,6 +147,7 @@ const CustomNode = ({ data, isConnectable }) => {
     }
   };
 
+  // 💡 --- THIS FUNCTION IS UPDATED ---
   const showCustomerPopover = async () => {
     if (isMobile) return;
 
@@ -143,10 +155,33 @@ const CustomNode = ({ data, isConnectable }) => {
 
     if (nodeRef.current) {
       const rect = nodeRef.current.getBoundingClientRect();
-      setTooltipPosition({
-        top: rect.top - 8,
-        left: rect.left + rect.width / 2,
-      });
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight; // Get height
+
+      // --- Horizontal (Left/Right) Logic ---
+      let desiredLeft = rect.left + rect.width / 2 - POPOVER_WIDTH_PX / 2;
+      if (desiredLeft < POPOVER_PADDING_PX) {
+        desiredLeft = POPOVER_PADDING_PX;
+      }
+      if (desiredLeft + POPOVER_WIDTH_PX > viewportWidth - POPOVER_PADDING_PX) {
+        desiredLeft = viewportWidth - POPOVER_WIDTH_PX - POPOVER_PADDING_PX;
+      }
+
+      // --- Vertical (Top/Bottom) Logic (NEW) ---
+      const spaceAbove = rect.top - POPOVER_MARGIN_PX;
+      const spaceBelow = viewportHeight - rect.bottom - POPOVER_MARGIN_PX;
+
+      // Check if it fits above. We also check if it fits *better* above
+      // if it doesn't fit below.
+      const popoverFitsAbove =
+        spaceAbove > POPOVER_ESTIMATED_HEIGHT || spaceAbove > spaceBelow;
+
+      const newDirection = popoverFitsAbove ? "up" : "down";
+      // Anchor to the node's top or bottom edge
+      const newTop = newDirection === "up" ? rect.top : rect.bottom;
+
+      setPopoverDirectionY(newDirection); // Store direction for className
+      setTooltipPosition({ top: newTop, left: desiredLeft });
     }
 
     setIsPopoverVisible(true);
@@ -303,7 +338,14 @@ const CustomNode = ({ data, isConnectable }) => {
               top: tooltipPosition.top,
               left: tooltipPosition.left,
             }}
-            className="fixed z-[9999] w-64 select-text rounded-md bg-white p-3 text-sm font-medium text-gray-800 shadow-md transition-all duration-300 transform -translate-x-1/2 -translate-y-[90%]"
+            // 💡 --- DYNAMIC CLASSNAME ---
+            className={`fixed z-[9999] w-64 select-text rounded-md bg-white p-3 text-sm font-medium text-gray-800 shadow-md transition-all duration-300 transform
+              ${
+                popoverDirectionY === "up"
+                  ? "-translate-y-[100%] mb-2" // Pulls up, add margin-bottom
+                  : "translate-y-0 mt-2" // Stays put, add margin-top
+              }
+            `}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
