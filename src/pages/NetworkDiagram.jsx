@@ -307,32 +307,11 @@ const NetworkDiagram = () => {
     });
 
     try {
-      const connectionPromises = newConnections.map((conn) => {
-        const newParentId = parseInt(conn.source, 10);
-        const sourceNodeId = parseInt(conn.target, 10);
-        return copyNodeInfo(sourceNodeId, newParentId, true);
-      });
-
-      const positionSavePromises = movedNodes.map((node) => {
-        const payload = {
-          original_name: node.data.name,
-          sw_id: node.data.sw_id,
-          position_x: node.position.x,
-          position_y: node.position.y,
-          position_mode: 1,
-        };
-        return saveNodeInfo(payload, true);
-      });
-
-      const deleteNodePromises = deletedNodes.map((nodeInfo) =>
-        deleteNode(nodeInfo, true)
+      const deleteEdgeFns = deletedEdges.map(
+        (edgeInfo) => () => deleteEdge(edgeInfo, true)
       );
 
-      const deleteEdgePromises = deletedEdges.map((edgeInfo) =>
-        deleteEdge(edgeInfo, true)
-      );
-
-      const updatePromises = updatedConnections.map(async (conn) => {
+      const updateConnectionFns = updatedConnections.map((conn) => async () => {
         const edgeInfo = {
           name: conn.childNodeInfo.name,
           source_id: parseInt(conn.oldParentId, 10),
@@ -346,13 +325,53 @@ const NetworkDiagram = () => {
         );
       });
 
-      await Promise.all([
-        ...connectionPromises,
-        ...positionSavePromises,
-        ...updatePromises,
-        ...deleteNodePromises,
-        ...deleteEdgePromises,
-      ]);
+      const deleteNodeFns = deletedNodes.map(
+        (nodeInfo) => () => deleteNode(nodeInfo, true)
+      );
+
+      const createConnectionFns = newConnections.map((conn) => () => {
+        const newParentId = parseInt(conn.source, 10);
+        const sourceNodeId = parseInt(conn.target, 10);
+        return copyNodeInfo(sourceNodeId, newParentId, true);
+      });
+
+      const savePositionFns = movedNodes.map((node) => () => {
+        const payload = {
+          original_name: node.data.name,
+          sw_id: node.data.sw_id,
+          position_x: node.position.x,
+          position_y: node.position.y,
+          position_mode: 1,
+        };
+        return saveNodeInfo(payload, true);
+      });
+
+      console.log("Saving changes sequentially...");
+
+      console.log(`Deleting ${deleteEdgeFns.length} edges...`);
+      for (const fn of deleteEdgeFns) {
+        await fn();
+      }
+
+      console.log(`Updating ${updateConnectionFns.length} connections...`);
+      for (const fn of updateConnectionFns) {
+        await fn();
+      }
+
+      console.log(`Deleting ${deleteNodeFns.length} nodes...`);
+      for (const fn of deleteNodeFns) {
+        await fn();
+      }
+
+      console.log(`Creating ${createConnectionFns.length} new connections...`);
+      for (const fn of createConnectionFns) {
+        await fn();
+      }
+
+      console.log(`Saving ${savePositionFns.length} node positions...`);
+      for (const fn of savePositionFns) {
+        await fn();
+      }
 
       toast.success("All changes saved successfully!");
 
@@ -362,17 +381,14 @@ const NetworkDiagram = () => {
       setUpdatedConnections([]);
       setDeletedNodes([]);
       setDeletedEdges([]);
-
       setHistory([]);
-
       initialNodesRef.current = reactFlowInstance.getNodes();
-
       setIsEditMode(false);
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      console.error("Failed to save changes sequentially:", error);
       toast.error(
         error.response?.data?.detail ||
-          "Failed to save all changes. Please try again."
+          "A failure occurred during save. Some changes may not have been saved. Please reload."
       );
       setLoading(false);
     }
