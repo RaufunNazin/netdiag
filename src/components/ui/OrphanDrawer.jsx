@@ -1,4 +1,5 @@
 import { UI_ICONS } from "../../utils/icons";
+import boxIcon from "../../assets/icons/box.png";
 
 const DrawerNode = ({ node }) => {
   const onDragStart = (event, nodeData) => {
@@ -61,7 +62,7 @@ const OrphanDrawer = ({ isOpen, onClose, nodes }) => {
         >
           {nodes.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center gap-2">
-              <img src="/box.png" alt="Empty Inventory" className="w-10 h-10" />
+              <img src={boxIcon} alt="Empty Inventory" className="w-10 h-10" />
               <p className="text-center text-gray-500">
                 Your inventory is empty.
               </p>

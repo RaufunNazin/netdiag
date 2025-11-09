@@ -289,7 +289,7 @@ const NetworkDiagram = () => {
 
   const handleConfirmSave = useCallback(async () => {
     setIsSaveConfirmModalOpen(false);
-    setLoading(true);
+    toast.info("Saving...");
 
     const originalNodes = initialNodesRef.current;
     const currentNodes = reactFlowInstance.getNodes();
@@ -390,7 +390,6 @@ const NetworkDiagram = () => {
         error.response?.data?.detail ||
           "A failure occurred during save. Some changes may not have been saved. Please reload."
       );
-      setLoading(false);
     }
   }, [
     reactFlowInstance,

@@ -7,19 +7,31 @@ import { CUST_STATUS, NODE_TYPES_ENUM } from "../utils/enums";
 import { UI_ICONS } from "../utils/icons";
 import { useIsMobile } from "../utils/useIsMobile";
 
+import apIcon from "../assets/icons/ap.png";
+import bambooIcon from "../assets/icons/bamboo.png";
+import mswitchIcon from "../assets/icons/mswitch.png";
+import uswitchIcon from "../assets/icons/uswitch.png";
+import oltIcon from "../assets/icons/olt.png";
+import onuIcon from "../assets/icons/onu.png";
+import ponIcon from "../assets/icons/pon.png";
+import routerIcon from "../assets/icons/router.png";
+import splitterIcon from "../assets/icons/splitter.png";
+import tjIcon from "../assets/icons/tj.png";
+import otherIcon from "../assets/icons/other.png";
+
 const ICONS = {
-  ap: <img src="/ap.png" alt="Access Point" width="24" height="24" />,
-  bamboo: <img src="/bamboo.png" alt="Bamboo" width="24" height="24" />,
-  mswitch: <img src="/mswitch.png" alt="mSwitch" width="24" height="24" />,
-  uswitch: <img src="/uswitch.png" alt="uSwitch" width="24" height="24" />,
-  olt: <img src="/olt.png" alt="OLT" width="24" height="24" />,
-  onu: <img src="/onu.png" alt="ONU" width="24" height="24" />,
-  pon: <img src="/pon.png" alt="PON Port" width="24" height="24" />,
-  router: <img src="/router.png" alt="Router" width="24" height="24" />,
-  splitter: <img src="/splitter.png" alt="Splitter" width="24" height="24" />,
-  tj: <img src="/tj.png" alt="Transition Joint" width="24" height="24" />,
-  other: <img src="/other.png" alt="Other" width="24" height="24" />,
-  default: <img src="/other.png" alt="Default" width="24" height="24" />,
+  ap: <img src={apIcon} alt="Access Point" width="24" height="24" />,
+  bamboo: <img src={bambooIcon} alt="Bamboo" width="24" height="24" />,
+  mswitch: <img src={mswitchIcon} alt="mSwitch" width="24" height="24" />,
+  uswitch: <img src={uswitchIcon} alt="uSwitch" width="24" height="24" />,
+  olt: <img src={oltIcon} alt="OLT" width="24" height="24" />,
+  onu: <img src={onuIcon} alt="ONU" width="24" height="24" />,
+  pon: <img src={ponIcon} alt="PON Port" width="24" height="24" />,
+  router: <img src={routerIcon} alt="Router" width="24" height="24" />,
+  splitter: <img src={splitterIcon} alt="Splitter" width="24" height="24" />,
+  tj: <img src={tjIcon} alt="Transition Joint" width="24" height="24" />,
+  other: <img src={otherIcon} alt="Other" width="24" height="24" />,
+  default: <img src={otherIcon} alt="Default" width="24" height="24" />,
 };
 
 const DetailRow = ({ label, value }) => (
