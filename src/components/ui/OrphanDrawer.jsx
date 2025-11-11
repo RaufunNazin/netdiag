@@ -1,6 +1,34 @@
 import { UI_ICONS } from "../../utils/icons";
 import boxIcon from "../../assets/icons/box.png";
 
+import apIcon from "../../assets/icons/ap.png";
+import bambooIcon from "../../assets/icons/bamboo.png";
+import mswitchIcon from "../../assets/icons/mswitch.png";
+import uswitchIcon from "../../assets/icons/uswitch.png";
+import oltIcon from "../../assets/icons/olt.png";
+import onuIcon from "../../assets/icons/onu.png";
+import ponIcon from "../../assets/icons/pon.png";
+import routerIcon from "../../assets/icons/router.png";
+import splitterIcon from "../../assets/icons/splitter.png";
+import tjIcon from "../../assets/icons/tj.png";
+import otherIcon from "../../assets/icons/other.png";
+
+// 💡 --- 2. CREATE A MAPPING OBJECT FOR THE SRC ---
+const ICONS_SRC = {
+  ap: apIcon,
+  bamboo: bambooIcon,
+  mswitch: mswitchIcon,
+  uswitch: uswitchIcon,
+  olt: oltIcon,
+  onu: onuIcon,
+  pon: ponIcon,
+  router: routerIcon,
+  splitter: splitterIcon,
+  tj: tjIcon,
+  other: otherIcon,
+  default: otherIcon,
+};
+
 const DrawerNode = ({ node }) => {
   const onDragStart = (event, nodeData) => {
     const dataString = JSON.stringify(nodeData);
@@ -21,14 +49,17 @@ const DrawerNode = ({ node }) => {
       onDragStart={(event) => onDragStart(event, nodeToDrag)}
       draggable
     >
+      {/* 💡 --- 3. USE THE MAPPING OBJECT --- */}
       <img
-        src={`/${node.data.icon}.png`}
+        src={ICONS_SRC[node.data.icon] || ICONS_SRC.default}
         alt={node.data.node_type}
         width="20"
         height="20"
       />
       <span className="text-sm font-semibold">
-        {node.data.label.length > 18 ? `${node.data.label.slice(0, 18)}...` : node.data.label}
+        {node.data.label.length > 18
+          ? `${node.data.label.slice(0, 18)}...`
+          : node.data.label}
       </span>
     </div>
   );
@@ -57,9 +88,7 @@ const OrphanDrawer = ({ isOpen, onClose, nodes }) => {
             {UI_ICONS.chevronLeft}
           </button>
         </div>
-        <div
-          className={`overflow-y-auto h-[calc(100%-60px)] p-1`}
-        >
+        <div className={`overflow-y-auto h-[calc(100%-60px)] p-1`}>
           {nodes.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center gap-2">
               <img src={boxIcon} alt="Empty Inventory" className="w-10 h-10" />

@@ -15,6 +15,9 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
 
   useEffect(() => {
     if (node?.data) {
+      // 💡 --- START OF FIX ---
+      // We must initialize ALL possible form fields to an empty string ""
+      // instead of relying on what's in node.data.
       const initialData = {
         name: node.data.label || node.data.name || "",
         node_type: node.data.node_type || "",
@@ -38,7 +41,12 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
           node.data.lat1 && node.data.long1
             ? `${node.data.lat1}, ${node.data.long1}`
             : "",
+
+        // --- ADD ANY MISSING FIELDS ---
+        // e.g., if you have 'device_type', it must also be here:
+        device_type: node.data.device_type || "",
       };
+      // 💡 --- END OF FIX ---
 
       setFormData(initialData);
       setOriginalData({ ...initialData });

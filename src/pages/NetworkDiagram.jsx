@@ -116,7 +116,7 @@ const NetworkDiagram = () => {
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isEmpty, setIsEmpty] = useState(false);
   const [rootId, setRootId] = useState(undefined);
   const [dynamicRootId, setDynamicRootId] = useState(() =>
@@ -962,26 +962,31 @@ const NetworkDiagram = () => {
 
         await saveNodeInfo(payload);
 
-        let newNodes;
-        setNodes((nds) => {
-          newNodes = nds.map((n) =>
-            n.id === nodeId
-              ? {
-                  ...n,
-                  data: {
-                    ...n.data,
-                    ...updatedFormData,
-                    label: updatedFormData.name || n.data.label,
-                    name: updatedFormData.name || n.data.name,
-                    icon: updatedFormData.node_type
-                      ? getNodeIcon(updatedFormData.node_type)
-                      : n.data.icon,
-                  },
-                }
-              : n
-          );
-          return newNodes;
-        });
+        // 💡 --- THIS IS THE FIX ---
+        // 1. Build the new nodes array FIRST.
+        const newNodes = nodes.map((n) =>
+          n.id === nodeId
+            ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  ...updatedFormData,
+                  label: updatedFormData.name || n.data.label,
+                  name: updatedFormData.name || n.data.name,
+                  icon: updatedFormData.node_type
+                    ? getNodeIcon(updatedFormData.node_type)
+                    : n.data.icon,
+                },
+              }
+            : n
+        );
+
+        // 2. Set state with the new array.
+        setNodes(newNodes);
+
+        // 3. Set the ref with the new array. Now it's guaranteed to be defined.
+        initialNodesRef.current = newNodes;
+        // 💡 --- END OF FIX ---
 
         if (updatedFormData.cable_color !== undefined) {
           setEdges((eds) =>
@@ -999,13 +1004,11 @@ const NetworkDiagram = () => {
             })
           );
         }
-
-        initialNodesRef.current = newNodes;
       } catch (error) {
         console.error("Error saving node info:", error);
       }
     },
-    [nodes, reactFlowInstance, setNodes, setEdges]
+    [nodes, setNodes, setEdges] // reactFlowInstance is not needed here
   );
 
   const onNodeFound = (nodeId) => {
@@ -1093,7 +1096,7 @@ const NetworkDiagram = () => {
           setIsEmpty(true);
           setNodes([]);
           setEdges([]);
-          setLoading(true);
+          setLoading(false);
           return;
         }
 
@@ -1536,7 +1539,7 @@ const NetworkDiagram = () => {
       } catch (error) {
         console.error("Failed to load initial data:", error);
       } finally {
-        setLoading(true);
+        setLoading(false);
       }
     };
     loadInitialData();

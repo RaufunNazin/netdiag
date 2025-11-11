@@ -40,8 +40,6 @@ const IconBtn = ({ children, color, padding = "p-1" }) => {
 };
 
 const tips = [
-  // --- Original 40 Tips ---
-  // Basic Navigation
   <>Click-drag the canvas to pan.</>,
   <>Use your mouse wheel to zoom in and out.</>,
   <>On mobile, pinch to zoom.</>,
