@@ -116,7 +116,7 @@ const NetworkDiagram = () => {
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isEmpty, setIsEmpty] = useState(false);
   const [rootId, setRootId] = useState(undefined);
   const [dynamicRootId, setDynamicRootId] = useState(() =>
@@ -1093,7 +1093,7 @@ const NetworkDiagram = () => {
           setIsEmpty(true);
           setNodes([]);
           setEdges([]);
-          setLoading(false);
+          setLoading(true);
           return;
         }
 
@@ -1467,7 +1467,10 @@ const NetworkDiagram = () => {
           setDiagramRoots({ main: rootNode, sub: diagramOrphanRoots });
 
           const nodesToSave = initialNodes.filter((n) => {
-            const shouldSave = n.data.position_mode !== 1 && n.level !== -1;
+            const shouldSave =
+              (n.data.position_mode === null ||
+                n.data.position_mode === undefined) &&
+              n.level !== -1;
 
             const isRootNodeInOltView =
               !isGeneralView && String(n.data.id) === String(rootId);
@@ -1533,7 +1536,7 @@ const NetworkDiagram = () => {
       } catch (error) {
         console.error("Failed to load initial data:", error);
       } finally {
-        setLoading(false);
+        setLoading(true);
       }
     };
     loadInitialData();

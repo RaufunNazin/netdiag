@@ -40,6 +40,8 @@ const IconBtn = ({ children, color, padding = "p-1" }) => {
 };
 
 const tips = [
+  // --- Original 40 Tips ---
+  // Basic Navigation
   <>Click-drag the canvas to pan.</>,
   <>Use your mouse wheel to zoom in and out.</>,
   <>On mobile, pinch to zoom.</>,
@@ -55,7 +57,7 @@ const tips = [
   <>Drag-and-drop nodes from the inventory onto the diagram.</>,
   <>Use the Search Bar to find any device instantly.</>,
   <>Click a search result to fly directly to that node.</>,
-
+  // Viewing Info
   <>Click any node to collapse its children.</>,
   <>Click a collapsed node to expand it again.</>,
   <>
@@ -76,7 +78,7 @@ const tips = [
   </>,
   <>A green border on an ONU means "Power On".</>,
   <>A red border on an ONU means "Power Off".</>,
-
+  // Edit Mode
   <>
     Click{" "}
     {
@@ -162,7 +164,7 @@ const tips = [
     }{" "}
     Mode.
   </>,
-
+  // Connections
   <>
     Connect {<IconBtn color="orangeDot" />} to {<IconBtn color="blueDot" />}.
   </>,
@@ -176,7 +178,7 @@ const tips = [
   </>,
   <>{<IconBtn color="orangeDot" />} is an output (source).</>,
   <>{<IconBtn color="blueDot" />} is an input (target).</>,
-
+  // Other
   <>
     Click{" "}
     {
@@ -200,6 +202,205 @@ const tips = [
     of tips.
   </>,
   <>Manually placed nodes won't be moved by the auto-layout.</>,
+
+  // --- New 60 Tips ---
+  // Deeper Editing
+  <>Want to move a whole branch? Drag its parent node.</>,
+  <>
+    Select multiple nodes by dragging a box in{" "}
+    {
+      <IconBtn color="blue" padding="p-1.5">
+        {UI_ICONS.edit}
+      </IconBtn>
+    }{" "}
+    Mode.
+  </>,
+  <>Move selected nodes together by dragging any one of them.</>,
+  <>Right-click a node ➔ "Edit" to change its name or type.</>,
+  <>Right-click a node ➔ "Send to Inventory" to disconnect it.</>,
+  <>
+    The{" "}
+    {
+      <IconBtn color="blue" padding="p-1.5">
+        {UI_ICONS.edit}
+      </IconBtn>
+    }{" "}
+    "Save" checkmark only appears if you've made changes.
+  </>,
+  <>No "Save" checkmark? No changes to save!</>,
+  <>
+    Connecting a node from inventory auto-enables{" "}
+    {
+      <IconBtn color="blue" padding="p-1.5">
+        {UI_ICONS.edit}
+      </IconBtn>
+    }{" "}
+    Mode.
+  </>,
+  <>You can't connect a node to itself.</>,
+  <>Change a cable's color by editing the *child* node's properties.</>,
+
+  // Inventory
+  <>
+    The {<IconBtn color="blueTab">{UI_ICONS.chevronRight_main}</IconBtn>}{" "}
+    inventory shows nodes with no connections.
+  </>,
+  <>
+    Disconnecting a node will send it to the{" "}
+    {<IconBtn color="blueTab">{UI_ICONS.chevronRight_main}</IconBtn>} inventory.
+  </>,
+  <>The inventory is your 'storage' for unused devices.</>,
+  <>
+    Can't find a device? Check the inventory tab{" "}
+    {<IconBtn color="blueTab">{UI_ICONS.chevronRight_main}</IconBtn>}.
+  </>,
+  <>
+    Devices in the{" "}
+    {<IconBtn color="blueTab">{UI_ICONS.chevronRight_main}</IconBtn>} inventory
+    are not visible on the map.
+  </>,
+
+  // Specific Nodes
+  <>'OLT' is the start of your fiber network.</>,
+  <>'PON' ports are children of an 'OLT'.</>,
+  <>'Splitters' can branch one signal to many ONUs.</>,
+  <>'TJs' (Transition Joints) connect different cable types.</>,
+  <>'Routers' are often the main root of a non-fiber network.</>,
+  <>'mSwitch' is a Managed Switch.</>,
+  <>'uSwitch' is an Unmanaged Switch.</>,
+  <>'AP' stands for Access Point.</>,
+  <>'ONU' is the device at the customer's end.</>,
+  <>The auto-layout tries to group all 'ONUs' in a grid.</>,
+
+  // Data & Info
+  <>
+    In the customer popover,{" "}
+    {<IconBtn color="gray">{UI_ICONS.lightbulb}</IconBtn>} shows customer online
+    status.
+  </>,
+  <>
+    In the popover, {<IconBtn color="gray">{UI_ICONS.unlock}</IconBtn>} means
+    the customer's account is OK.
+  </>,
+  <>
+    Customer status {<IconBtn color="gray">{UI_ICONS.lock}</IconBtn>} means
+    'Locked'.
+  </>,
+  <>
+    Customer status {<IconBtn color="gray">{UI_ICONS.clock}</IconBtn>} means
+    'Expired'.
+  </>,
+  <>
+    Customer status {<IconBtn color="gray">{UI_ICONS.timesCircle}</IconBtn>}{" "}
+    means 'Disabled'.
+  </>,
+  <>The "User Status" box (top-left) shows who you're logged in as.</>,
+  <>The diagram auto-saves calculated positions for new nodes.</>,
+  <>Node positions are saved per-diagram (main view vs. OLT view).</>,
+  <>The "MAC Found" time shows how recently an ONU was seen.</>,
+  <>Your zoom level is saved in your browser, even after a refresh.</>,
+
+  // Troubleshooting
+  <>
+    Can't connect? Make sure you're in{" "}
+    {
+      <IconBtn color="blue" padding="p-1.5">
+        {UI_ICONS.edit}
+      </IconBtn>
+    }{" "}
+    Mode!
+  </>,
+  <>
+    Can't connect? A node can only have one {<IconBtn color="blueDot" />}{" "}
+    (parent) connection.
+  </>,
+  <>
+    Node disappeared? Check the{" "}
+    {<IconBtn color="blueTab">{UI_ICONS.chevronRight_main}</IconBtn>} inventory.
+  </>,
+  <>Children disappeared? You may have disconnected their parent.</>,
+  <>Accidentally reset? Don't worry, it only resets auto-layouted nodes.</>,
+  <>Nodes you place manually will not be auto-reset.</>,
+  <>
+    The diagram is read-only by default. Click{" "}
+    {
+      <IconBtn color="blue" padding="p-1.5">
+        {UI_ICONS.edit}
+      </IconBtn>
+    }{" "}
+    to change it.
+  </>,
+  <>The app will auto-reload after you save changes.</>,
+  <>
+    Can't see a node you just added? Check the{" "}
+    {<IconBtn color="blueTab">{UI_ICONS.chevronRight_main}</IconBtn>} inventory.
+  </>,
+  <>
+    Buttons not working? Try exiting{" "}
+    {
+      <IconBtn color="blue" padding="p-1.5">
+        {UI_ICONS.edit}
+      </IconBtn>
+    }{" "}
+    Mode.
+  </>,
+
+  // General UI / Workflow
+  <>Start your network by adding a 'Router' or 'OLT'.</>,
+  <>
+    Use the {<IconBtn color="green">{UI_ICONS.add}</IconBtn>} button to create
+    your first device.
+  </>,
+  <>
+    The {<IconBtn color="green">{UI_ICONS.add}</IconBtn>} button is on the
+    bottom dock.
+  </>,
+  <>
+    The {<IconBtn color="blue">{UI_ICONS.expand}</IconBtn>} button (bottom dock)
+    centers the diagram.
+  </>,
+  <>
+    The{" "}
+    {
+      <IconBtn color="red" padding="p-1 rotate-90">
+        {UI_ICONS.reset}
+      </IconBtn>
+    }{" "}
+    button resets all auto-node positions.
+  </>,
+  <>
+    The{" "}
+    {
+      <IconBtn color="red" padding="p-1 rotate-90">
+        {UI_ICONS.reset}
+      </IconBtn>
+    }{" "}
+    button is disabled in{" "}
+    {
+      <IconBtn color="blue" padding="p-1.5">
+        {UI_ICONS.edit}
+      </IconBtn>
+    }{" "}
+    Mode.
+  </>,
+  <>
+    The {<IconBtn color="blue">{UI_ICONS.root}</IconBtn>} button (bottom dock)
+    sets the main root device.
+  </>,
+  <>
+    The {<IconBtn color="blue">{UI_ICONS.root}</IconBtn>} button only appears in
+    the general view.
+  </>,
+  <>
+    The {<IconBtn color="red">{UI_ICONS.undo}</IconBtn>} button is disabled if
+    there are no changes to undo.
+  </>,
+  <>Your view is auto-saved! No need to save your zoom/pan.</>,
+  <>
+    Click the "Go Back" arrow{" "}
+    {<IconBtn color="gray">{UI_ICONS.chevronLeft}</IconBtn>} (top left) to leave
+    an OLT view.
+  </>,
 ];
 
 const LoadingOverlay = () => {
@@ -209,20 +410,11 @@ const LoadingOverlay = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm transition-opacity duration-300">
-      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <p className="mt-4 text-lg font-semibold text-gray-700 tracking-wider">
-        Loading Your Network Diagram
+    <div className="absolute inset-0 p-2 z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 gap-5">
+      <div className="w-12 h-12 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-lg md:text-2xl font-medium text-white text-center">
+        Tip: {randomTip}
       </p>
-
-      <div className="mt-10 px-6 py-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm w-full max-w-md">
-        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider text-center mb-2">
-          Did you know?
-        </p>
-        <p className="text-lg font-medium text-gray-700 text-center">
-          {randomTip}
-        </p>
-      </div>
     </div>
   );
 };
