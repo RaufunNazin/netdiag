@@ -13,7 +13,6 @@ import splitterIcon from "../../assets/icons/splitter.png";
 import tjIcon from "../../assets/icons/tj.png";
 import otherIcon from "../../assets/icons/other.png";
 
-// 💡 --- 2. CREATE A MAPPING OBJECT FOR THE SRC ---
 const ICONS_SRC = {
   ap: apIcon,
   bamboo: bambooIcon,
@@ -49,7 +48,6 @@ const DrawerNode = ({ node }) => {
       onDragStart={(event) => onDragStart(event, nodeToDrag)}
       draggable
     >
-      {/* 💡 --- 3. USE THE MAPPING OBJECT --- */}
       <img
         src={ICONS_SRC[node.data.icon] || ICONS_SRC.default}
         alt={node.data.node_type}

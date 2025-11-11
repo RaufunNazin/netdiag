@@ -55,7 +55,6 @@ const tips = [
   <>Drag-and-drop nodes from the inventory onto the diagram.</>,
   <>Use the Search Bar to find any device instantly.</>,
   <>Click a search result to fly directly to that node.</>,
-  // Viewing Info
   <>Click any node to collapse its children.</>,
   <>Click a collapsed node to expand it again.</>,
   <>
@@ -76,7 +75,6 @@ const tips = [
   </>,
   <>A green border on an ONU means "Power On".</>,
   <>A red border on an ONU means "Power Off".</>,
-  // Edit Mode
   <>
     Click{" "}
     {
@@ -162,7 +160,6 @@ const tips = [
     }{" "}
     Mode.
   </>,
-  // Connections
   <>
     Connect {<IconBtn color="orangeDot" />} to {<IconBtn color="blueDot" />}.
   </>,
@@ -176,7 +173,6 @@ const tips = [
   </>,
   <>{<IconBtn color="orangeDot" />} is an output (source).</>,
   <>{<IconBtn color="blueDot" />} is an input (target).</>,
-  // Other
   <>
     Click{" "}
     {
@@ -200,9 +196,6 @@ const tips = [
     of tips.
   </>,
   <>Manually placed nodes won't be moved by the auto-layout.</>,
-
-  // --- New 60 Tips ---
-  // Deeper Editing
   <>Want to move a whole branch? Drag its parent node.</>,
   <>
     Select multiple nodes by dragging a box in{" "}
@@ -237,8 +230,6 @@ const tips = [
   </>,
   <>You can't connect a node to itself.</>,
   <>Change a cable's color by editing the *child* node's properties.</>,
-
-  // Inventory
   <>
     The {<IconBtn color="blueTab">{UI_ICONS.chevronRight_main}</IconBtn>}{" "}
     inventory shows nodes with no connections.
@@ -257,8 +248,6 @@ const tips = [
     {<IconBtn color="blueTab">{UI_ICONS.chevronRight_main}</IconBtn>} inventory
     are not visible on the map.
   </>,
-
-  // Specific Nodes
   <>'OLT' is the start of your fiber network.</>,
   <>'PON' ports are children of an 'OLT'.</>,
   <>'Splitters' can branch one signal to many ONUs.</>,
@@ -269,8 +258,6 @@ const tips = [
   <>'AP' stands for Access Point.</>,
   <>'ONU' is the device at the customer's end.</>,
   <>The auto-layout tries to group all 'ONUs' in a grid.</>,
-
-  // Data & Info
   <>
     In the customer popover,{" "}
     {<IconBtn color="gray">{UI_ICONS.lightbulb}</IconBtn>} shows customer online
@@ -297,8 +284,6 @@ const tips = [
   <>Node positions are saved per-diagram (main view vs. OLT view).</>,
   <>The "MAC Found" time shows how recently an ONU was seen.</>,
   <>Your zoom level is saved in your browser, even after a refresh.</>,
-
-  // Troubleshooting
   <>
     Can't connect? Make sure you're in{" "}
     {
@@ -342,8 +327,6 @@ const tips = [
     }{" "}
     Mode.
   </>,
-
-  // General UI / Workflow
   <>Start your network by adding a 'Router' or 'OLT'.</>,
   <>
     Use the {<IconBtn color="green">{UI_ICONS.add}</IconBtn>} button to create

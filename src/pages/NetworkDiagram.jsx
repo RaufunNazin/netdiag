@@ -962,8 +962,6 @@ const NetworkDiagram = () => {
 
         await saveNodeInfo(payload);
 
-        // 💡 --- THIS IS THE FIX ---
-        // 1. Build the new nodes array FIRST.
         const newNodes = nodes.map((n) =>
           n.id === nodeId
             ? {
@@ -981,12 +979,9 @@ const NetworkDiagram = () => {
             : n
         );
 
-        // 2. Set state with the new array.
         setNodes(newNodes);
 
-        // 3. Set the ref with the new array. Now it's guaranteed to be defined.
         initialNodesRef.current = newNodes;
-        // 💡 --- END OF FIX ---
 
         if (updatedFormData.cable_color !== undefined) {
           setEdges((eds) =>
@@ -1008,7 +1003,7 @@ const NetworkDiagram = () => {
         console.error("Error saving node info:", error);
       }
     },
-    [nodes, setNodes, setEdges] // reactFlowInstance is not needed here
+    [nodes, setNodes, setEdges]
   );
 
   const onNodeFound = (nodeId) => {
