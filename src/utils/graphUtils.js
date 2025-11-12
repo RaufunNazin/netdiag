@@ -1,6 +1,36 @@
 import api from "../api";
 import { toast } from "react-toastify";
 
+// Fetches the detailed data for the modal
+export const fetchNodeDetails = async (nodeId) => {
+  try {
+    // Assuming 'api' is your pre-configured axios instance
+    const response = await api.get(`/node-details/${nodeId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch node details:", error);
+    toast.error(
+      error.response?.data?.detail || "Could not load device details."
+    );
+    throw error;
+  }
+};
+
+// Saves the updated device and edge data
+export const updateNodeDetails = async (nodeId, payload) => {
+  try {
+    const response = await api.put(`/node-details/${nodeId}`, payload);
+    toast.success("Update successful!");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update node details:", error);
+    toast.error(
+      error.response?.data?.detail || "An error occurred while saving."
+    );
+    throw error;
+  }
+};
+
 export const fetchRootCandidates = async () => {
   try {
     const response = await api.get("/nodes/root-candidates");

@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   LINK_TYPES,
   NODE_TYPES,
@@ -8,62 +10,235 @@ import {
 import ColorPicker from "../ui/ColorPicker";
 import SegmentedInput from "../ui/SegmentedInput";
 import { NODE_TYPES_ENUM, MISC } from "../../utils/enums";
+import { fetchNodeDetails, updateNodeDetails } from "../../utils/graphUtils";
+// --- MODIFIED: Import your ICONS object ---
+// (Adjust the path if CustomNode.jsx is in a different directory)
+import { ICONS } from "../../components/CustomNode.jsx";
 
-const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState({});
-  const [originalData, setOriginalData] = useState({});
+// ---
+// UPDATED: Mini-Node Display Component (Uses ICONS)
+// ---
+const MiniNodeDisplay = ({ nodeData, getNodeIcon }) => {
+  if (!nodeData) {
+    return (
+      <span className="font-normal text-slate-500 ml-2">(Unknown Node)</span>
+    );
+  }
+  // Get the icon key (e.g., "olt", "onu")
+  const iconKey = getNodeIcon(nodeData.node_type);
+  return (
+    // Styled to look like a mini-version of your actual nodes
+    <div className="inline-flex items-center bg-white border border-slate-300 rounded py-1 px-3 ml-2">
+      <div className="w-5 h-5">{ICONS[iconKey] || ICONS["default"]}</div>
+      <span className="text-xs font-semibold text-slate-800 ml-1.5">
+        {nodeData.label}
+      </span>
+    </div>
+  );
+};
 
-  useEffect(() => {
-    if (node?.data) {
-      const initialData = {
-        name: node.data.label || node.data.name || "",
-        node_type: node.data.node_type || "",
-        link_type: node.data.link_type || "Fiber Optic",
-        brand: node.data.brand || "",
-        model: node.data.model || "",
-        serial_no: node.data.serial_no || "",
-        mac: node.data.mac || "",
-        ip: node.data.ip || "",
-        split_ratio: node.data.split_ratio || "",
-        split_group: node.data.split_group || "",
-        cable_id: node.data.cable_id || "",
-        cable_start: node.data.cable_start || "",
-        cable_end: node.data.cable_end || "",
-        cable_length: node.data.cable_length || "",
-        cable_color: node.data.cable_color || "",
-        cable_desc: node.data.cable_desc || "",
-        vlan: node.data.vlan || "",
-        remarks: node.data.remarks || "",
-        location:
-          node.data.lat1 && node.data.long1
-            ? `${node.data.lat1}, ${node.data.long1}`
-            : "",
-        device_type: node.data.device_type || "",
-      };
-
-      setFormData(initialData);
-      setOriginalData({ ...initialData });
-    }
-  }, [node]);
-
-  if (!isOpen || !node) return null;
-
+// ---
+// UPDATED: CableDetailForm Component (Subtle Styles)
+// ---
+const CableDetailForm = ({
+  edge,
+  onChange,
+  direction,
+  otherNodeData,
+  getNodeIcon,
+}) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    onChange(edge.id, name, value);
   };
 
-  const handleSave = () => {
-    let changes = {};
+  const handleColorChange = (color) => {
+    onChange(edge.id, "cable_color", color);
+  };
 
-    for (const key in formData) {
-      if (formData[key] !== originalData[key]) {
-        changes[key] = formData[key];
+  return (
+    // --- MODIFIED: Subtle left-border highlight ---
+    <div
+      className={`md:col-span-2 p-4 rounded-lg shadow-sm ${
+        direction === "Incoming"
+          ? "bg-white border-l-4 border-l-green-400"
+          : "bg-white border-l-4 border-l-red-400"
+      }`}
+    >
+      <h5 className="text-base font-bold text-slate-700 mb-4 flex items-center">
+        <span>
+          {direction} cable {direction === "Incoming" ? "from" : "to"}
+        </span>
+        <MiniNodeDisplay nodeData={otherNodeData} getNodeIcon={getNodeIcon} />
+      </h5>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
+        <div>
+          <label className="label-style">Link Type</label>
+          <select
+            name="link_type"
+            value={edge.link_type || "Fiber Optic"}
+            onChange={handleChange}
+            className="input-style"
+          >
+            {LINK_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="label-style">Cable ID</label>
+          <input
+            type="text"
+            name="cable_id"
+            value={edge.cable_id || ""}
+            onChange={handleChange}
+            className="input-style"
+            placeholder="Enter cable ID"
+          />
+        </div>
+        <div>
+          <label className="label-style">Length (m)</label>
+          <input
+            type="number"
+            name="cable_length"
+            value={edge.cable_length || ""}
+            onChange={handleChange}
+            className="input-style"
+            placeholder="Enter cable length"
+          />
+        </div>
+        <div>
+          <label className="label-style">Start Unit</label>
+          <input
+            type="number"
+            name="cable_start"
+            value={edge.cable_start || ""}
+            onChange={handleChange}
+            className="input-style"
+            placeholder="Enter start unit"
+          />
+        </div>
+        <div>
+          <label className="label-style">End Unit</label>
+          <input
+            type="number"
+            name="cable_end"
+            value={edge.cable_end || ""}
+            onChange={handleChange}
+            className="input-style"
+            placeholder="Enter end unit"
+          />
+        </div>
+        <ColorPicker
+          selectedColor={edge.cable_color}
+          onChange={handleColorChange}
+        />
+        <div className="md:col-span-3">
+          <label className="label-style">Description</label>
+          <input
+            type="text"
+            name="cable_desc"
+            value={edge.cable_desc || ""}
+            onChange={handleChange}
+            className="input-style"
+            placeholder="Enter cable description"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---
+// Main EditNodeModal Component (Accepts new props)
+// ---
+const EditNodeModal = ({
+  node,
+  isOpen,
+  onClose,
+  onSave,
+  nodes,
+  getNodeIcon,
+}) => {
+  const [deviceData, setDeviceData] = useState(null);
+  const [incomingEdges, setIncomingEdges] = useState([]);
+  const [outgoingEdges, setOutgoingEdges] = useState([]);
+  const [originalState, setOriginalState] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // (This useEffect fetches the data when the modal opens)
+  useEffect(() => {
+    if (isOpen && node) {
+      const loadDetails = async () => {
+        setIsLoading(true);
+        try {
+          const data = await fetchNodeDetails(node.id);
+          setDeviceData({
+            ...data.device,
+            location:
+              data.device.lat1 && data.device.long1
+                ? `${data.device.lat1}, ${data.device.long1}`
+                : "",
+          });
+          setIncomingEdges(data.incoming_edges);
+          setOutgoingEdges(data.outgoing_edges);
+          setOriginalState(JSON.parse(JSON.stringify(data)));
+        } catch (error) {
+          toast.error("Failed to load device details. Closing modal.");
+          onClose();
+        }
+        setIsLoading(false);
+      };
+      loadDetails();
+    } else {
+      setDeviceData(null);
+      setIncomingEdges([]);
+      setOutgoingEdges([]);
+      setOriginalState(null);
+    }
+  }, [isOpen, node, onClose]);
+
+  // (This handles changes to the main device form)
+  const handleDeviceChange = (e) => {
+    const { name, value } = e.target;
+    setDeviceData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // (This handles changes in any of the cable forms)
+  const handleEdgeChange = (edgeId, fieldName, value) => {
+    const updater = (edges) =>
+      edges.map((edge) =>
+        edge.id === edgeId ? { ...edge, [fieldName]: value } : edge
+      );
+
+    if (incomingEdges.some((e) => e.id === edgeId)) {
+      setIncomingEdges(updater);
+    } else if (outgoingEdges.some((e) => e.id === edgeId)) {
+      setOutgoingEdges(updater);
+    }
+  };
+
+  // (This gathers all changes and sends them to the API)
+  const handleSave = async () => {
+    if (!originalState) return;
+    setIsLoading(true);
+
+    const deviceChanges = {};
+    for (const key in deviceData) {
+      if (key === "location") continue;
+      if (deviceData[key] !== originalState.device[key]) {
+        deviceChanges[key] = deviceData[key];
       }
     }
 
-    if ("location" in changes) {
-      const coords = (changes.location || "").split(/[, ]+/).filter(Boolean);
+    const originalLocation =
+      originalState.device.lat1 && originalState.device.long1
+        ? `${originalState.device.lat1}, ${originalState.device.long1}`
+        : "";
+    if (deviceData.location !== originalLocation) {
+      const coords = (deviceData.location || "").split(/[, ]+/).filter(Boolean);
       let lat = null;
       let lon = null;
       if (coords.length === 2) {
@@ -74,99 +249,139 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
           lon = parsedLon;
         }
       }
-      changes.lat1 = lat;
-      changes.long1 = lon;
-      delete changes.location;
+      deviceChanges.lat1 = lat;
+      deviceChanges.long1 = lon;
     }
 
-    const numericFields = [
-      "split_ratio",
-      "cable_start",
-      "cable_end",
-      "cable_length",
+    const allEdges = [...incomingEdges, ...outgoingEdges];
+    const allOriginalEdges = [
+      ...originalState.incoming_edges,
+      ...originalState.outgoing_edges,
     ];
-    numericFields.forEach((field) => {
-      if (field in changes && typeof changes[field] === MISC.STRING) {
-        changes[field] = parseInt(changes[field], 10) || null;
-      }
-    });
+    const edgeChanges = [];
+    const numericEdgeFields = ["cable_start", "cable_end", "cable_length"];
 
-    if (Object.keys(changes).length > 0) {
-      onSave(node.id, changes);
+    for (const edge of allEdges) {
+      const originalEdge = allOriginalEdges.find((e) => e.id === edge.id);
+      if (!originalEdge) continue;
+
+      const singleEdgePayload = { id: edge.id };
+      let hasChange = false;
+
+      for (const key in edge) {
+        if (key === "id") continue;
+        if (edge[key] !== originalEdge[key]) {
+          if (
+            numericEdgeFields.includes(key) &&
+            typeof edge[key] === MISC.STRING
+          ) {
+            singleEdgePayload[key] = parseInt(edge[key], 10) || null;
+          } else {
+            singleEdgePayload[key] = edge[key];
+          }
+          hasChange = true;
+        }
+      }
+
+      if (hasChange) {
+        edgeChanges.push(singleEdgePayload);
+      }
     }
 
-    onClose();
+    if (Object.keys(deviceChanges).length === 0 && edgeChanges.length === 0) {
+      toast.info("No changes to save.");
+      setIsLoading(false);
+      onClose();
+      return;
+    }
+
+    const numericDeviceFields = ["split_ratio"];
+    for (const field of numericDeviceFields) {
+      if (
+        field in deviceChanges &&
+        typeof deviceChanges[field] === MISC.STRING
+      ) {
+        deviceChanges[field] = parseInt(deviceChanges[field], 10) || null;
+      }
+    }
+
+    const payload = {
+      device_data: deviceChanges,
+      edges_to_update: edgeChanges,
+    };
+
+    try {
+      await updateNodeDetails(node.id, payload);
+      onSave();
+    } catch (error) {
+      // Error already toasted
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="absolute inset-0 bg-slate-900/70 z-[100] flex justify-center items-center p-4">
       <div className="bg-white p-4 md:p-8 rounded-lg shadow-md w-full max-w-4xl max-h-[95vh] flex flex-col">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/80 flex justify-center items-center z-20 rounded-lg">
+            <div className="w-12 h-12 border-3 border-black border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
         <h3 className="text-lg md:text-2xl font-bold text-slate-800 pb-4 mb-4">
           Edit Device Details
         </h3>
-        <div className="overflow-y-auto pr-6 -mr-6 flex-grow">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-2">
-              Basic Info
-            </h4>
-            <div className="md:col-span-2">
-              <label className="label-style">
-                Name <span className="text-[#d43c3c]">*</span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="input-style"
-                placeholder="Enter device name"
-              />
-            </div>
-            <div>
-              <label className="label-style">Link Type</label>
-              <select
-                name="link_type"
-                value={formData.link_type}
-                onChange={handleChange}
-                className="input-style"
-              >
-                {LINK_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="label-style">
-                Device <span className="text-[#d43c3c]">*</span>
-              </label>
-              <select
-                name="node_type"
-                value={formData.node_type}
-                onChange={handleChange}
-                className="input-style"
-              >
-                {NODE_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-            {formData.node_type && (
-              <>
+        {deviceData && (
+          <>
+            <div className="overflow-y-auto pr-6 -mr-6 flex-grow">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-2">
+                  General Information
+                </h4>
+                <div className="md:col-span-2">
+                  <label className="label-style">
+                    Name <span className="text-[#d43c3c]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={deviceData.name}
+                    onChange={handleDeviceChange}
+                    className="input-style"
+                    placeholder="Enter device name"
+                  />
+                </div>
+                <div>
+                  <label className="label-style">
+                    Device <span className="text-[#d43c3c]">*</span>
+                  </label>
+                  <select
+                    name="node_type"
+                    value={deviceData.node_type}
+                    onChange={handleDeviceChange}
+                    className="input-style"
+                  >
+                    {NODE_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
-                  Device Detail
+                  Device Details
                 </h4>
                 <div>
                   <label className="label-style">Brand</label>
                   <input
                     type="text"
                     name="brand"
-                    value={formData.brand}
-                    onChange={handleChange}
+                    value={deviceData.brand || ""}
+                    onChange={handleDeviceChange}
                     className="input-style"
                     placeholder="Enter brand name"
                   />
@@ -176,8 +391,8 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                   <input
                     type="text"
                     name="model"
-                    value={formData.model}
-                    onChange={handleChange}
+                    value={deviceData.model || ""}
+                    onChange={handleDeviceChange}
                     className="input-style"
                     placeholder="Enter model name"
                   />
@@ -187,20 +402,21 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                   <input
                     type="text"
                     name="serial_no"
-                    value={formData.serial_no}
-                    onChange={handleChange}
+                    value={deviceData.serial_no || ""}
+                    onChange={handleDeviceChange}
                     className="input-style"
                     placeholder="Enter serial number"
                   />
                 </div>
-                {formData.node_type === NODE_TYPES_ENUM.ONU && (
+
+                {deviceData.node_type === NODE_TYPES_ENUM.ONU && (
                   <>
                     <div>
                       <label className="label-style">Device Type</label>
                       <select
                         name="device_type"
-                        value={formData.device_type}
-                        onChange={handleChange}
+                        value={deviceData.device_type || ""}
+                        onChange={handleDeviceChange}
                         className="input-style"
                       >
                         {DEVICE_TYPES.map((type) => (
@@ -216,9 +432,9 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                         count={6}
                         maxLength={2}
                         separator=":"
-                        value={formData.mac}
+                        value={deviceData.mac || ""}
                         onChange={(macValue) =>
-                          handleChange({
+                          handleDeviceChange({
                             target: { name: "mac", value: macValue },
                           })
                         }
@@ -231,9 +447,9 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                         count={4}
                         maxLength={3}
                         separator="."
-                        value={formData.ip}
+                        value={deviceData.ip || ""}
                         onChange={(ipValue) =>
-                          handleChange({
+                          handleDeviceChange({
                             target: { name: "ip", value: ipValue },
                           })
                         }
@@ -242,139 +458,101 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                     </div>
                   </>
                 )}
-              </>
-            )}
 
-            {formData.node_type === NODE_TYPES_ENUM.SPLITTER && (
-              <>
+                {deviceData.node_type === NODE_TYPES_ENUM.SPLITTER && (
+                  <>
+                    <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
+                      Splitter Details
+                    </h4>
+                    <div>
+                      <label className="label-style">
+                        Split Ratio <span className="text-[#d43c3c]">*</span>
+                      </label>
+                      <select
+                        name="split_ratio"
+                        value={deviceData.split_ratio || ""}
+                        onChange={handleDeviceChange}
+                        className="input-style"
+                        placeholder="Select split ratio"
+                      >
+                        {SPLIT_RATIOS.map((ratio) => (
+                          <option key={ratio} value={ratio}>
+                            {ratio}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label-style">Split Group</label>
+                      <input
+                        type="text"
+                        name="split_group"
+                        value={deviceData.split_group || ""}
+                        onChange={handleDeviceChange}
+                        className="input-style"
+                        placeholder="Enter split group"
+                      />
+                    </div>
+                  </>
+                )}
+
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
-                  Splitter Detail
+                  Cable Details
                 </h4>
-                <div>
-                  <label className="label-style">
-                    Split Ratio <span className="text-[#d43c3c]">*</span>
-                  </label>
-                  <select
-                    name="split_ratio"
-                    value={formData.split_ratio}
-                    onChange={handleChange}
-                    className="input-style"
-                    placeholder="Select split ratio"
-                  >
-                    {SPLIT_RATIOS.map((ratio) => (
-                      <option key={ratio} value={ratio}>
-                        {ratio}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="label-style">Split Group</label>
-                  <input
-                    type="text"
-                    name="split_group"
-                    value={formData.split_group}
-                    onChange={handleChange}
-                    className="input-style"
-                    placeholder="Enter split group"
-                  />
-                </div>
-              </>
-            )}
-            {formData.node_type && (
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
-                  Cable Detail
-                </h4>
-                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-                  <div>
-                    <label className="label-style">Cable ID</label>
-                    <input
-                      type="text"
-                      name="cable_id"
-                      value={formData.cable_id}
-                      onChange={handleChange}
-                      className="input-style"
-                      placeholder="Enter cable ID"
-                    />
-                  </div>
-                  <div>
-                    <label className="label-style">Length (m)</label>
-                    <input
-                      type="number"
-                      name="cable_length"
-                      value={formData.cable_length}
-                      onChange={handleChange}
-                      className="input-style"
-                      placeholder="Enter cable length (meters)"
-                    />
-                  </div>
-                  <ColorPicker
-                    selectedColor={formData.cable_color}
-                    onChange={(color) =>
-                      handleChange({
-                        target: { name: "cable_color", value: color },
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="label-style">Start Unit</label>
-                  <input
-                    type="number"
-                    name="cable_start"
-                    value={formData.cable_start}
-                    onChange={handleChange}
-                    className="input-style"
-                    placeholder="Enter start unit"
-                  />
-                </div>
-                <div>
-                  <label className="label-style">End Unit</label>
-                  <input
-                    type="number"
-                    name="cable_end"
-                    value={formData.cable_end}
-                    onChange={handleChange}
-                    className="input-style"
-                    placeholder="Enter end unit"
-                  />
-                </div>
+                {incomingEdges.length === 0 && outgoingEdges.length === 0 && (
+                  <p className="md:col-span-2 text-slate-500 italic">
+                    No cables are connected to this device.
+                  </p>
+                )}
 
-                <div className="md:col-span-2">
-                  <label className="label-style">Description</label>
-                  <input
-                    type="text"
-                    name="cable_desc"
-                    value={formData.cable_desc}
-                    onChange={handleChange}
-                    className="input-style"
-                    placeholder="Enter cable description"
-                  />
-                </div>
-              </div>
-            )}
+                {/* --- MODIFIED: Passing new props --- */}
+                {incomingEdges.map((edge) => {
+                  const otherNodeId = String(edge.source_id);
+                  const otherNode = nodes.find((n) => n.id === otherNodeId);
+                  return (
+                    <CableDetailForm
+                      key={edge.id}
+                      edge={edge}
+                      onChange={handleEdgeChange}
+                      direction="Incoming"
+                      otherNodeData={otherNode?.data}
+                      getNodeIcon={getNodeIcon}
+                    />
+                  );
+                })}
+                {outgoingEdges.map((edge) => {
+                  const otherNodeId = String(edge.target_id);
+                  const otherNode = nodes.find((n) => n.id === otherNodeId);
+                  return (
+                    <CableDetailForm
+                      key={edge.id}
+                      edge={edge}
+                      onChange={handleEdgeChange}
+                      direction="Outgoing"
+                      otherNodeData={otherNode?.data}
+                      getNodeIcon={getNodeIcon}
+                    />
+                  );
+                })}
 
-            {formData.node_type && (
-              <>
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
-                  Other Info
+                  Other Information
                 </h4>
                 <div
                   className={`md:col-span-2 grid grid-cols-1 ${
-                    formData.node_type === NODE_TYPES_ENUM.ONU
+                    deviceData.node_type === NODE_TYPES_ENUM.ONU
                       ? "md:grid-cols-3"
                       : "md:grid-cols-2"
                   } gap-x-8 gap-y-6`}
                 >
-                  {formData.node_type === NODE_TYPES_ENUM.ONU && (
+                  {deviceData.node_type === NODE_TYPES_ENUM.ONU && (
                     <div>
                       <label className="label-style">VLAN</label>
                       <input
                         type="text"
                         name="vlan"
-                        value={formData.vlan}
-                        onChange={handleChange}
+                        value={deviceData.vlan || ""}
+                        onChange={handleDeviceChange}
                         className="input-style"
                         placeholder="Enter VLAN"
                       />
@@ -385,8 +563,8 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                     <input
                       type="text"
                       name="location"
-                      value={formData.location || ""}
-                      onChange={handleChange}
+                      value={deviceData.location || ""}
+                      onChange={handleDeviceChange}
                       className="input-style"
                       placeholder="Enter latitude, longitude"
                     />
@@ -396,26 +574,34 @@ const EditNodeModal = ({ node, isOpen, onClose, onSave }) => {
                   <label className="label-style">Remarks</label>
                   <textarea
                     name="remarks"
-                    value={formData.remarks}
-                    onChange={handleChange}
+                    value={deviceData.remarks || ""}
+                    onChange={handleDeviceChange}
                     className="input-style"
                     rows="3"
                     placeholder="Enter any remarks"
                   ></textarea>
                 </div>
-              </>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
 
-        <div className="flex justify-end space-x-3 border-t border-slate-200 pt-6 mt-8">
-          <button onClick={onClose} className="btn-secondary">
-            Cancel
-          </button>
-          <button onClick={handleSave} className="btn-primary">
-            Save Changes
-          </button>
-        </div>
+            <div className="flex justify-end space-x-3 border-t border-slate-200 pt-6 mt-8">
+              <button
+                onClick={onClose}
+                className="btn-secondary"
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="btn-primary"
+                disabled={isLoading}
+              >
+                {isLoading ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

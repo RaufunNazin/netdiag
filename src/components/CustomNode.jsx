@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { memo, useState, useRef } from "react";
 import { Handle, Position } from "reactflow";
 import { createPortal } from "react-dom";
@@ -19,7 +20,7 @@ import splitterIcon from "../assets/icons/splitter.png";
 import tjIcon from "../assets/icons/tj.png";
 import otherIcon from "../assets/icons/other.png";
 
-const ICONS = {
+export const ICONS = {
   ap: <img src={apIcon} alt="Access Point" width="24" height="24" />,
   bamboo: <img src={bambooIcon} alt="Bamboo" width="24" height="24" />,
   mswitch: <img src={mswitchIcon} alt="mSwitch" width="24" height="24" />,

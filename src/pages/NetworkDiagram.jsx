@@ -922,65 +922,6 @@ const NetworkDiagram = () => {
     ]
   );
 
-  const handleUpdateNodeLabel = useCallback(
-    async (nodeId, updatedFormData) => {
-      try {
-        const nodeToUpdate = nodes.find((n) => n.id === nodeId);
-        if (!nodeToUpdate) {
-          throw new Error("Node to update not found.");
-        }
-        const payload = {
-          ...updatedFormData,
-          original_name: nodeToUpdate.data.name,
-          sw_id: nodeToUpdate.data.sw_id,
-        };
-
-        await saveNodeInfo(payload);
-
-        const newNodes = nodes.map((n) =>
-          n.id === nodeId
-            ? {
-                ...n,
-                data: {
-                  ...n.data,
-                  ...updatedFormData,
-                  label: updatedFormData.name || n.data.label,
-                  name: updatedFormData.name || n.data.name,
-                  icon: updatedFormData.node_type
-                    ? getNodeIcon(updatedFormData.node_type)
-                    : n.data.icon,
-                },
-              }
-            : n
-        );
-
-        setNodes(newNodes);
-
-        initialNodesRef.current = newNodes;
-
-        if (updatedFormData.cable_color !== undefined) {
-          setEdges((eds) =>
-            eds.map((edge) => {
-              if (edge.target === nodeId) {
-                return {
-                  ...edge,
-                  style: {
-                    ...edge.style,
-                    stroke: updatedFormData.cable_color || "#1e293b",
-                  },
-                };
-              }
-              return edge;
-            })
-          );
-        }
-      } catch (error) {
-        console.error("Error saving node info:", error);
-      }
-    },
-    [nodes, setNodes, setEdges]
-  );
-
   const onNodeFound = (nodeId) => {
     setNodes((nds) =>
       nds.map((n) => ({
@@ -1720,7 +1661,9 @@ const NetworkDiagram = () => {
           isOpen={editModal.isOpen}
           node={editModal.node}
           onClose={() => setEditModal({ isOpen: false, node: null })}
-          onSave={handleUpdateNodeLabel}
+          onSave={() => window.location.reload()}
+          nodes={nodes} // <-- ADD THIS PROP
+          getNodeIcon={getNodeIcon} // <-- ADD THIS PROP
         />
         <AddNodeModal
           isOpen={addModal.isOpen}
