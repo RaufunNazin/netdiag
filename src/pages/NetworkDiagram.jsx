@@ -535,31 +535,6 @@ const NetworkDiagram = () => {
     setIsSaveConfirmModalOpen,
   ]);
 
-  const onEdgeUpdate = useCallback(
-    (oldEdge, newConnection) => {
-      if (!isEditMode) return;
-
-      pushStateToHistory();
-
-      const childNode = nodes.find((n) => n.id === newConnection.target);
-
-      if (childNode) {
-        setUpdatedConnections((prev) => [
-          ...prev,
-          {
-            oldParentId: oldEdge.source,
-            newParentId: newConnection.source,
-            childId: newConnection.target,
-            childNodeInfo: childNode.data,
-          },
-        ]);
-      }
-
-      setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
-    },
-    [setEdges, isEditMode, pushStateToHistory, nodes]
-  );
-
   const isValidConnection = useCallback((connection) => {
     if (connection.source === connection.target) return false;
     return (
@@ -1123,14 +1098,22 @@ const NetworkDiagram = () => {
 
         const initialEdges = [];
         apiData.forEach((item) => {
-          if (item.parent_id !== null && item.parent_id !== 0) {
+          // Check for parent_id AND a valid edge_id
+          if (
+            item.parent_id !== null &&
+            item.parent_id !== 0 &&
+            item.edge_id !== null
+          ) {
             const identityKey = `${item.name}-${item.sw_id ?? -1}`;
             let targetId = nameSwIdToNodeIdMap.has(identityKey)
               ? nameSwIdToNodeIdMap.get(identityKey)
               : String(item.id);
+
             if (targetId) {
               initialEdges.push({
-                id: `e-${item.id}`,
+                // --- FIX ---
+                // Use the unique edge ID from the database
+                id: `e-${item.edge_id}`,
                 source: String(item.parent_id),
                 target: targetId,
                 markerEnd: { type: MarkerType.ArrowClosed },
@@ -1643,7 +1626,6 @@ const NetworkDiagram = () => {
         onPaneClick={onPaneClick}
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}
-        onEdgeUpdate={onEdgeUpdate}
         onNodeClick={onNodeClick}
         onSelectionChange={onSelectionChange}
         selectionOnDrag={true}

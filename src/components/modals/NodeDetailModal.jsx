@@ -62,8 +62,8 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
         </h3>
 
         <div className="flex-grow overflow-y-auto pr-4 -mr-4">
-          <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-3">
-            <h4 className="md:col-span-3 text-lg font-bold text-slate-700">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-3">
+            <h4 className="col-span-2 md:col-span-3 text-lg font-bold text-slate-700">
               Basic Info
             </h4>
             <DetailItem label="Name" value={data.label || data.name} />
@@ -73,7 +73,7 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
 
             {hasDeviceSpecifics && (
               <>
-                <h4 className="md:col-span-3 mt-6 text-lg font-bold text-slate-700">
+                <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-slate-700">
                   Device Specifics
                 </h4>
                 <DetailItem label="Brand" value={data.brand} />
@@ -87,7 +87,7 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
 
             {hasSplitterDetails && (
               <>
-                <h4 className="md:col-span-3 mt-6 text-lg font-bold text-slate-700">
+                <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-slate-700">
                   Splitter Details
                 </h4>
                 <DetailItem label="Split Ratio" value={data.split_ratio} />
@@ -97,7 +97,7 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
 
             {hasCableDetails && (
               <>
-                <h4 className="md:col-span-3 mt-6 text-lg font-bold text-slate-700">
+                <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-slate-700">
                   Cable Details
                 </h4>
                 <DetailItem label="Cable ID" value={data.cable_id} />
@@ -122,13 +122,15 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
 
             {(hasLocationInfo || data.remarks) && (
               <>
-                <h4 className="md:col-span-3 mt-6 text-lg font-bold text-slate-700">
+                <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-slate-700">
                   Location & Remarks
                 </h4>
                 <DetailItem label="Latitude" value={data.lat1} />
                 <DetailItem label="Longitude" value={data.long1} />
                 {hasLocationInfo && (
-                  <LocationMap lat={data.lat1} lon={data.long1} />
+                  <div className="col-span-2 md:col-span-3">
+                    <LocationMap lat={data.lat1} lon={data.long1} />
+                  </div>
                 )}
                 {data.remarks && (
                   <div className="md:col-span-3">
