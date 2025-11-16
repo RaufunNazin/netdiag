@@ -307,27 +307,27 @@ const CustomNode = ({ data, isConnectable }) => {
           )}
         </div>
 
-        {!id
-          ? data.node_type !== NODE_TYPES_ENUM.OLT && (
-              <Handle
-                type="source"
-                position={Position.Right}
-                id="right"
-                isConnectableStart={isConnectable}
-                isConnectableEnd={false}
-                className="!bg-orange-500 !w-3 !h-3"
-              />
-            )
-          : data.node_type !== NODE_TYPES_ENUM.ONU && (
-              <Handle
-                type="source"
-                position={Position.Right}
-                id="right"
-                isConnectableStart={isConnectable}
-                isConnectableEnd={false}
-                className="!bg-orange-500 !w-3 !h-3"
-              />
-            )}
+        {!id ? (
+          <Handle
+            type="source"
+            position={Position.Right}
+            id="right"
+            isConnectableStart={isConnectable}
+            isConnectableEnd={false}
+            className="!bg-orange-500 !w-3 !h-3"
+          />
+        ) : (
+          data.node_type !== NODE_TYPES_ENUM.ONU && (
+            <Handle
+              type="source"
+              position={Position.Right}
+              id="right"
+              isConnectableStart={isConnectable}
+              isConnectableEnd={false}
+              className="!bg-orange-500 !w-3 !h-3"
+            />
+          )
+        )}
       </div>
 
       {isPopoverVisible &&

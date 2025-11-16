@@ -11,23 +11,16 @@ import ColorPicker from "../ui/ColorPicker";
 import SegmentedInput from "../ui/SegmentedInput";
 import { NODE_TYPES_ENUM, MISC } from "../../utils/enums";
 import { fetchNodeDetails, updateNodeDetails } from "../../utils/graphUtils";
-// --- MODIFIED: Import your ICONS object ---
-// (Adjust the path if CustomNode.jsx is in a different directory)
 import { ICONS } from "../../components/CustomNode.jsx";
 
-// ---
-// UPDATED: Mini-Node Display Component (Uses ICONS)
-// ---
 const MiniNodeDisplay = ({ nodeData, getNodeIcon }) => {
   if (!nodeData) {
     return (
       <span className="font-normal text-slate-500 ml-2">(Unknown Node)</span>
     );
   }
-  // Get the icon key (e.g., "olt", "onu")
   const iconKey = getNodeIcon(nodeData.node_type);
   return (
-    // Styled to look like a mini-version of your actual nodes
     <div className="inline-flex items-center bg-white border border-slate-300 rounded py-1 px-3 ml-2">
       <div className="w-5 h-5">{ICONS[iconKey] || ICONS["default"]}</div>
       <span className="text-xs font-semibold text-slate-800 ml-1.5">
@@ -37,9 +30,6 @@ const MiniNodeDisplay = ({ nodeData, getNodeIcon }) => {
   );
 };
 
-// ---
-// UPDATED: CableDetailForm Component (Subtle Styles)
-// ---
 const CableDetailForm = ({
   edge,
   onChange,
@@ -57,7 +47,6 @@ const CableDetailForm = ({
   };
 
   return (
-    // --- MODIFIED: Subtle left-border highlight ---
     <div
       className={`md:col-span-2 p-4 rounded-lg shadow-sm ${
         direction === "Incoming"
@@ -151,9 +140,6 @@ const CableDetailForm = ({
   );
 };
 
-// ---
-// Main EditNodeModal Component (Accepts new props)
-// ---
 const EditNodeModal = ({
   node,
   isOpen,
@@ -168,7 +154,6 @@ const EditNodeModal = ({
   const [originalState, setOriginalState] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // (This useEffect fetches the data when the modal opens)
   useEffect(() => {
     if (isOpen && node) {
       const loadDetails = async () => {
@@ -200,13 +185,11 @@ const EditNodeModal = ({
     }
   }, [isOpen, node, onClose]);
 
-  // (This handles changes to the main device form)
   const handleDeviceChange = (e) => {
     const { name, value } = e.target;
     setDeviceData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // (This handles changes in any of the cable forms)
   const handleEdgeChange = (edgeId, fieldName, value) => {
     const updater = (edges) =>
       edges.map((edge) =>
@@ -220,7 +203,6 @@ const EditNodeModal = ({
     }
   };
 
-  // (This gathers all changes and sends them to the API)
   const handleSave = async () => {
     if (!originalState) return;
     setIsLoading(true);
@@ -505,7 +487,6 @@ const EditNodeModal = ({
                   </p>
                 )}
 
-                {/* --- MODIFIED: Passing new props --- */}
                 {incomingEdges.map((edge) => {
                   const otherNodeId = String(edge.source_id);
                   const otherNode = nodes.find((n) => n.id === otherNodeId);

@@ -1662,8 +1662,8 @@ const NetworkDiagram = () => {
           node={editModal.node}
           onClose={() => setEditModal({ isOpen: false, node: null })}
           onSave={() => window.location.reload()}
-          nodes={nodes} // <-- ADD THIS PROP
-          getNodeIcon={getNodeIcon} // <-- ADD THIS PROP
+          nodes={nodes}
+          getNodeIcon={getNodeIcon}
         />
         <AddNodeModal
           isOpen={addModal.isOpen}
