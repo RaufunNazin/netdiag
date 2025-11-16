@@ -45,24 +45,23 @@ export const fetchRootCandidates = async () => {
   }
 };
 
-export const saveNodeInfo = async (updatedInfo, muted = false) => {
+export const saveNodePosition = async (nodeId, positionData, muted = false) => {
+  // positionData should be { position_x, position_y, position_mode }
+  const payload = {
+    device_data: positionData,
+    edges_to_update: [],
+  };
   try {
-    const response = await api.put(`/device`, updatedInfo);
+    // We use the NEW endpoint here
+    await api.put(`/node-details/${nodeId}`, payload);
     if (!muted) {
-      if (response.status === 200) {
-        toast.success("Device update successful!");
-      } else {
-        toast.error(response.data?.detail || "Failed to update device");
-      }
+      toast.success("Position saved!");
     }
   } catch (error) {
-    console.error("Error saving device info:", error);
-    if (!muted) {
-      toast.error(
-        error.response?.data?.detail ||
-          "An error occurred while saving device info."
-      );
-    }
+    console.error("Error saving node position:", error);
+    toast.error(
+      error.response?.data?.detail || "An error occurred while saving position."
+    );
     throw error;
   }
 };
@@ -107,7 +106,30 @@ export const insertNode = async (payload) => {
 
 export const createNode = async (nodeData) => {
   try {
-    const response = await api.post(`/device`, nodeData);
+    // --- MODIFIED ---
+    // Create a new object with only the device fields
+    // The backend will soon reject edge fields on this endpoint
+    const devicePayload = {
+      name: nodeData.name,
+      node_type: nodeData.node_type,
+      sw_id: nodeData.sw_id,
+      brand: nodeData.brand,
+      model: nodeData.model,
+      serial_no: nodeData.serial_no,
+      mac: nodeData.mac,
+      ip: nodeData.ip,
+      split_ratio: nodeData.split_ratio,
+      split_group: nodeData.split_group,
+      vlan: nodeData.vlan,
+      lat1: nodeData.lat1,
+      long1: nodeData.long1,
+      remarks: nodeData.remarks,
+    };
+
+    // The endpoint is the same, but the payload is now clean
+    const response = await api.post(`/device`, devicePayload);
+    // --- END MODIFICATION ---
+
     if (response.status === 201) {
       toast.success("Device created! Find it in the inventory drawer.");
     } else {
@@ -120,37 +142,6 @@ export const createNode = async (nodeData) => {
       error.response?.data?.detail ||
         "An error occurred while creating the device."
     );
-    throw error;
-  }
-};
-
-export const copyNodeInfo = async (
-  sourceNodeId,
-  newParentId,
-  muted = false
-) => {
-  try {
-    const payload = {
-      source_node_id: parseInt(sourceNodeId, 10),
-      new_parent_id: parseInt(newParentId, 10),
-    };
-    const response = await api.post(`/device/copy`, payload);
-
-    if (!muted) {
-      if (response.status === 201) {
-        toast.success("Connection update successful!");
-      } else {
-        toast.error(response.data?.detail || "Failed to update connection");
-      }
-    }
-  } catch (error) {
-    console.error("Error copying connection info:", error);
-    if (!muted) {
-      toast.error(
-        error.response?.data?.detail ||
-          "An error occurred while copying connection info."
-      );
-    }
     throw error;
   }
 };
@@ -197,9 +188,9 @@ export const getDescendants = (nodeId, allNodes, allEdges) => {
   return { hiddenNodeIds, hiddenEdgeIds };
 };
 
-export const deleteNode = async (nodeInfo, muted = false) => {
+export const deleteNode = async (deviceId, muted = false) => {
   try {
-    const response = await api.delete(`/node`, { data: nodeInfo });
+    const response = await api.delete(`/device/${deviceId}`); // <-- Changed URL
     if (!muted) {
       if (response.status === 200) {
         toast.success("Device and all its connections deleted successfully!");
@@ -209,7 +200,7 @@ export const deleteNode = async (nodeInfo, muted = false) => {
     }
     return response.data;
   } catch (error) {
-    console.error(`Error deleting node ${nodeInfo.name}:`, error);
+    console.error(`Error deleting node ${deviceId}:`, error); // <-- Changed logging
     if (!muted) {
       toast.error(
         error.response?.data?.detail ||
@@ -233,9 +224,9 @@ export const fetchOnuCustomerInfo = async (oltId, portName) => {
   }
 };
 
-export const deleteEdge = async (edgeInfo, muted = false) => {
+export const deleteEdge = async (edgeId, muted = false) => {
   try {
-    const response = await api.delete(`/edge`, { data: edgeInfo });
+    const response = await api.delete(`/edge/${edgeId}`); // <-- Changed URL
 
     if (!muted) {
       if (response.status === 200) {
@@ -246,7 +237,7 @@ export const deleteEdge = async (edgeInfo, muted = false) => {
     }
     return response.data;
   } catch (error) {
-    console.error("Error deleting edge:", error);
+    console.error(`Error deleting edge ${edgeId}:`, error); // <-- Changed logging
     if (!muted) {
       toast.error(
         error.response?.data?.detail ||

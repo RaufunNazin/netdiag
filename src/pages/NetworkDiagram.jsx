@@ -25,8 +25,7 @@ import { toast } from "react-toastify";
 import {
   fetchData,
   getDescendants,
-  saveNodeInfo,
-  copyNodeInfo,
+  saveNodePosition,
   deleteNode,
   deleteEdge,
   createNode,
@@ -127,8 +126,6 @@ const NetworkDiagram = () => {
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [history, setHistory] = useState([]);
-  const [newConnections, setNewConnections] = useState([]);
-  const [updatedConnections, setUpdatedConnections] = useState([]);
   const [deletedNodes, setDeletedNodes] = useState([]);
   const [deletedEdges, setDeletedEdges] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
@@ -176,19 +173,11 @@ const NetworkDiagram = () => {
       {
         nodes: currentNodes,
         edges: currentEdges,
-        newConnections: newConnections,
-        updatedConnections: updatedConnections,
         deletedNodes: deletedNodes,
         deletedEdges: deletedEdges,
       },
     ]);
-  }, [
-    reactFlowInstance,
-    newConnections,
-    updatedConnections,
-    deletedNodes,
-    deletedEdges,
-  ]);
+  }, [reactFlowInstance, deletedNodes, deletedEdges]);
 
   const handleShowCustomers = useCallback((nodeData) => {
     setCustomerModalNode(nodeData);
@@ -204,14 +193,12 @@ const NetworkDiagram = () => {
       if (lastState) {
         setNodes(lastState.nodes);
         setEdges(lastState.edges);
-        setNewConnections(lastState.newConnections);
-        setUpdatedConnections(lastState.updatedConnections);
         setDeletedNodes(lastState.deletedNodes);
         setDeletedEdges(lastState.deletedEdges);
       }
       return newHistory;
     });
-  }, [history, setNodes, setEdges, setNewConnections]);
+  }, [history, setNodes, setEdges]);
 
   const handleDetailsClick = useCallback((nodeData) => {
     setDetailModal({ isOpen: true, node: { data: nodeData } });
@@ -307,44 +294,32 @@ const NetworkDiagram = () => {
     });
 
     try {
+      // --- MODIFIED ---
       const deleteEdgeFns = deletedEdges.map(
-        (edgeInfo) => () => deleteEdge(edgeInfo, true)
+        (edgeId) => () => deleteEdge(edgeId, true)
       );
 
-      const updateConnectionFns = updatedConnections.map((conn) => async () => {
-        const edgeInfo = {
-          name: conn.childNodeInfo.name,
-          source_id: parseInt(conn.oldParentId, 10),
-          sw_id: conn.childNodeInfo.sw_id,
-        };
-        await deleteEdge(edgeInfo, true);
-        return copyNodeInfo(
-          parseInt(conn.childId, 10),
-          parseInt(conn.newParentId, 10),
-          true
-        );
-      });
+      // updateConnectionFns removed
 
       const deleteNodeFns = deletedNodes.map(
-        (nodeInfo) => () => deleteNode(nodeInfo, true)
+        (nodeId) => () => deleteNode(nodeId, true)
       );
 
-      const createConnectionFns = newConnections.map((conn) => () => {
-        const newParentId = parseInt(conn.source, 10);
-        const sourceNodeId = parseInt(conn.target, 10);
-        return copyNodeInfo(sourceNodeId, newParentId, true);
-      });
+      // createConnectionFns removed
 
+      // --- FIXED PAYLOAD ---
       const savePositionFns = movedNodes.map((node) => () => {
-        const payload = {
-          original_name: node.data.name,
-          sw_id: node.data.sw_id,
-          position_x: node.position.x,
-          position_y: node.position.y,
-          position_mode: 1,
-        };
-        return saveNodeInfo(payload, true);
+        return saveNodePosition(
+          node.id,
+          {
+            position_x: node.position.x,
+            position_y: node.position.y,
+            position_mode: 1,
+          },
+          true // muted
+        );
       });
+      // --- END FIX ---
 
       console.log("Saving changes sequentially...");
 
@@ -353,18 +328,8 @@ const NetworkDiagram = () => {
         await fn();
       }
 
-      console.log(`Updating ${updateConnectionFns.length} connections...`);
-      for (const fn of updateConnectionFns) {
-        await fn();
-      }
-
       console.log(`Deleting ${deleteNodeFns.length} nodes...`);
       for (const fn of deleteNodeFns) {
-        await fn();
-      }
-
-      console.log(`Creating ${createConnectionFns.length} new connections...`);
-      for (const fn of createConnectionFns) {
         await fn();
       }
 
@@ -377,8 +342,6 @@ const NetworkDiagram = () => {
 
       window.location.reload();
 
-      setNewConnections([]);
-      setUpdatedConnections([]);
       setDeletedNodes([]);
       setDeletedEdges([]);
       setHistory([]);
@@ -393,12 +356,8 @@ const NetworkDiagram = () => {
     }
   }, [
     reactFlowInstance,
-    newConnections,
-    updatedConnections,
     deletedNodes,
     deletedEdges,
-    setNewConnections,
-    setUpdatedConnections,
     setDeletedNodes,
     setDeletedEdges,
     setHistory,
@@ -476,13 +435,9 @@ const NetworkDiagram = () => {
       };
       setEdges((eds) => addEdge(newEdge, eds));
 
-      const sourceNode = nodes.find((n) => n.id === params.source);
-      const targetNode = nodes.find((n) => n.id === params.target);
-      if (isEditMode && sourceNode && targetNode) {
-        setNewConnections((prevConnections) => [...prevConnections, params]);
-      }
+      // Removed setNewConnections logic
     },
-    [nodes, setEdges, setNewConnections, isEditMode, pushStateToHistory]
+    [isEditMode, pushStateToHistory, setEdges] // Simplified dependencies
   );
 
   const handleFabClick = useCallback(async () => {
@@ -504,8 +459,6 @@ const NetworkDiagram = () => {
 
       const hasChanges =
         movedNodes.length > 0 ||
-        newConnections.length > 0 ||
-        updatedConnections.length > 0 ||
         deletedNodes.length > 0 ||
         deletedEdges.length > 0;
 
@@ -523,8 +476,6 @@ const NetworkDiagram = () => {
     }
   }, [
     isEditMode,
-    newConnections,
-    updatedConnections,
     deletedNodes,
     deletedEdges,
     reactFlowInstance,
@@ -615,15 +566,13 @@ const NetworkDiagram = () => {
             eds.filter((e) => e.source !== id && e.target !== id)
           );
 
-          saveNodeInfo(
+          saveNodePosition(
+            id, // Pass the ID
             {
-              original_name: nodeToSend.data.name,
-              sw_id: nodeToSend.data.sw_id,
               position_x: null,
               position_y: null,
               position_mode: 0,
-            },
-            true
+            }
           );
           toast.info(`${nodeToSend.data.label} sent to inventory.`);
         }
@@ -766,7 +715,7 @@ const NetworkDiagram = () => {
             sw_id: nodeToDelete.data.sw_id,
           };
 
-          setDeletedNodes((prev) => [...prev, nodeInfo]);
+          setDeletedNodes((prev) => [...prev, id]);
           setNodes((nds) => nds.filter((n) => n.id !== id));
           setEdges((eds) =>
             eds.filter((e) => e.source !== id && e.target !== id)
@@ -776,13 +725,8 @@ const NetworkDiagram = () => {
           const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
           if (!edgeToDelete || !targetNode) return;
 
-          const edgeInfo = {
-            name: targetNode.data.name,
-            source_id: parseInt(edgeToDelete.source, 10),
-            sw_id: targetNode.data.sw_id,
-          };
-
-          setDeletedEdges((prev) => [...prev, edgeInfo]);
+          const edgeId = id.replace("e-", "");
+          setDeletedEdges((prev) => [...prev, edgeId]);
           setEdges((eds) => eds.filter((e) => e.id !== id));
         }
       } catch (error) {
@@ -813,25 +757,15 @@ const NetworkDiagram = () => {
           localStorage.removeItem("dynamicRootId");
           setDynamicRootId(null);
         }
-        const nodeInfo = {
-          name: nodeToDelete.data.name,
-          sw_id: nodeToDelete.data.sw_id,
-        };
-
-        await deleteNode(nodeInfo);
+        await deleteNode(id); // <-- Just pass the ID
         window.location.reload();
       } else {
         const edgeToDelete = edges.find((e) => e.id === id);
         const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
         if (!edgeToDelete || !targetNode) return;
 
-        const edgeInfo = {
-          name: targetNode.data.name,
-          source_id: parseInt(edgeToDelete.source, 10),
-          sw_id: targetNode.data.sw_id,
-        };
-
-        await deleteEdge(edgeInfo);
+        const edgeId = id.replace("e-", "");
+        await deleteEdge(edgeId); // <-- Just pass the numeric ID
         window.location.reload();
       }
     } catch (error) {
@@ -839,7 +773,7 @@ const NetworkDiagram = () => {
     } finally {
       setDeleteModal({ isOpen: false, id: null, type: "" });
     }
-  }, [deleteModal, edges, nodes, dynamicRootId]);
+  }, [deleteModal, dynamicRootId]);
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -899,15 +833,13 @@ const NetworkDiagram = () => {
 
       if (!isEditMode) toast.info("Edit mode enabled.");
 
-      saveNodeInfo(
+      saveNodePosition(
+        nodeData.id, // Pass the ID
         {
-          original_name: nodeData.data.name,
-          sw_id: nodeData.data.sw_id,
           position_x: position.x,
           position_y: position.y,
           position_mode: 1,
-        },
-        true
+        }
       );
 
       toast.success(`Added ${nodeData.data.name} to the diagram.`);
@@ -1406,14 +1338,17 @@ const NetworkDiagram = () => {
             );
 
             const autoSavePromises = nodesToSave.map((node) => {
-              const payload = {
-                original_name: node.data.name,
-                sw_id: node.data.sw_id,
-                position_x: node.position.x,
-                position_y: node.position.y,
-                position_mode: 0,
-              };
-              return saveNodeInfo(payload, true);
+              // --- MODIFIED ---
+              return saveNodePosition(
+                node.id,
+                {
+                  position_x: node.position.x,
+                  position_y: node.position.y,
+                  position_mode: 0,
+                },
+                true // for muted
+              );
+              // --- END MODIFICATION ---
             });
 
             Promise.all(autoSavePromises)

@@ -150,21 +150,23 @@ const AddNodeModal = ({
                 placeholder="Enter node name"
               />
             </div>
-            <div>
-              <label className="label-style">Link Type</label>
-              <select
-                name="link_type"
-                value={formData.link_type}
-                onChange={handleChange}
-                className="input-style"
-              >
-                {LINK_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {isInsertion && (
+              <div>
+                <label className="label-style">Link Type</label>
+                <select
+                  name="link_type"
+                  value={formData.link_type}
+                  onChange={handleChange}
+                  className="input-style"
+                >
+                  {LINK_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label className="label-style">
                 Node Type <span className="text-[#d43c3c]">*</span>
@@ -307,7 +309,7 @@ const AddNodeModal = ({
                 </div>
               </>
             )}
-            {formData.node_type && (
+            {formData.node_type && isInsertion && (
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
                   Cable Detail
