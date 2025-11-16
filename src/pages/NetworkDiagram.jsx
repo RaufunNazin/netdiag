@@ -1711,6 +1711,8 @@ const NetworkDiagram = () => {
           isOpen={detailModal.isOpen}
           onClose={() => setDetailModal({ isOpen: false, node: null })}
           node={detailModal.node}
+          nodes={nodes} // <-- ADD THIS
+          getNodeIcon={getNodeIcon} // <-- ADD THIS
         />
         <SelectRootNodeModal
           isOpen={isSelectRootModalOpen}

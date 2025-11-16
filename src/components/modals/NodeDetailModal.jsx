@@ -1,9 +1,17 @@
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from "react";
 import { CORE_COLORS_DATA } from "../../utils/constants";
+import { fetchNodeDetails } from "../../utils/graphUtils"; // For fetching data
+import { ICONS } from "../../components/CustomNode.jsx"; // For the icons
 
-const DetailItem = ({ label, value }) => {
+// ---
+// SUB-COMPONENTS
+// ---
+
+const DetailItem = ({ label, value, className = "" }) => {
   if (value === null || value === undefined || value === "") return null;
   return (
-    <div>
+    <div className={className}>
       <p className="text-sm font-semibold text-slate-500">{label}</p>
       <p className="text-base text-slate-800 break-words">{String(value)}</p>
     </div>
@@ -32,33 +40,124 @@ const LocationMap = ({ lat, lon }) => {
   );
 };
 
-const NodeDetailModal = ({ isOpen, onClose, node }) => {
-  if (!isOpen || !node) return null;
+const MiniNodeDisplay = ({ nodeData, getNodeIcon }) => {
+  if (!nodeData) {
+    return (
+      <span className="font-normal text-slate-500 ml-2">(Unknown Node)</span>
+    );
+  }
+  const iconKey = getNodeIcon(nodeData.node_type);
+  return (
+    <div className="inline-flex items-center bg-white border border-slate-300 rounded py-1 px-3 ml-2">
+      <div className="w-5 h-5">{ICONS[iconKey] || ICONS["default"]}</div>
+      <span className="text-xs font-semibold text-slate-800 ml-1.5">
+        {nodeData.label}
+      </span>
+    </div>
+  );
+};
 
-  const { data } = node;
+const CableDetailDisplay = ({
+  edge,
+  direction,
+  otherNodeData,
+  getNodeIcon,
+}) => {
+  const colorName = CORE_COLORS_DATA.find(
+    (color) => color.hex === edge.cable_color
+  )?.name;
+
+  return (
+    <div
+      className={`md:col-span-3 p-4 rounded-lg shadow-sm ${
+        direction === "Incoming"
+          ? "bg-white border-l-4 border-l-green-400"
+          : "bg-white border-l-4 border-l-red-400"
+      }`}
+    >
+      <h5 className="text-base font-bold text-slate-700 mb-4 flex items-center">
+        <span>
+          {direction} cable {direction === "Incoming" ? "from" : "to"}
+        </span>
+        <MiniNodeDisplay nodeData={otherNodeData} getNodeIcon={getNodeIcon} />
+      </h5>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
+        <DetailItem label="Link Type" value={edge.link_type} />
+        <DetailItem label="Cable ID" value={edge.cable_id} />
+        <DetailItem label="Length (m)" value={edge.cable_length} />
+        <DetailItem label="Start Unit" value={edge.cable_start} />
+        <DetailItem label="End Unit" value={edge.cable_end} />
+        <DetailItem label="Color" value={colorName || edge.cable_color} />
+        <DetailItem
+          label="Description"
+          value={edge.cable_desc}
+          className="md:col-span-3"
+        />
+      </div>
+    </div>
+  );
+};
+
+// ---
+// MAIN COMPONENT
+// ---
+
+const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
+  const [details, setDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCableSectionExpanded, setIsCableSectionExpanded] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && node) {
+      const loadDetails = async () => {
+        setIsLoading(true);
+        setDetails(null); // Clear old data
+        try {
+          // Fetch the full details using the node's ID
+          const data = await fetchNodeDetails(node.data.id);
+          setDetails(data);
+        } catch (error) {
+          // Error is already toasted by fetchNodeDetails
+          onClose();
+        }
+        setIsLoading(false);
+      };
+      loadDetails();
+    }
+  }, [isOpen, node, onClose]);
+
+  if (!isOpen) return null;
+
+  // Show loading spinner while fetching
+  if (isLoading || !details) {
+    return (
+      <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+        <div className="w-12 h-12 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  const { device, incoming_edges, outgoing_edges } = details;
 
   const hasDeviceSpecifics =
-    data.brand ||
-    data.model ||
-    data.serial_no ||
-    data.mac ||
-    data.ip ||
-    data.vlan;
-  const hasSplitterDetails = data.split_ratio || data.split_group;
+    device.brand ||
+    device.model ||
+    device.serial_no ||
+    device.mac ||
+    device.ip ||
+    device.vlan;
+  const hasSplitterDetails = device.split_ratio || device.split_group;
+  // Check if there are any edges to display
   const hasCableDetails =
-    data.cable_id ||
-    data.cable_length ||
-    data.cable_color ||
-    data.cable_start ||
-    data.cable_end ||
-    data.cable_desc;
-  const hasLocationInfo = data.lat1 && data.long1;
+    (incoming_edges && incoming_edges.length > 0) ||
+    (outgoing_edges && outgoing_edges.length > 0);
+  const hasLocationInfo = device.lat1 && device.long1;
 
   return (
     <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="flex w-full max-w-3xl flex-col rounded-lg bg-white p-4 md:p-8 shadow-md max-h-[90vh]">
         <h3 className="mb-6 text-lg md:text-2xl font-bold text-slate-800">
-          Device Details: {data.label || data.name}
+          Device Details: {device.name}
         </h3>
 
         <div className="flex-grow overflow-y-auto pr-4 -mr-4">
@@ -66,22 +165,21 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
             <h4 className="col-span-2 md:col-span-3 text-lg font-bold text-slate-700">
               Basic Info
             </h4>
-            <DetailItem label="Name" value={data.label || data.name} />
-            <DetailItem label="Device Type" value={data.node_type} />
-            <DetailItem label="Link Type" value={data.link_type} />
-            <DetailItem label="System ID (sw_id)" value={data.sw_id} />
+            <DetailItem label="Name" value={device.name} />
+            <DetailItem label="Device Type" value={device.node_type} />
+            <DetailItem label="System ID (sw_id)" value={device.sw_id} />
 
             {hasDeviceSpecifics && (
               <>
                 <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-slate-700">
                   Device Specifics
                 </h4>
-                <DetailItem label="Brand" value={data.brand} />
-                <DetailItem label="Model" value={data.model} />
-                <DetailItem label="Serial No" value={data.serial_no} />
-                <DetailItem label="MAC Address" value={data.mac} />
-                <DetailItem label="IP Address" value={data.ip} />
-                <DetailItem label="VLAN" value={data.vlan} />
+                <DetailItem label="Brand" value={device.brand} />
+                <DetailItem label="Model" value={device.model} />
+                <DetailItem label="Serial No" value={device.serial_no} />
+                <DetailItem label="MAC Address" value={device.mac} />
+                <DetailItem label="IP Address" value={device.ip} />
+                <DetailItem label="VLAN" value={device.vlan} />
               </>
             )}
 
@@ -90,51 +188,80 @@ const NodeDetailModal = ({ isOpen, onClose, node }) => {
                 <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-slate-700">
                   Splitter Details
                 </h4>
-                <DetailItem label="Split Ratio" value={data.split_ratio} />
-                <DetailItem label="Split Group" value={data.split_group} />
+                <DetailItem label="Split Ratio" value={device.split_ratio} />
+                <DetailItem label="Split Group" value={device.split_group} />
               </>
             )}
 
+            {/* --- NEW COLLAPSIBLE CABLE SECTION --- */}
             {hasCableDetails && (
               <>
-                <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-slate-700">
+                <button
+                  type="button"
+                  className="md:col-span-3 text-lg font-bold text-slate-700 mt-6 flex items-center text-left"
+                  onClick={() => setIsCableSectionExpanded((prev) => !prev)}
+                >
+                  <span
+                    className={`mr-2 transition-transform ${
+                      isCableSectionExpanded ? "rotate-90" : ""
+                    }`}
+                  >
+                    ▶
+                  </span>
                   Cable Details
-                </h4>
-                <DetailItem label="Cable ID" value={data.cable_id} />
-                <DetailItem label="Length (m)" value={data.cable_length} />
-                <DetailItem
-                  label="Color"
-                  value={
-                    CORE_COLORS_DATA.find(
-                      (color) => color.hex === data.cable_color
-                    )?.name
-                  }
-                />
-                <DetailItem label="Start Unit" value={data.cable_start} />
-                <DetailItem label="End Unit" value={data.cable_end} />
-                <DetailItem
-                  label="Description"
-                  value={data.cable_desc}
-                  className="md:col-span-2"
-                />
+                </button>
+
+                {isCableSectionExpanded && (
+                  <>
+                    {incoming_edges.map((edge) => {
+                      const otherNodeId = String(edge.source_id);
+                      const otherNode = nodes.find((n) => n.id === otherNodeId);
+                      if (!otherNode) return null;
+                      return (
+                        <CableDetailDisplay
+                          key={edge.id}
+                          edge={edge}
+                          direction="Incoming"
+                          otherNodeData={otherNode?.data}
+                          getNodeIcon={getNodeIcon}
+                        />
+                      );
+                    })}
+                    {outgoing_edges.map((edge) => {
+                      const otherNodeId = String(edge.target_id);
+                      const otherNode = nodes.find((n) => n.id === otherNodeId);
+                      if (!otherNode) return null;
+                      return (
+                        <CableDetailDisplay
+                          key={edge.id}
+                          edge={edge}
+                          direction="Outgoing"
+                          otherNodeData={otherNode?.data}
+                          getNodeIcon={getNodeIcon}
+                        />
+                      );
+                    })}
+                  </>
+                )}
               </>
             )}
+            {/* --- END CABLE SECTION --- */}
 
-            {(hasLocationInfo || data.remarks) && (
+            {(hasLocationInfo || device.remarks) && (
               <>
                 <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-slate-700">
                   Location & Remarks
                 </h4>
-                <DetailItem label="Latitude" value={data.lat1} />
-                <DetailItem label="Longitude" value={data.long1} />
+                <DetailItem label="Latitude" value={device.lat1} />
+                <DetailItem label="Longitude" value={device.long1} />
                 {hasLocationInfo && (
                   <div className="col-span-2 md:col-span-3">
-                    <LocationMap lat={data.lat1} lon={data.long1} />
+                    <LocationMap lat={device.lat1} lon={device.long1} />
                   </div>
                 )}
-                {data.remarks && (
+                {device.remarks && (
                   <div className="md:col-span-3">
-                    <DetailItem label="Remarks" value={data.remarks} />
+                    <DetailItem label="Remarks" value={device.remarks} />
                   </div>
                 )}
               </>
