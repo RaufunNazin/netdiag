@@ -146,6 +146,35 @@ export const createNode = async (nodeData) => {
   }
 };
 
+// Add this function to graphUtils.js
+
+export const createEdge = async (edgeData, muted = false) => {
+  // edgeData should be { source, target }
+  const payload = {
+    source_id: parseInt(edgeData.source, 10),
+    target_id: parseInt(edgeData.target, 10),
+  };
+  try {
+    const response = await api.post(`/edge`, payload);
+    if (!muted) {
+      if (response.status === 201) {
+        toast.success("Connection created successfully!");
+      } else {
+        toast.error(response.data?.detail || "Failed to create connection");
+      }
+    }
+  } catch (error) {
+    console.error("Error creating connection:", error);
+    if (!muted) {
+      toast.error(
+        error.response?.data?.detail ||
+          "An error occurred while creating the connection."
+      );
+    }
+    throw error;
+  }
+};
+
 export const fetchData = async (swId) => {
   try {
     const url = swId ? `/data/${swId}` : "/data";

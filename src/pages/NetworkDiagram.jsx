@@ -13,7 +13,6 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
-  reconnectEdge,
   useReactFlow,
   Background,
   MarkerType,
@@ -31,6 +30,7 @@ import {
   createNode,
   insertNode,
   resetPositions,
+  createEdge,
 } from "../utils/graphUtils";
 import { ACTIONS, NODE_TYPES_ENUM, MISC } from "../utils/enums";
 import CustomNode from "../components/CustomNode.jsx";
@@ -92,6 +92,7 @@ const NetworkDiagram = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [orphanNodes, setOrphanNodes] = useState([]);
+  const [newConnections, setNewConnections] = useState([]);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
@@ -123,7 +124,6 @@ const NetworkDiagram = () => {
   );
   const [diagramRoots, setDiagramRoots] = useState({ main: null, sub: [] });
   const [customerModalNode, setCustomerModalNode] = useState(null);
-  const [selectedNodes, setSelectedNodes] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [history, setHistory] = useState([]);
   const [deletedNodes, setDeletedNodes] = useState([]);
@@ -173,11 +173,12 @@ const NetworkDiagram = () => {
       {
         nodes: currentNodes,
         edges: currentEdges,
+        newConnections: newConnections, // <-- ADD THIS
         deletedNodes: deletedNodes,
         deletedEdges: deletedEdges,
       },
     ]);
-  }, [reactFlowInstance, deletedNodes, deletedEdges]);
+  }, [reactFlowInstance, newConnections, deletedNodes, deletedEdges]); // <-- ADD newConnections
 
   const handleShowCustomers = useCallback((nodeData) => {
     setCustomerModalNode(nodeData);
@@ -195,10 +196,11 @@ const NetworkDiagram = () => {
         setEdges(lastState.edges);
         setDeletedNodes(lastState.deletedNodes);
         setDeletedEdges(lastState.deletedEdges);
+        setNewConnections(lastState.newConnections); // <-- ADD THIS
       }
       return newHistory;
     });
-  }, [history, setNodes, setEdges]);
+  }, [history, setNodes, setEdges, setNewConnections]);
 
   const handleDetailsClick = useCallback((nodeData) => {
     setDetailModal({ isOpen: true, node: { data: nodeData } });
@@ -305,7 +307,9 @@ const NetworkDiagram = () => {
         (nodeId) => () => deleteNode(nodeId, true)
       );
 
-      // createConnectionFns removed
+      const createConnectionFns = newConnections.map((connParams) => () => {
+        return createEdge(connParams, true); // Use the new util
+      });
 
       // --- FIXED PAYLOAD ---
       const savePositionFns = movedNodes.map((node) => () => {
@@ -338,10 +342,16 @@ const NetworkDiagram = () => {
         await fn();
       }
 
+      console.log(`Creating ${createConnectionFns.length} new connections...`);
+      for (const fn of createConnectionFns) {
+        await fn();
+      }
+
       toast.success("All changes saved successfully!");
 
       window.location.reload();
 
+      setNewConnections([]);
       setDeletedNodes([]);
       setDeletedEdges([]);
       setHistory([]);
@@ -358,11 +368,13 @@ const NetworkDiagram = () => {
     reactFlowInstance,
     deletedNodes,
     deletedEdges,
+    newConnections,
     setDeletedNodes,
     setDeletedEdges,
     setHistory,
     setIsEditMode,
     setLoading,
+    setNewConnections,
     setIsSaveConfirmModalOpen,
   ]);
 
@@ -396,10 +408,6 @@ const NetworkDiagram = () => {
     return matches ? matches.map(Number) : [];
   };
 
-  const onSelectionChange = useCallback(({ nodes }) => {
-    setSelectedNodes(nodes.map((node) => node.id));
-  }, []);
-
   const handleResetView = useCallback(() => {
     reactFlowInstance.fitView({ padding: 0.2, duration: 500 });
     localStorage.removeItem("react-flow-viewport");
@@ -430,14 +438,21 @@ const NetworkDiagram = () => {
       }
       const newEdge = {
         ...params,
-        id: `e-${params.source}-${params.target}`,
+        // Use a more unique UI-side ID
+        id: `reactflow__edge-${params.source}${params.sourceHandle || ""}-${
+          params.target
+        }${params.targetHandle || ""}`,
         markerEnd: { type: MarkerType.ArrowClosed },
       };
       setEdges((eds) => addEdge(newEdge, eds));
 
-      // Removed setNewConnections logic
+      // --- ADD THIS LOGIC BACK ---
+      if (isEditMode) {
+        setNewConnections((prev) => [...prev, params]);
+      }
+      // --- END ADD ---
     },
-    [isEditMode, pushStateToHistory, setEdges] // Simplified dependencies
+    [isEditMode, pushStateToHistory, setEdges, setNewConnections] // <-- Add setNewConnections
   );
 
   const handleFabClick = useCallback(async () => {
@@ -459,6 +474,7 @@ const NetworkDiagram = () => {
 
       const hasChanges =
         movedNodes.length > 0 ||
+        newConnections.length > 0 || // <-- ADD THIS
         deletedNodes.length > 0 ||
         deletedEdges.length > 0;
 
@@ -476,6 +492,7 @@ const NetworkDiagram = () => {
     }
   }, [
     isEditMode,
+    newConnections,
     deletedNodes,
     deletedEdges,
     reactFlowInstance,
@@ -572,7 +589,8 @@ const NetworkDiagram = () => {
               position_x: null,
               position_y: null,
               position_mode: 0,
-            }
+            },
+            true
           );
           toast.info(`${nodeToSend.data.label} sent to inventory.`);
         }
@@ -800,9 +818,7 @@ const NetworkDiagram = () => {
       if (!dataString) {
         return;
       }
-
       const nodeData = JSON.parse(dataString);
-
       const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
@@ -824,14 +840,22 @@ const NetworkDiagram = () => {
       };
 
       setNodes((nds) => nds.concat(newNode));
-
       initialNodesRef.current.push(newNode);
-
       setOrphanNodes((nds) => nds.filter((n) => n.id !== nodeData.id));
 
-      setIsEditMode(true);
+      // --- MODIFIED ---
+      // Use the functional form to get the *actual* current state
+      let wasAlreadyEditMode = false;
+      setIsEditMode((current) => {
+        wasAlreadyEditMode = current; // Capture the state *before* setting
+        return true; // Always set to true
+      });
 
-      if (!isEditMode) toast.info("Edit mode enabled.");
+      // Now the check is against the real value
+      if (!wasAlreadyEditMode) {
+        toast.info("Edit mode enabled.");
+      }
+      // --- END MODIFICATION ---
 
       saveNodePosition(
         nodeData.id, // Pass the ID
@@ -839,7 +863,8 @@ const NetworkDiagram = () => {
           position_x: position.x,
           position_y: position.y,
           position_mode: 1,
-        }
+        },
+        true
       );
 
       toast.success(`Added ${nodeData.data.name} to the diagram.`);
@@ -851,6 +876,7 @@ const NetworkDiagram = () => {
       handleDetailsClick,
       handleNavigateClick,
       handleShowCustomers,
+      // isEditMode is no longer needed as a dependency
     ]
   );
 
@@ -1503,7 +1529,6 @@ const NetworkDiagram = () => {
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}
         onNodeClick={onNodeClick}
-        onSelectionChange={onSelectionChange}
         selectionOnDrag={true}
         elevateEdgesOnSelect={true}
         elevateNodesOnSelect={false}
