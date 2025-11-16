@@ -51,15 +51,15 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen w-screen bg-gray-50 bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:16px_16px]">
+    <div className="flex items-center justify-center h-screen w-screen bg-slate-50 bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:16px_16px]">
       <form
         onSubmit={handleLogin}
-        className="p-4 md:p-8 bg-white/10 backdrop-blur-sm border border-gray-200 shadow-xl rounded-lg flex flex-col w-full max-w-sm"
+        className="p-4 md:p-8 bg-white/10 backdrop-blur-sm border border-slate-200 shadow-xl rounded-lg flex flex-col w-full max-w-sm"
       >
-        <h2 className="text-xl font-extrabold text-center text-gray-800">
+        <h2 className="text-xl font-extrabold text-center text-slate-800">
           Network Diagram Login
         </h2>
-        <p className="text-gray-600 text-center mb-6">
+        <p className="text-slate-600 text-center mb-6">
           Soon, a second login won't be necessary.
         </p>
 
@@ -70,7 +70,7 @@ const LoginPage = () => {
         <div className="mb-5 flex flex-col">
           <label
             htmlFor="username"
-            className="mb-2 font-semibold text-lg text-gray-700"
+            className="mb-2 font-semibold text-lg text-slate-700"
           >
             Username
           </label>
@@ -80,7 +80,7 @@ const LoginPage = () => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
-            className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 text-gray-900 placeholder-gray-500"
+            className="p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 text-slate-900 placeholder-slate-500"
             placeholder="Enter your username"
           />
         </div>
@@ -88,7 +88,7 @@ const LoginPage = () => {
         <div className="mb-8 flex flex-col relative">
           <label
             htmlFor="password"
-            className="mb-2 font-semibold text-lg text-gray-700"
+            className="mb-2 font-semibold text-lg text-slate-700"
           >
             Password
           </label>
@@ -98,13 +98,13 @@ const LoginPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 text-gray-900 placeholder-gray-500 pr-12"
+            className="p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 text-slate-900 placeholder-slate-500 pr-12"
             placeholder="Enter your password"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-[50px] text-gray-600 hover:text-gray-900 font-medium"
+            className="absolute right-3 top-[50px] text-slate-600 hover:text-slate-900 font-medium"
           >
             {showPassword ? "Hide" : "Show"}
           </button>
@@ -116,7 +116,7 @@ const LoginPage = () => {
           className="py-3 px-6 text-lg font-bold text-white bg-blue-600 rounded-lg shadow-md 
                      hover:bg-blue-700 transition duration-300 ease-in-out
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white
-                     disabled:bg-gray-400 disabled:cursor-not-allowed"
+                     disabled:bg-slate-400 disabled:cursor-not-allowed"
         >
           {loading ? "Logging in..." : "Login"}
         </button>

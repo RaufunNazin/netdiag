@@ -8,7 +8,7 @@ const UndoFab = ({ onClick, disabled }) => {
         disabled={disabled}
         className={`p-2.5 bg-[#ef4444] rounded-full text-white transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none ${
           disabled
-            ? "cursor-not-allowed bg-gray-400 hover:bg-gray-400"
+            ? "cursor-not-allowed bg-slate-400 hover:bg-slate-400"
             : "cursor-pointer"
         }`}
         title="Undo Last Action"

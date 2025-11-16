@@ -6,7 +6,7 @@ const IconBtn = ({ children, color, padding = "p-1" }) => {
     blue: "bg-blue-500 text-white",
     green: "bg-green-500 text-white",
     red: "bg-red-500 text-white",
-    gray: "bg-gray-200 text-gray-700",
+    gray: "bg-slate-200 text-slate-700",
     blueTab: "bg-blue-500 text-white rounded-r-sm",
     orangeDot: "bg-orange-500",
     blueDot: "bg-blue-500",

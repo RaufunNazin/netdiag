@@ -153,6 +153,7 @@ const EditNodeModal = ({
   const [outgoingEdges, setOutgoingEdges] = useState([]);
   const [originalState, setOriginalState] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCableSectionExpanded, setIsCableSectionExpanded] = useState(false);
 
   useEffect(() => {
     if (isOpen && node) {
@@ -478,43 +479,74 @@ const EditNodeModal = ({
                   </>
                 )}
 
-                <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
-                  Cable Details
-                </h4>
-                {incomingEdges.length === 0 && outgoingEdges.length === 0 && (
-                  <p className="md:col-span-2 text-slate-500 italic">
-                    No cables are connected to this device.
-                  </p>
-                )}
+                <button
+                  type="button"
+                  className="md:col-span-2 text-slate-700 mt-6 flex items-center text-left justify-between w-full p-3 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all duration-200"
+                  onClick={() => setIsCableSectionExpanded((prev) => !prev)}
+                >
+                  <div className="text-lg font-bold flex items-center gap-2">
+                    <span
+                      className={`transition-transform ${
+                        isCableSectionExpanded ? "rotate-90" : ""
+                      }`}
+                    >
+                      ▶
+                    </span>
+                    Cable Details
+                  </div>
 
-                {incomingEdges.map((edge) => {
-                  const otherNodeId = String(edge.source_id);
-                  const otherNode = nodes.find((n) => n.id === otherNodeId);
-                  return (
-                    <CableDetailForm
-                      key={edge.id}
-                      edge={edge}
-                      onChange={handleEdgeChange}
-                      direction="Incoming"
-                      otherNodeData={otherNode?.data}
-                      getNodeIcon={getNodeIcon}
-                    />
-                  );
-                })}
-                {outgoingEdges.map((edge) => {
-                  const otherNodeId = String(edge.target_id);
-                  const otherNode = nodes.find((n) => n.id === otherNodeId);
-                  return (
-                    <CableDetailForm
-                      key={edge.id}
-                      edge={edge}
-                      onChange={handleEdgeChange}
-                      direction="Outgoing"
-                      otherNodeData={otherNode?.data}
-                      getNodeIcon={getNodeIcon}
-                    />
-                  );
-                })}
+                  <span className="text-slate-500">
+                    Click to toggle
+                  </span>
+                </button>
+                {isCableSectionExpanded && (
+                  <>
+                    {incomingEdges.length === 0 &&
+                      outgoingEdges.length === 0 && (
+                        <p className="md:col-span-2 text-slate-500 italic">
+                          No cables are connected to this device.
+                        </p>
+                      )}
+                    {incomingEdges.map((edge) => {
+                      const otherNodeId = String(edge.source_id);
+                      const otherNode = nodes.find((n) => n.id === otherNodeId);
+
+                      if (!otherNode) {
+                        return null;
+                      }
+
+                      return (
+                        <CableDetailForm
+                          key={edge.id}
+                          edge={edge}
+                          onChange={handleEdgeChange}
+                          direction="Incoming"
+                          otherNodeData={otherNode?.data}
+                          getNodeIcon={getNodeIcon}
+                        />
+                      );
+                    })}
+                    {outgoingEdges.map((edge) => {
+                      const otherNodeId = String(edge.target_id);
+                      const otherNode = nodes.find((n) => n.id === otherNodeId);
+
+                      if (!otherNode) {
+                        return null;
+                      }
+
+                      return (
+                        <CableDetailForm
+                          key={edge.id}
+                          edge={edge}
+                          onChange={handleEdgeChange}
+                          direction="Outgoing"
+                          otherNodeData={otherNode?.data}
+                          getNodeIcon={getNodeIcon}
+                        />
+                      );
+                    })}
+                  </>
+                )}
 
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
                   Other Information

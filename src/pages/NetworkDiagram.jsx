@@ -1604,7 +1604,7 @@ const NetworkDiagram = () => {
       )}
 
       {window.location.pathname !== "/" && (
-        <div className="absolute top-4 left-0 p-2 z-10 text-gray-700">
+        <div className="absolute top-4 left-0 p-2 z-10 text-slate-700">
           <button
             className=""
             title={"Go Back"}

@@ -35,7 +35,7 @@ const ContextMenu = ({ id, top, left, onAction, node, ...props }) => {
   return (
     <div
       style={{ top, left }}
-      className="absolute z-50 bg-white rounded-md shadow-md border border-gray-200 text-sm"
+      className="absolute z-50 bg-white rounded-md shadow-md border border-slate-200 text-sm"
     >
       <ul className="py-1">
         {menuItems.map(({ label, action }) => (
@@ -45,7 +45,7 @@ const ContextMenu = ({ id, top, left, onAction, node, ...props }) => {
             className={`px-4 py-2 cursor-pointer ${
               action === ACTIONS.DELETE_NODE || action === ACTIONS.DELETE_EDGE
                 ? "hover:bg-[#d43c3c]/10 text-[#d43c3c]"
-                : "hover:bg-gray-100 text-gray-700"
+                : "hover:bg-slate-100 text-slate-700"
             }`}
           >
             {label}

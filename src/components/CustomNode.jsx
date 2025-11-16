@@ -36,9 +36,11 @@ export const ICONS = {
 };
 
 const DetailRow = ({ label, value }) => (
-  <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
-    <dt className="text-xs font-medium text-gray-500 shrink-0 pr-2">{label}</dt>
-    <dd className="text-xs text-gray-800 text-right break-words">
+  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
+    <dt className="text-xs font-medium text-slate-500 shrink-0 pr-2">
+      {label}
+    </dt>
+    <dd className="text-xs text-slate-800 text-right break-words">
       {value || "N/A"}
     </dd>
   </div>
@@ -70,13 +72,13 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
   const LightbulbIcon = UI_ICONS.lightbulb;
 
   return (
-    <div className="py-2 border-b border-gray-100 last:border-b-0">
+    <div className="py-2 border-b border-slate-100 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span>
             <LightbulbIcon
               className={
-                customer.online1 === 1 ? "text-yellow-400" : "text-gray-600"
+                customer.online1 === 1 ? "text-yellow-400" : "text-slate-600"
               }
             />
           </span>
@@ -95,7 +97,7 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
         </div>
         <div
           onMouseEnter={onExpand}
-          className="cursor-pointer p-1 text-gray-400"
+          className="cursor-pointer p-1 text-slate-400"
         >
           {UI_ICONS.info_main}
         </div>
@@ -240,10 +242,10 @@ const CustomNode = ({ data, isConnectable }) => {
   return (
     <div ref={nodeRef}>
       <div
-        className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-gray-800 ${
-          data.isCollapsed ? "bg-gray-300" : "bg-white"
+        className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-slate-800 ${
+          data.isCollapsed ? "bg-slate-300" : "bg-white"
         } border-2 ${
-          data.isHighlighted ? "border-blue-500" : "border-gray-400"
+          data.isHighlighted ? "border-blue-500" : "border-slate-400"
         } ${statusBorderClass} transition-all`}
       >
         {id ? (
@@ -280,7 +282,7 @@ const CustomNode = ({ data, isConnectable }) => {
             onClick={handleDetailsClick}
             onMouseEnter={showCustomerPopover}
             onMouseLeave={startHidePopoverTimer}
-            className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+            className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
             title="View Details"
           >
             {UI_ICONS.info_main}
@@ -289,7 +291,7 @@ const CustomNode = ({ data, isConnectable }) => {
           {data.node_type === NODE_TYPES_ENUM.ONU && isMobile && (
             <button
               onClick={handleShowCustomers}
-              className="rounded-full p-1 text-gray-400"
+              className="rounded-full p-1 text-slate-400"
               title="View Customers"
             >
               {UI_ICONS.user}
@@ -299,7 +301,7 @@ const CustomNode = ({ data, isConnectable }) => {
           {data.node_type === NODE_TYPES_ENUM.OLT && !id && (
             <button
               onClick={handleNavigateClick}
-              className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+              className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
               title="Go to OLT View"
             >
               {UI_ICONS.chevronRight_main}
@@ -341,7 +343,7 @@ const CustomNode = ({ data, isConnectable }) => {
               top: tooltipPosition.top,
               left: tooltipPosition.left,
             }}
-            className={`fixed z-[9999] w-64 select-text rounded-md bg-white p-3 text-sm font-medium text-gray-800 shadow-md transition-all duration-300 transform
+            className={`fixed z-[9999] w-64 select-text rounded-md bg-white p-3 text-sm font-medium text-slate-800 shadow-md transition-all duration-300 transform
               ${
                 popoverDirectionY === "up"
                   ? "-translate-y-[100%] mb-2"
@@ -367,7 +369,7 @@ const CustomNode = ({ data, isConnectable }) => {
               </div>
             ) : (
               <div className="flex items-center justify-center gap-2">
-                <span className="text-gray-500">{UI_ICONS.clear}</span>
+                <span className="text-slate-500">{UI_ICONS.clear}</span>
                 <span>No customer found</span>
               </div>
             )}

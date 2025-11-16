@@ -41,16 +41,16 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots }) => {
         onFocus={() => setIsFocused(true)}
         onBlur={() => setTimeout(() => setIsFocused(false), 200)}
         placeholder="Search any device..."
-        className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-0"
+        className="w-full p-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-0"
       />
 
       {results.length > 0 && (
-        <ul className="mt-1 p-1 border border-gray-200 rounded-lg bg-transparent shadow-none">
+        <ul className="mt-1 p-1 border border-slate-200 rounded-lg bg-transparent shadow-none">
           {results.slice(0, 5).map((node) => (
             <li
               key={node.id}
               onClick={() => handleSelect(node.id)}
-              className="p-2 hover:bg-gray-100 cursor-pointer rounded-sm"
+              className="p-2 hover:bg-slate-100 cursor-pointer rounded-sm"
             >
               {node.data.label.length > 20
                 ? `${node.data.label.slice(0, 20)}...`
@@ -61,12 +61,12 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots }) => {
       )}
 
       {showRootList && (
-        <ul className="mt-1 p-1 border border-gray-200 rounded-lg bg-transparent shadow-none">
+        <ul className="mt-1 p-1 border border-slate-200 rounded-lg bg-transparent shadow-none">
           {diagramRoots.main && (
             <li
               key={diagramRoots.main.id}
               onClick={() => handleSelect(diagramRoots.main.id)}
-              className="p-2 hover:bg-gray-100 cursor-pointer rounded-sm flex justify-between items-center"
+              className="p-2 hover:bg-slate-100 cursor-pointer rounded-sm flex justify-between items-center"
             >
               <span>
                 {diagramRoots.main.data.label.length > 20
@@ -82,14 +82,14 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots }) => {
             <li
               key={node.id}
               onClick={() => handleSelect(node.id)}
-              className="p-2 hover:bg-gray-100 cursor-pointer rounded-sm flex justify-between items-center"
+              className="p-2 hover:bg-slate-100 cursor-pointer rounded-sm flex justify-between items-center"
             >
               <span>
                 {node.data.label.length > 20
                   ? `${node.data.label.slice(0, 20)}...`
                   : node.data.label}
               </span>
-              <span className="text-xs bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full">
                 Sub-root
               </span>
             </li>

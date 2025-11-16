@@ -38,7 +38,9 @@ const ColorPicker = ({ selectedColor, onChange }) => {
             }}
           />
           {CORE_COLORS_DATA.find((color) => color.hex === selectedColor)
-            ?.name || <span className="text-gray-500">Select Cable Color</span>}
+            ?.name || (
+            <span className="text-slate-500">Select Cable Color</span>
+          )}
         </span>
         <span className="text-slate-500">▼</span>
       </button>

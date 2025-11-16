@@ -9,7 +9,7 @@ const ConfirmResetModal = ({ isOpen, onClose, onConfirm, itemInfo }) => {
         </h3>
         <p>
           Are you sure you want to reset the position for{" "}
-          <span className="font-semibold px-2 py-1 bg-gray-100 rounded-sm">
+          <span className="font-semibold px-2 py-1 bg-slate-100 rounded-sm">
             {itemInfo}
           </span>
           ? The layout will be recalculated automatically.
@@ -17,7 +17,7 @@ const ConfirmResetModal = ({ isOpen, onClose, onConfirm, itemInfo }) => {
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-all duration-200"
+            className="px-4 py-2 bg-slate-200 rounded-md hover:bg-slate-300 transition-all duration-200"
           >
             Cancel
           </button>

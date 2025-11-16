@@ -18,7 +18,7 @@ const IconDock = ({ children }) => {
   return (
     <div
       className="fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 
-                 items-center rounded-full border border-gray-200/70 
+                 items-center rounded-full border border-slate-200/70 
                  bg-white/80 p-2 shadow-none backdrop-blur-sm"
     >
       <div
@@ -32,7 +32,7 @@ const IconDock = ({ children }) => {
       <button
         onClick={toggleDock}
         className={`flex h-10 w-10 shrink-0 items-center justify-center 
-                   rounded-full bg-transparent text-gray-600 transition-all 
+                   rounded-full bg-transparent text-slate-600 transition-all 
                    duration-500 ease-in-out ${isOpen ? "ml-2" : "ml-0"}`}
         title={isOpen ? "Hide Toolbar" : "Show Toolbar"}
       >

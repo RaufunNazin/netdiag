@@ -108,7 +108,7 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Hover on{" "}
             {
-              <button className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700">
+              <button className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700">
                 {UI_ICONS.info}
               </button>
             }{" "}
@@ -117,7 +117,7 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Click on{" "}
             {
-              <button className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700">
+              <button className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700">
                 {UI_ICONS.info}
               </button>
             }{" "}
@@ -126,7 +126,7 @@ const HelpBox = ({ isEmpty }) => {
           <>
             Click{" "}
             {
-              <button className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-700">
+              <button className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700">
                 {UI_ICONS.chevronRight}
               </button>
             }{" "}
@@ -138,25 +138,25 @@ const HelpBox = ({ isEmpty }) => {
   return (
     <div className="absolute bottom-4 right-2 md:right-4 z-10">
       <div
-        className={`w-84 rounded-lg border border-gray-200 bg-white/80 p-4 shadow-md backdrop-blur-sm z-20 ${
+        className={`w-84 rounded-lg border border-slate-200 bg-white/80 p-4 shadow-md backdrop-blur-sm z-20 ${
           isOpen ? "block" : "hidden"
         }`}
       >
-        <h3 className="mb-2 text-lg font-bold text-gray-800">
+        <h3 className="mb-2 text-lg font-bold text-slate-800">
           {helpContent.title}
         </h3>
-        <ul className="list-inside list-disc space-y-2 text-sm text-gray-600">
+        <ul className="list-inside list-disc space-y-2 text-sm text-slate-600">
           {helpContent.points.map((point, index) => (
             <li key={index}>{point}</li>
           ))}
         </ul>
-        <div className="mt-2 border-t border-gray-300 pt-1 text-[10px] text-gray-400 text-center">
+        <div className="mt-2 border-t border-slate-300 pt-1 text-[10px] text-slate-400 text-center">
           Built using{" "}
           <a
             href="https://github.com/xyflow/xyflow"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-gray-500 transition-colors duration-200"
+            className="underline hover:text-slate-500 transition-colors duration-200"
           >
             xyflow
           </a>{" "}

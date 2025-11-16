@@ -11,7 +11,7 @@ const ConfirmSaveModal = ({ isOpen, onClose, onConfirm }) => {
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+            className="px-4 py-2 bg-slate-200 rounded-md hover:bg-slate-300"
           >
             Cancel
           </button>

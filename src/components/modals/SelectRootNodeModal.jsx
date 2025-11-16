@@ -12,7 +12,7 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
           const data = await fetchRootCandidates();
           setNodes(data);
         } catch (error) {
-          console.log(error)
+          console.log(error);
         }
       };
       fetchNodes();
@@ -43,7 +43,7 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
         <input
           type="text"
           placeholder="Search for a device..."
-          className="w-full p-2 border border-gray-300 rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-slate-300 rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           autoFocus
@@ -54,7 +54,7 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
               <li
                 key={node.id}
                 onClick={() => handleSelect(node.id)}
-                className="cursor-pointer rounded-md px-3 py-2 text-slate-700 hover:bg-gray-100"
+                className="cursor-pointer rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100"
               >
                 {node.name}
               </li>
@@ -65,7 +65,7 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
         </ul>
         <button
           onClick={onClose}
-          className="mt-4 w-full px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+          className="mt-4 w-full px-4 py-2 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300 transition-colors"
         >
           Cancel
         </button>

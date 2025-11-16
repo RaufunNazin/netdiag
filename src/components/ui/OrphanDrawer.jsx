@@ -44,7 +44,7 @@ const DrawerNode = ({ node }) => {
   return (
     <div
       className="p-3 m-2 rounded-md flex items-center space-x-2 
-                 bg-white/80 border border-gray-300 cursor-move"
+                 bg-white/80 border border-slate-300 cursor-move"
       onDragStart={(event) => onDragStart(event, nodeToDrag)}
       draggable
     >
@@ -76,11 +76,11 @@ const OrphanDrawer = ({ isOpen, onClose, nodes }) => {
                    z-40 transition-transform duration-300 ease-in-out
                    ${isOpen ? "transform-none ml-2" : "-translate-x-full"}`}
       >
-        <div className="flex justify-between items-center p-3 bg-transparent rounded-t-lg border-b border-gray-300">
-          <h3 className="font-bold text-lg text-gray-700">Inventory</h3>
+        <div className="flex justify-between items-center p-3 bg-transparent rounded-t-lg border-b border-slate-300">
+          <h3 className="font-bold text-lg text-slate-700">Inventory</h3>
           <button
             onClick={onClose}
-            className="p-1 text-gray-500 hover:text-gray-800"
+            className="p-1 text-slate-500 hover:text-slate-800"
             title="Close Inventory"
           >
             {UI_ICONS.chevronLeft}
@@ -90,7 +90,7 @@ const OrphanDrawer = ({ isOpen, onClose, nodes }) => {
           {nodes.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center gap-2">
               <img src={boxIcon} alt="Empty Inventory" className="w-10 h-10" />
-              <p className="text-center text-gray-500">
+              <p className="text-center text-slate-500">
                 Your inventory is empty.
               </p>
             </div>

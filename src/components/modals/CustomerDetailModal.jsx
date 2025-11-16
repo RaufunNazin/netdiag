@@ -4,9 +4,11 @@ import { CUST_STATUS, NODE_TYPES_ENUM } from "../../utils/enums";
 import { UI_ICONS } from "../../utils/icons";
 
 const DetailRow = ({ label, value }) => (
-  <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
-    <dt className="text-sm font-medium text-gray-500 shrink-0 pr-2">{label}</dt>
-    <dd className="text-sm text-gray-800 text-right break-words">
+  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
+    <dt className="text-sm font-medium text-slate-500 shrink-0 pr-2">
+      {label}
+    </dt>
+    <dd className="text-sm text-slate-800 text-right break-words">
       {value || "N/A"}
     </dd>
   </div>
@@ -35,13 +37,13 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
   const LightbulbIcon = UI_ICONS.lightbulb;
 
   return (
-    <div className="py-3 border-b border-gray-200 last:border-b-0">
+    <div className="py-3 border-b border-slate-200 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span>
             <LightbulbIcon
               className={`w-5 h-5 ${
-                customer.online1 === 1 ? "text-yellow-400" : "text-gray-600"
+                customer.online1 === 1 ? "text-yellow-400" : "text-slate-600"
               }`}
             />
           </span>
@@ -62,7 +64,7 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
         </div>
         <button
           onClick={onExpand}
-          className="p-1 text-gray-400 hover:text-gray-700 transition-transform duration-200"
+          className="p-1 text-slate-400 hover:text-slate-700 transition-transform duration-200"
         >
           <span
             className={`inline-block transform transition-transform duration-200 ${
@@ -134,7 +136,6 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
                    rounded-lg 
                    md:p-8"
       >
-
         <h3 className="mb-6 text-lg md:text-2xl font-bold text-slate-800">
           Customers on {nodeData.label || nodeData.name}
         </h3>
@@ -162,7 +163,7 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
             </div>
           ) : (
             <div className="flex items-center justify-center gap-2 h-32">
-              <span className="text-gray-500">{UI_ICONS.clear}</span>
+              <span className="text-slate-500">{UI_ICONS.clear}</span>
               <span className="text-slate-600">No customers found</span>
             </div>
           )}
