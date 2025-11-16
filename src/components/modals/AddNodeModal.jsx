@@ -137,7 +137,7 @@ const AddNodeModal = ({
             <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-2">
               Basic Info
             </h4>
-            <div className="md:col-span-2">
+            <div>
               <label className="label-style">
                 Name <span className="text-[#d43c3c]">*</span>
               </label>
@@ -435,7 +435,7 @@ const AddNodeModal = ({
           <button
             onClick={handleSave}
             className="btn-primary"
-            disabled={!formData.node_type}
+            disabled={!formData.name || !formData.node_type}
           >
             {isInsertion ? "Insert Device" : "Add Node"}
           </button>
