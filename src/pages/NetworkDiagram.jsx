@@ -123,13 +123,13 @@ const NetworkDiagram = () => {
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
-  
+
   // --- MODIFIED INITIALIZATION ---
   const [rootId, setRootId] = useState(() => (id ? parseInt(id, 10) : null));
   const [dynamicRootId, setDynamicRootId] = useState(() =>
-    id ? null : localStorage.getItem("dynamicRootId")
+    id ? null : localStorage.getItem(MISC.DYNAMIC_ROOT_ID)
   );
-  
+
   // Initialize loading to true if we have a rootId (OLT page)
   // OR if we are on the main page but have a dynamicRootId to load.
   const [loading, setLoading] = useState(() => {
@@ -137,10 +137,10 @@ const NetworkDiagram = () => {
     if (initialRoot !== null) {
       return true; // We are on an OLT page, load immediately.
     }
-    const initialDynamic = localStorage.getItem("dynamicRootId");
+    const initialDynamic = localStorage.getItem(MISC.DYNAMIC_ROOT_ID);
     return !!initialDynamic; // Load if we have a dynamic root, otherwise don't.
   });
-  
+
   const [isEmpty, setIsEmpty] = useState(false);
   const [diagramRoots, setDiagramRoots] = useState({ main: null, sub: [] });
   const [customerModalNode, setCustomerModalNode] = useState(null);
@@ -423,17 +423,8 @@ const NetworkDiagram = () => {
   ]);
 
   const loadInitialData = useCallback(async () => {
+    setLoading(true);
     setIsEmpty(false);
-    const fetchId = rootId !== null ? rootId : dynamicRootId; // <-- ADD THIS
-    
-    // Add this check for the main page with no root selected
-    if (fetchId === null && rootId === null) {
-      setIsEmpty(true);
-      setNodes([]);
-      setEdges([]);
-      setLoading(false); // Turn off loader
-      return;
-    }
     try {
       const apiData = await fetchData(rootId);
 
@@ -1273,7 +1264,7 @@ const NetworkDiagram = () => {
           if (!nodeToDelete) return;
 
           if (id === dynamicRootId) {
-            localStorage.removeItem("dynamicRootId");
+            localStorage.removeItem(MISC.DYNAMIC_ROOT_ID);
             setDynamicRootId(null);
           }
 
@@ -1478,26 +1469,29 @@ const NetworkDiagram = () => {
   }, [nodes, edges, isEditMode]);
 
   useEffect(() => {
+    if (rootId === undefined) {
+      return;
+    }
+    loadInitialData();
+  }, [
+    rootId,
+    dynamicRootId,
+    navigate,
+    reactFlowInstance,
+    handleShowCustomers,
+    loadInitialData,
+  ]);
+
+  useEffect(() => {
     const newRootId = id ? parseInt(id, 10) : null;
     setRootId(newRootId);
 
     if (newRootId !== null) {
       setDynamicRootId(null);
     } else {
-      setDynamicRootId(localStorage.getItem("dynamicRootId"));
+      setDynamicRootId(localStorage.getItem(MISC.DYNAMIC_ROOT_ID));
     }
   }, [id]);
-
-  // This effect re-runs the data load ONLY when the IDs change
-  useEffect(() => {
-    // Set loading to true *before* fetching,
-    // unless we're on the main page with no dynamic root.
-    const fetchId = rootId !== null ? rootId : dynamicRootId;
-    if (fetchId !== null || rootId !== null) {
-      setLoading(true);
-    }
-    loadInitialData();
-  }, [rootId, dynamicRootId, loadInitialData]);
 
   useEffect(() => {
     if (redirectInfo.shouldRedirect) {
@@ -1510,9 +1504,9 @@ const NetworkDiagram = () => {
   useEffect(() => {
     if (rootId === null) {
       if (dynamicRootId) {
-        localStorage.setItem("dynamicRootId", dynamicRootId);
+        localStorage.setItem(MISC.DYNAMIC_ROOT_ID, dynamicRootId);
       } else {
-        localStorage.removeItem("dynamicRootId");
+        localStorage.removeItem(MISC.DYNAMIC_ROOT_ID);
       }
     }
   }, [dynamicRootId, rootId]);

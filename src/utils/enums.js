@@ -44,4 +44,5 @@ export const MISC = {
   LEFT: "left",
   NODE: "node",
   EDGE: "edge",
+  DYNAMIC_ROOT_ID: "dynamicRootId",
 }
