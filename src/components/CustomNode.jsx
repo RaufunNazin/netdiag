@@ -256,6 +256,7 @@ const CustomNode = ({ data, isConnectable }) => {
               id="left"
               isConnectableStart={false}
               isConnectableEnd={isConnectable}
+              hidden={data.node_type === NODE_TYPES_ENUM.OLT}
               className="!bg-blue-500 !w-3 !h-3"
             />
           )

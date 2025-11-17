@@ -123,12 +123,25 @@ const NetworkDiagram = () => {
   });
 
   const [isEditMode, setIsEditMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [isEmpty, setIsEmpty] = useState(false);
-  const [rootId, setRootId] = useState(undefined);
+  
+  // --- MODIFIED INITIALIZATION ---
+  const [rootId, setRootId] = useState(() => (id ? parseInt(id, 10) : null));
   const [dynamicRootId, setDynamicRootId] = useState(() =>
     id ? null : localStorage.getItem("dynamicRootId")
   );
+  
+  // Initialize loading to true if we have a rootId (OLT page)
+  // OR if we are on the main page but have a dynamicRootId to load.
+  const [loading, setLoading] = useState(() => {
+    const initialRoot = id ? parseInt(id, 10) : null;
+    if (initialRoot !== null) {
+      return true; // We are on an OLT page, load immediately.
+    }
+    const initialDynamic = localStorage.getItem("dynamicRootId");
+    return !!initialDynamic; // Load if we have a dynamic root, otherwise don't.
+  });
+  
+  const [isEmpty, setIsEmpty] = useState(false);
   const [diagramRoots, setDiagramRoots] = useState({ main: null, sub: [] });
   const [customerModalNode, setCustomerModalNode] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
@@ -382,8 +395,6 @@ const NetworkDiagram = () => {
 
       toast.success("All changes saved successfully!");
 
-      window.location.reload();
-
       setNewConnections([]);
       setDeletedNodes([]);
       setDeletedEdges([]);
@@ -411,6 +422,503 @@ const NetworkDiagram = () => {
     setIsSaveConfirmModalOpen,
   ]);
 
+  const loadInitialData = useCallback(async () => {
+    setIsEmpty(false);
+    const fetchId = rootId !== null ? rootId : dynamicRootId; // <-- ADD THIS
+    
+    // Add this check for the main page with no root selected
+    if (fetchId === null && rootId === null) {
+      setIsEmpty(true);
+      setNodes([]);
+      setEdges([]);
+      setLoading(false); // Turn off loader
+      return;
+    }
+    try {
+      const apiData = await fetchData(rootId);
+
+      const isGeneralView = rootId === null;
+
+      if (!isGeneralView && apiData.length > 0) {
+        const rootNodeFromData = apiData.find(
+          (item) => String(item.id) === String(rootId)
+        );
+
+        if (rootNodeFromData && rootNodeFromData.node_type !== "OLT") {
+          setRedirectInfo({
+            shouldRedirect: true,
+            message: "This view is only available for OLT devices.",
+          });
+          return;
+        }
+      }
+
+      if (!apiData || apiData.length === 0) {
+        setIsEmpty(true);
+        setNodes([]);
+        setEdges([]);
+        setLoading(false);
+        return;
+      }
+
+      const uniqueNodesMap = new Map();
+      const nameSwIdToNodeIdMap = new Map();
+
+      const deviceIdentityMap = new Map();
+
+      apiData.forEach((item) => {
+        const identityKey = `${item.name}-${item.sw_id ?? -1}`;
+
+        if (!deviceIdentityMap.has(identityKey)) {
+          deviceIdentityMap.set(identityKey, item);
+        } else {
+          const existingRecord = deviceIdentityMap.get(identityKey);
+          if (
+            existingRecord.parent_id === null ||
+            existingRecord.parent_id === 0
+          ) {
+            deviceIdentityMap.set(identityKey, item);
+          }
+        }
+      });
+
+      deviceIdentityMap.forEach((item, key) => {
+        uniqueNodesMap.set(String(item.id), item);
+        nameSwIdToNodeIdMap.set(key, String(item.id));
+      });
+
+      const initialEdges = [];
+      apiData.forEach((item) => {
+        // Check for parent_id AND a valid edge_id
+        if (
+          item.parent_id !== null &&
+          item.parent_id !== 0 &&
+          item.edge_id !== null
+        ) {
+          const identityKey = `${item.name}-${item.sw_id ?? -1}`;
+          let targetId = nameSwIdToNodeIdMap.has(identityKey)
+            ? nameSwIdToNodeIdMap.get(identityKey)
+            : String(item.id);
+
+          if (targetId) {
+            initialEdges.push({
+              // --- FIX ---
+              // Use the unique edge ID from the database
+              id: `e-${item.edge_id}`,
+              source: String(item.parent_id),
+              target: targetId,
+              markerEnd: { type: MarkerType.ArrowClosed },
+              style: { stroke: item.cable_color || "#1e293b" },
+
+              // --- ADD THESE LINES ---
+              label: item.cable_desc,
+              labelStyle: { fontSize: "10px", fill: "#333", fontWeight: 600 },
+              labelBgStyle: {
+                fill: "rgba(255, 255, 255, 0.7)",
+                padding: "2px 4px",
+                borderRadius: "2px",
+              },
+            });
+          }
+        }
+      });
+
+      const parentNodeIds = new Set(initialEdges.map((edge) => edge.source));
+
+      const initialNodes = Array.from(uniqueNodesMap.values()).map((item) => {
+        const nodeId =
+          item.node_type === NODE_TYPES_ENUM.ONU && item.name && item.sw_id
+            ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
+            : String(item.id);
+
+        return {
+          id: nodeId,
+          type: "custom",
+          data: {
+            ...item,
+            label: item.name || `Node ${item.id}`,
+            icon: getNodeIcon(item.node_type),
+            onDetailsClick: handleDetailsClick,
+            onNavigateClick: handleNavigateClick,
+            onShowCustomers: handleShowCustomers,
+          },
+          position:
+            item.position_mode === 1
+              ? {
+                  x: parseFloat(item.position_x),
+                  y: parseFloat(item.position_y),
+                }
+              : { x: 0, y: 0 },
+        };
+      });
+
+      if (initialNodes.length > 0) {
+        if (!isGeneralView) {
+          initialNodes.forEach((node) => {
+            if (String(node.data.id) === String(rootId)) {
+              node.data.position_mode = 0;
+            }
+          });
+        }
+
+        initialNodes.sort(compareNodesByLabel);
+        const nodeMap = new Map(initialNodes.map((n) => [n.id, n]));
+        let rootNode = null;
+        if (!isGeneralView) {
+          rootNode = initialNodes.find(
+            (n) => String(n.data.id) === String(rootId)
+          );
+        } else if (dynamicRootId) {
+          rootNode = initialNodes.find(
+            (n) => String(n.id) === String(dynamicRootId)
+          );
+        }
+
+        initialNodes.forEach((node) => {
+          node.children = [];
+        });
+        initialNodes.forEach((node) => {
+          if (rootNode && node.id === rootNode.id) {
+            return;
+          }
+
+          if (node.data.parent_id !== null && node.data.parent_id !== 0) {
+            const parent = nodeMap.get(String(node.data.parent_id));
+            if (parent) {
+              parent.children.push(node);
+            }
+          }
+        });
+
+        initialNodes.forEach((node) => {
+          node.level = -1;
+        });
+
+        const orphanRoots = initialNodes.filter(
+          (n) =>
+            n.id !== (rootNode ? rootNode.id : null) &&
+            n.data.position_mode !== 1 &&
+            (n.data.parent_id === null || n.data.parent_id === 0) &&
+            parentNodeIds.has(n.id)
+        );
+
+        setDiagramRoots({ main: rootNode, sub: orphanRoots });
+
+        const allRoots = [rootNode, ...orphanRoots].filter(Boolean);
+
+        allRoots.forEach((root) => {
+          if (root.level !== -1) return;
+
+          root.level = 0;
+          const queue = [root];
+          let head = 0;
+          while (head < queue.length) {
+            const parent = queue[head++];
+            initialNodes.forEach((potentialChild) => {
+              if (String(potentialChild.data.parent_id) === parent.id) {
+                if (potentialChild.level === -1) {
+                  potentialChild.level = parent.level + 1;
+                  queue.push(potentialChild);
+                }
+              }
+            });
+          }
+        });
+
+        const autoLayoutOrphanRoots = initialNodes.filter(
+          (n) =>
+            (n.data.parent_id === null || n.data.parent_id === 0) &&
+            n.id !== (rootNode ? rootNode.id : null) &&
+            n.data.position_mode !== 1 &&
+            parentNodeIds.has(n.id)
+        );
+
+        const allRootsForLayout = [rootNode, ...autoLayoutOrphanRoots].filter(
+          Boolean
+        );
+
+        const manuallyPositionedOrphanCount = initialNodes.filter(
+          (n) => n.level === -1 && n.data.position_mode === 1
+        ).length;
+
+        initialNodes.forEach((node) => {
+          if (node.data.position_mode === 1) {
+            return;
+          }
+
+          if (node.level !== -1) {
+            node.position = { x: node.level * GRID_X_SPACING, y: 0 };
+          } else {
+            const autoOrphanIndex = initialNodes
+              .filter((n) => n.level === -1 && n.data.position_mode !== 1)
+              .indexOf(node);
+
+            node.position = {
+              x: 0,
+              y:
+                (manuallyPositionedOrphanCount + autoOrphanIndex) *
+                GRID_Y_SPACING,
+            };
+          }
+        });
+
+        const gridNodeType = NODE_TYPES_ENUM.ONU;
+        const nodeHeight = 60;
+
+        const getGridChildren = (parentId) => {
+          return initialNodes.filter(
+            (n) =>
+              String(n.data.parent_id) === parentId &&
+              n.data.node_type === gridNodeType
+          );
+        };
+
+        const getBranchChildren = (parentId) => {
+          return initialNodes
+            .filter(
+              (n) =>
+                String(n.data.parent_id) === parentId &&
+                n.data.node_type !== gridNodeType
+            )
+            .map((n) => nodeMap.get(n.id))
+            .filter(Boolean);
+        };
+
+        function offsetBranch(node, offsetY) {
+          if (!node || !node.position) return;
+
+          if (node.data.position_mode !== 1) {
+            node.position.y += offsetY;
+          }
+
+          const allChildren = [
+            ...getBranchChildren(node.id),
+            ...getGridChildren(node.id),
+          ];
+
+          allChildren.forEach((childRef) => {
+            const childNode = nodeMap.get(childRef.id);
+            if (childNode) {
+              offsetBranch(childNode, offsetY);
+            }
+          });
+        }
+
+        function layoutBranch(node) {
+          if (!node) return 0;
+
+          const branchChildren = getBranchChildren(node.id);
+          const gridChildren = getGridChildren(node.id);
+
+          branchChildren.sort(compareNodesByLabel);
+          gridChildren.sort(compareNodesByLabel);
+
+          let currentY = 0;
+
+          if (branchChildren.length > 0) {
+            const branchHeights = branchChildren.map((child) =>
+              layoutBranch(child)
+            );
+
+            branchChildren.forEach((child, index) => {
+              const childHeight = branchHeights[index];
+              offsetBranch(child, currentY);
+              currentY += childHeight;
+              if (index < branchChildren.length - 1) {
+                currentY += PADDING_BETWEEN_GRIDS;
+              }
+            });
+          }
+
+          if (gridChildren.length > 0) {
+            if (branchChildren.length > 0) {
+              currentY += PADDING_BETWEEN_GRIDS;
+            }
+
+            const startX = node.position.x + GRID_X_SPACING;
+            gridChildren.forEach((childNode, index) => {
+              const nodeToUpdate = nodeMap.get(childNode.id);
+              if (nodeToUpdate && nodeToUpdate.data.position_mode !== 1) {
+                const row = index % NODES_PER_COLUMN;
+                const column = Math.floor(index / NODES_PER_COLUMN);
+                nodeToUpdate.position.y = currentY + row * GRID_Y_SPACING;
+                nodeToUpdate.position.x = startX + column * GRID_X_SPACING;
+              }
+            });
+
+            const numRows = Math.min(gridChildren.length, NODES_PER_COLUMN);
+            const gridHeight =
+              (numRows > 0 ? numRows - 1 : 0) * GRID_Y_SPACING + nodeHeight;
+            currentY += gridHeight;
+          }
+
+          const totalHeight = Math.max(currentY, nodeHeight);
+
+          if (node.data.position_mode !== 1) {
+            if (totalHeight === nodeHeight) {
+              node.position.y = 0;
+            } else {
+              node.position.y = (totalHeight - nodeHeight) / 2;
+            }
+          }
+
+          return totalHeight;
+        }
+
+        function getMinY(node, nodeMap, getBranchChildren, getGridChildren) {
+          if (!node || !node.position) return Infinity;
+
+          let minY = node.position.y;
+
+          const allChildren = [
+            ...getBranchChildren(node.id),
+            ...getGridChildren(node.id),
+          ];
+
+          allChildren.forEach((childRef) => {
+            const childNode = nodeMap.get(childRef.id);
+            if (childNode) {
+              minY = Math.min(
+                minY,
+                getMinY(childNode, nodeMap, getBranchChildren, getGridChildren)
+              );
+            }
+          });
+          return minY;
+        }
+
+        const orphanTreeNodes = new Set();
+        let currentGlobalY = 0;
+
+        allRootsForLayout.forEach((root) => {
+          const treeHeight = layoutBranch(root);
+
+          const minY = getMinY(
+            root,
+            nodeMap,
+            getBranchChildren,
+            getGridChildren
+          );
+          const yOffset = currentGlobalY - minY;
+          offsetBranch(root, yOffset);
+
+          currentGlobalY += treeHeight + PADDING_BETWEEN_GRIDS;
+
+          const queue = [root];
+          orphanTreeNodes.add(root.id);
+          let head = 0;
+          while (head < queue.length) {
+            const parent = queue[head++];
+            initialNodes.forEach((potentialChild) => {
+              if (String(potentialChild.data.parent_id) === parent.id) {
+                if (!orphanTreeNodes.has(potentialChild.id)) {
+                  orphanTreeNodes.add(potentialChild.id);
+                  queue.push(potentialChild);
+                }
+              }
+            });
+          }
+        });
+
+        const diagramNodes = [];
+        const orphanDrawerNodes = [];
+
+        initialNodes.forEach((node) => {
+          if (
+            node.level !== -1 ||
+            node.data.position_mode === 1 ||
+            orphanTreeNodes.has(node.id)
+          ) {
+            diagramNodes.push(node);
+          } else {
+            orphanDrawerNodes.push(node);
+          }
+        });
+
+        const diagramOrphanRoots = diagramNodes.filter(
+          (n) =>
+            (n.data.parent_id === null || n.data.parent_id === 0) &&
+            n.id !== (rootNode ? rootNode.id : null)
+        );
+        setDiagramRoots({ main: rootNode, sub: diagramOrphanRoots });
+
+        const nodesToSave = initialNodes.filter((n) => {
+          const shouldSave =
+            (n.data.position_mode === null ||
+              n.data.position_mode === undefined) &&
+            n.level !== -1;
+
+          const isRootNodeInOltView =
+            !isGeneralView && String(n.data.id) === String(rootId);
+
+          return shouldSave && !isRootNodeInOltView;
+        });
+
+        if (nodesToSave.length > 0) {
+          console.log(
+            `Auto-saving calculated positions for ${nodesToSave.length} nodes...`
+          );
+
+          const autoSavePromises = nodesToSave.map((node) => {
+            // --- MODIFIED ---
+            return saveNodePosition(
+              node.id,
+              {
+                position_x: node.position.x,
+                position_y: node.position.y,
+                position_mode: 0,
+              },
+              true // for muted
+            );
+            // --- END MODIFICATION ---
+          });
+
+          Promise.all(autoSavePromises)
+            .then(() => console.log("Auto-save complete."))
+            .catch((err) => console.error("Auto-save failed:", err));
+        }
+
+        setNodes(diagramNodes);
+        setOrphanNodes(orphanDrawerNodes);
+        setEdges(initialEdges);
+        initialNodesRef.current = diagramNodes;
+
+        setTimeout(() => {
+          const savedData = localStorage.getItem("react-flow-viewport");
+          if (savedData) {
+            try {
+              const {
+                viewport,
+                rootId: savedRootId,
+                dynamicRootId: savedDynamicRootId,
+              } = JSON.parse(savedData);
+
+              if (
+                savedRootId === rootId &&
+                savedDynamicRootId === dynamicRootId
+              ) {
+                reactFlowInstance.setViewport(viewport, { duration: 0 });
+                return;
+              }
+            } catch (e) {
+              console.error("Failed to parse saved viewport:", e);
+              localStorage.removeItem("react-flow-viewport");
+            }
+          }
+          reactFlowInstance.fitView({ padding: 0.3, duration: 500 });
+        }, 300);
+      } else {
+        setNodes([]);
+        setOrphanNodes([]);
+        setEdges([]);
+      }
+    } catch (error) {
+      console.error("Failed to load initial data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [rootId, dynamicRootId, navigate, reactFlowInstance, handleShowCustomers]);
+
   const handleResetPositions = useCallback(
     async (scope, nodeId = null) => {
       try {
@@ -421,7 +929,7 @@ const NetworkDiagram = () => {
         };
         await resetPositions(payload);
 
-        window.location.reload();
+        await loadInitialData();
       } catch (error) {
         console.error("Failed to reset positions:", error);
         setLoading(false);
@@ -704,6 +1212,7 @@ const NetworkDiagram = () => {
           };
 
           await insertNode(payload);
+          await loadInitialData();
         } else {
           const payload = {
             ...formData,
@@ -767,10 +1276,6 @@ const NetworkDiagram = () => {
             localStorage.removeItem("dynamicRootId");
             setDynamicRootId(null);
           }
-          const nodeInfo = {
-            name: nodeToDelete.data.name,
-            sw_id: nodeToDelete.data.sw_id,
-          };
 
           setDeletedNodes((prev) => [...prev, id]);
           setNodes((nds) => nds.filter((n) => n.id !== id));
@@ -807,23 +1312,23 @@ const NetworkDiagram = () => {
     const { id, type } = deleteModal;
     try {
       if (type === MISC.DEVICE) {
-        const nodeToDelete = nodes.find((n) => n.id === id);
-        if (!nodeToDelete) return;
-
-        if (id === dynamicRootId) {
-          localStorage.removeItem("dynamicRootId");
-          setDynamicRootId(null);
-        }
-        await deleteNode(id); // <-- Just pass the ID
-        window.location.reload();
+        // ...
+        await deleteNode(id); // <-- Call API
+        // --- MODIFIED ---
+        setNodes((nds) => nds.filter((n) => n.id !== id)); // <-- Update state
+        setEdges((eds) =>
+          eds.filter((e) => e.source !== id && e.target !== id)
+        );
+        toast.success("Device deleted.");
+        // --- END MODIFICATION ---
       } else {
-        const edgeToDelete = edges.find((e) => e.id === id);
-        const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
-        if (!edgeToDelete || !targetNode) return;
-
+        // ...
         const edgeId = id.replace("e-", "");
-        await deleteEdge(edgeId); // <-- Just pass the numeric ID
-        window.location.reload();
+        await deleteEdge(edgeId); // <-- Call API
+        // --- MODIFIED ---
+        setEdges((eds) => eds.filter((e) => e.id !== id)); // <-- Update state
+        toast.success("Connection deleted.");
+        // --- END MODIFICATION ---
       }
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error);
@@ -973,507 +1478,6 @@ const NetworkDiagram = () => {
   }, [nodes, edges, isEditMode]);
 
   useEffect(() => {
-    if (rootId === undefined) {
-      setNodes([]);
-      setEdges([]);
-      return;
-    }
-    const loadInitialData = async () => {
-      setLoading(true);
-      setIsEmpty(false);
-      try {
-        const apiData = await fetchData(rootId);
-
-        const isGeneralView = rootId === null;
-
-        if (!isGeneralView && apiData.length > 0) {
-          const rootNodeFromData = apiData.find(
-            (item) => String(item.id) === String(rootId)
-          );
-
-          if (rootNodeFromData && rootNodeFromData.node_type !== "OLT") {
-            setRedirectInfo({
-              shouldRedirect: true,
-              message: "This view is only available for OLT devices.",
-            });
-            return;
-          }
-        }
-
-        if (!apiData || apiData.length === 0) {
-          setIsEmpty(true);
-          setNodes([]);
-          setEdges([]);
-          setLoading(false);
-          return;
-        }
-
-        const uniqueNodesMap = new Map();
-        const nameSwIdToNodeIdMap = new Map();
-
-        const deviceIdentityMap = new Map();
-
-        apiData.forEach((item) => {
-          const identityKey = `${item.name}-${item.sw_id ?? -1}`;
-
-          if (!deviceIdentityMap.has(identityKey)) {
-            deviceIdentityMap.set(identityKey, item);
-          } else {
-            const existingRecord = deviceIdentityMap.get(identityKey);
-            if (
-              existingRecord.parent_id === null ||
-              existingRecord.parent_id === 0
-            ) {
-              deviceIdentityMap.set(identityKey, item);
-            }
-          }
-        });
-
-        deviceIdentityMap.forEach((item, key) => {
-          uniqueNodesMap.set(String(item.id), item);
-          nameSwIdToNodeIdMap.set(key, String(item.id));
-        });
-
-        const initialEdges = [];
-        apiData.forEach((item) => {
-          // Check for parent_id AND a valid edge_id
-          if (
-            item.parent_id !== null &&
-            item.parent_id !== 0 &&
-            item.edge_id !== null
-          ) {
-            const identityKey = `${item.name}-${item.sw_id ?? -1}`;
-            let targetId = nameSwIdToNodeIdMap.has(identityKey)
-              ? nameSwIdToNodeIdMap.get(identityKey)
-              : String(item.id);
-
-            if (targetId) {
-              initialEdges.push({
-                // --- FIX ---
-                // Use the unique edge ID from the database
-                id: `e-${item.edge_id}`,
-                source: String(item.parent_id),
-                target: targetId,
-                markerEnd: { type: MarkerType.ArrowClosed },
-                style: { stroke: item.cable_color || "#1e293b" },
-
-                // --- ADD THESE LINES ---
-                label: item.cable_desc,
-                labelStyle: { fontSize: "10px", fill: "#333", fontWeight: 600 },
-                labelBgStyle: {
-                  fill: "rgba(255, 255, 255, 0.7)",
-                  padding: "2px 4px",
-                  borderRadius: "2px",
-                },
-              });
-            }
-          }
-        });
-
-        const parentNodeIds = new Set(initialEdges.map((edge) => edge.source));
-
-        const initialNodes = Array.from(uniqueNodesMap.values()).map((item) => {
-          const nodeId =
-            item.node_type === NODE_TYPES_ENUM.ONU && item.name && item.sw_id
-              ? nameSwIdToNodeIdMap.get(`${item.name}-${item.sw_id}`)
-              : String(item.id);
-
-          return {
-            id: nodeId,
-            type: "custom",
-            data: {
-              ...item,
-              label: item.name || `Node ${item.id}`,
-              icon: getNodeIcon(item.node_type),
-              onDetailsClick: handleDetailsClick,
-              onNavigateClick: handleNavigateClick,
-              onShowCustomers: handleShowCustomers,
-            },
-            position:
-              item.position_mode === 1
-                ? {
-                    x: parseFloat(item.position_x),
-                    y: parseFloat(item.position_y),
-                  }
-                : { x: 0, y: 0 },
-          };
-        });
-
-        if (initialNodes.length > 0) {
-          if (!isGeneralView) {
-            initialNodes.forEach((node) => {
-              if (String(node.data.id) === String(rootId)) {
-                node.data.position_mode = 0;
-              }
-            });
-          }
-
-          initialNodes.sort(compareNodesByLabel);
-          const nodeMap = new Map(initialNodes.map((n) => [n.id, n]));
-          let rootNode = null;
-          if (!isGeneralView) {
-            rootNode = initialNodes.find(
-              (n) => String(n.data.id) === String(rootId)
-            );
-          } else if (dynamicRootId) {
-            rootNode = initialNodes.find(
-              (n) => String(n.id) === String(dynamicRootId)
-            );
-          }
-
-          initialNodes.forEach((node) => {
-            node.children = [];
-          });
-          initialNodes.forEach((node) => {
-            if (rootNode && node.id === rootNode.id) {
-              return;
-            }
-
-            if (node.data.parent_id !== null && node.data.parent_id !== 0) {
-              const parent = nodeMap.get(String(node.data.parent_id));
-              if (parent) {
-                parent.children.push(node);
-              }
-            }
-          });
-
-          initialNodes.forEach((node) => {
-            node.level = -1;
-          });
-
-          const orphanRoots = initialNodes.filter(
-            (n) =>
-              n.id !== (rootNode ? rootNode.id : null) &&
-              n.data.position_mode !== 1 &&
-              (n.data.parent_id === null || n.data.parent_id === 0) &&
-              parentNodeIds.has(n.id)
-          );
-
-          setDiagramRoots({ main: rootNode, sub: orphanRoots });
-
-          const allRoots = [rootNode, ...orphanRoots].filter(Boolean);
-
-          allRoots.forEach((root) => {
-            if (root.level !== -1) return;
-
-            root.level = 0;
-            const queue = [root];
-            let head = 0;
-            while (head < queue.length) {
-              const parent = queue[head++];
-              initialNodes.forEach((potentialChild) => {
-                if (String(potentialChild.data.parent_id) === parent.id) {
-                  if (potentialChild.level === -1) {
-                    potentialChild.level = parent.level + 1;
-                    queue.push(potentialChild);
-                  }
-                }
-              });
-            }
-          });
-
-          const autoLayoutOrphanRoots = initialNodes.filter(
-            (n) =>
-              (n.data.parent_id === null || n.data.parent_id === 0) &&
-              n.id !== (rootNode ? rootNode.id : null) &&
-              n.data.position_mode !== 1 &&
-              parentNodeIds.has(n.id)
-          );
-
-          const allRootsForLayout = [rootNode, ...autoLayoutOrphanRoots].filter(
-            Boolean
-          );
-
-          const manuallyPositionedOrphanCount = initialNodes.filter(
-            (n) => n.level === -1 && n.data.position_mode === 1
-          ).length;
-
-          initialNodes.forEach((node) => {
-            if (node.data.position_mode === 1) {
-              return;
-            }
-
-            if (node.level !== -1) {
-              node.position = { x: node.level * GRID_X_SPACING, y: 0 };
-            } else {
-              const autoOrphanIndex = initialNodes
-                .filter((n) => n.level === -1 && n.data.position_mode !== 1)
-                .indexOf(node);
-
-              node.position = {
-                x: 0,
-                y:
-                  (manuallyPositionedOrphanCount + autoOrphanIndex) *
-                  GRID_Y_SPACING,
-              };
-            }
-          });
-
-          const gridNodeType = NODE_TYPES_ENUM.ONU;
-          const nodeHeight = 60;
-
-          const getGridChildren = (parentId) => {
-            return initialNodes.filter(
-              (n) =>
-                String(n.data.parent_id) === parentId &&
-                n.data.node_type === gridNodeType
-            );
-          };
-
-          const getBranchChildren = (parentId) => {
-            return initialNodes
-              .filter(
-                (n) =>
-                  String(n.data.parent_id) === parentId &&
-                  n.data.node_type !== gridNodeType
-              )
-              .map((n) => nodeMap.get(n.id))
-              .filter(Boolean);
-          };
-
-          function offsetBranch(node, offsetY) {
-            if (!node || !node.position) return;
-
-            if (node.data.position_mode !== 1) {
-              node.position.y += offsetY;
-            }
-
-            const allChildren = [
-              ...getBranchChildren(node.id),
-              ...getGridChildren(node.id),
-            ];
-
-            allChildren.forEach((childRef) => {
-              const childNode = nodeMap.get(childRef.id);
-              if (childNode) {
-                offsetBranch(childNode, offsetY);
-              }
-            });
-          }
-
-          function layoutBranch(node) {
-            if (!node) return 0;
-
-            const branchChildren = getBranchChildren(node.id);
-            const gridChildren = getGridChildren(node.id);
-
-            branchChildren.sort(compareNodesByLabel);
-            gridChildren.sort(compareNodesByLabel);
-
-            let currentY = 0;
-
-            if (branchChildren.length > 0) {
-              const branchHeights = branchChildren.map((child) =>
-                layoutBranch(child)
-              );
-
-              branchChildren.forEach((child, index) => {
-                const childHeight = branchHeights[index];
-                offsetBranch(child, currentY);
-                currentY += childHeight;
-                if (index < branchChildren.length - 1) {
-                  currentY += PADDING_BETWEEN_GRIDS;
-                }
-              });
-            }
-
-            if (gridChildren.length > 0) {
-              if (branchChildren.length > 0) {
-                currentY += PADDING_BETWEEN_GRIDS;
-              }
-
-              const startX = node.position.x + GRID_X_SPACING;
-              gridChildren.forEach((childNode, index) => {
-                const nodeToUpdate = nodeMap.get(childNode.id);
-                if (nodeToUpdate && nodeToUpdate.data.position_mode !== 1) {
-                  const row = index % NODES_PER_COLUMN;
-                  const column = Math.floor(index / NODES_PER_COLUMN);
-                  nodeToUpdate.position.y = currentY + row * GRID_Y_SPACING;
-                  nodeToUpdate.position.x = startX + column * GRID_X_SPACING;
-                }
-              });
-
-              const numRows = Math.min(gridChildren.length, NODES_PER_COLUMN);
-              const gridHeight =
-                (numRows > 0 ? numRows - 1 : 0) * GRID_Y_SPACING + nodeHeight;
-              currentY += gridHeight;
-            }
-
-            const totalHeight = Math.max(currentY, nodeHeight);
-
-            if (node.data.position_mode !== 1) {
-              if (totalHeight === nodeHeight) {
-                node.position.y = 0;
-              } else {
-                node.position.y = (totalHeight - nodeHeight) / 2;
-              }
-            }
-
-            return totalHeight;
-          }
-
-          function getMinY(node, nodeMap, getBranchChildren, getGridChildren) {
-            if (!node || !node.position) return Infinity;
-
-            let minY = node.position.y;
-
-            const allChildren = [
-              ...getBranchChildren(node.id),
-              ...getGridChildren(node.id),
-            ];
-
-            allChildren.forEach((childRef) => {
-              const childNode = nodeMap.get(childRef.id);
-              if (childNode) {
-                minY = Math.min(
-                  minY,
-                  getMinY(
-                    childNode,
-                    nodeMap,
-                    getBranchChildren,
-                    getGridChildren
-                  )
-                );
-              }
-            });
-            return minY;
-          }
-
-          const orphanTreeNodes = new Set();
-          let currentGlobalY = 0;
-
-          allRootsForLayout.forEach((root) => {
-            const treeHeight = layoutBranch(root);
-
-            const minY = getMinY(
-              root,
-              nodeMap,
-              getBranchChildren,
-              getGridChildren
-            );
-            const yOffset = currentGlobalY - minY;
-            offsetBranch(root, yOffset);
-
-            currentGlobalY += treeHeight + PADDING_BETWEEN_GRIDS;
-
-            const queue = [root];
-            orphanTreeNodes.add(root.id);
-            let head = 0;
-            while (head < queue.length) {
-              const parent = queue[head++];
-              initialNodes.forEach((potentialChild) => {
-                if (String(potentialChild.data.parent_id) === parent.id) {
-                  if (!orphanTreeNodes.has(potentialChild.id)) {
-                    orphanTreeNodes.add(potentialChild.id);
-                    queue.push(potentialChild);
-                  }
-                }
-              });
-            }
-          });
-
-          const diagramNodes = [];
-          const orphanDrawerNodes = [];
-
-          initialNodes.forEach((node) => {
-            if (
-              node.level !== -1 ||
-              node.data.position_mode === 1 ||
-              orphanTreeNodes.has(node.id)
-            ) {
-              diagramNodes.push(node);
-            } else {
-              orphanDrawerNodes.push(node);
-            }
-          });
-
-          const diagramOrphanRoots = diagramNodes.filter(
-            (n) =>
-              (n.data.parent_id === null || n.data.parent_id === 0) &&
-              n.id !== (rootNode ? rootNode.id : null)
-          );
-          setDiagramRoots({ main: rootNode, sub: diagramOrphanRoots });
-
-          const nodesToSave = initialNodes.filter((n) => {
-            const shouldSave =
-              (n.data.position_mode === null ||
-                n.data.position_mode === undefined) &&
-              n.level !== -1;
-
-            const isRootNodeInOltView =
-              !isGeneralView && String(n.data.id) === String(rootId);
-
-            return shouldSave && !isRootNodeInOltView;
-          });
-
-          if (nodesToSave.length > 0) {
-            console.log(
-              `Auto-saving calculated positions for ${nodesToSave.length} nodes...`
-            );
-
-            const autoSavePromises = nodesToSave.map((node) => {
-              // --- MODIFIED ---
-              return saveNodePosition(
-                node.id,
-                {
-                  position_x: node.position.x,
-                  position_y: node.position.y,
-                  position_mode: 0,
-                },
-                true // for muted
-              );
-              // --- END MODIFICATION ---
-            });
-
-            Promise.all(autoSavePromises)
-              .then(() => console.log("Auto-save complete."))
-              .catch((err) => console.error("Auto-save failed:", err));
-          }
-
-          setNodes(diagramNodes);
-          setOrphanNodes(orphanDrawerNodes);
-          setEdges(initialEdges);
-          initialNodesRef.current = diagramNodes;
-
-          setTimeout(() => {
-            const savedData = localStorage.getItem("react-flow-viewport");
-            if (savedData) {
-              try {
-                const {
-                  viewport,
-                  rootId: savedRootId,
-                  dynamicRootId: savedDynamicRootId,
-                } = JSON.parse(savedData);
-
-                if (
-                  savedRootId === rootId &&
-                  savedDynamicRootId === dynamicRootId
-                ) {
-                  reactFlowInstance.setViewport(viewport, { duration: 0 });
-                  return;
-                }
-              } catch (e) {
-                console.error("Failed to parse saved viewport:", e);
-                localStorage.removeItem("react-flow-viewport");
-              }
-            }
-            reactFlowInstance.fitView({ padding: 0.3, duration: 500 });
-          }, 300);
-        } else {
-          setNodes([]);
-          setOrphanNodes([]);
-          setEdges([]);
-        }
-      } catch (error) {
-        console.error("Failed to load initial data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadInitialData();
-  }, [rootId, dynamicRootId, navigate, reactFlowInstance, handleShowCustomers]);
-
-  useEffect(() => {
     const newRootId = id ? parseInt(id, 10) : null;
     setRootId(newRootId);
 
@@ -1483,6 +1487,17 @@ const NetworkDiagram = () => {
       setDynamicRootId(localStorage.getItem("dynamicRootId"));
     }
   }, [id]);
+
+  // This effect re-runs the data load ONLY when the IDs change
+  useEffect(() => {
+    // Set loading to true *before* fetching,
+    // unless we're on the main page with no dynamic root.
+    const fetchId = rootId !== null ? rootId : dynamicRootId;
+    if (fetchId !== null || rootId !== null) {
+      setLoading(true);
+    }
+    loadInitialData();
+  }, [rootId, dynamicRootId, loadInitialData]);
 
   useEffect(() => {
     if (redirectInfo.shouldRedirect) {
@@ -1669,7 +1684,10 @@ const NetworkDiagram = () => {
           isOpen={editModal.isOpen}
           node={editModal.node}
           onClose={() => setEditModal({ isOpen: false, node: null })}
-          onSave={() => window.location.reload()}
+          onSave={async () => {
+            await loadInitialData();
+            setEditModal({ isOpen: false, node: null });
+          }}
           nodes={nodes}
           getNodeIcon={getNodeIcon}
         />
@@ -1726,8 +1744,7 @@ const NetworkDiagram = () => {
           isOpen={editEdgeModal.isOpen}
           edgeId={editEdgeModal.edgeId}
           onClose={() => setEditEdgeModal({ isOpen: false, edgeId: null })}
-          onUpdate={handleEdgeUpdate} // <-- ADD THIS
-          // onSave={() => window.location.reload()} // <-- REMOVE THIS
+          onUpdate={handleEdgeUpdate}
         />
         <SelectRootNodeModal
           isOpen={isSelectRootModalOpen}
