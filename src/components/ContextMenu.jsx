@@ -23,6 +23,7 @@ const ContextMenu = ({ id, top, left, onAction, node, ...props }) => {
       }
       case MISC.EDGE:
         return [
+          { label: LABELS.VIEW_DETAILS, action: ACTIONS.EDIT_EDGE },
           { label: LABELS.INSERT_DEVICE_ON_LINE, action: ACTIONS.INSERT_NODE },
           { label: LABELS.DELETE_CONNECTION, action: ACTIONS.DELETE_EDGE },
         ];

@@ -45,6 +45,35 @@ export const fetchRootCandidates = async () => {
   }
 };
 
+export const fetchEdgeDetails = async (edgeId) => {
+  try {
+    const response = await api.get(`/edge/${edgeId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch edge details:", error);
+    toast.error(
+      error.response?.data?.detail || "Could not load cable details."
+    );
+    throw error;
+  }
+};
+
+export const updateEdgeDetails = async (edgeId, payload, muted = false) => {
+  try {
+    const response = await api.put(`/edge/${edgeId}`, payload);
+    if (!muted) {
+      toast.success("Cable details updated!");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update edge details:", error);
+    toast.error(
+      error.response?.data?.detail || "An error occurred while saving."
+    );
+    throw error;
+  }
+};
+
 export const saveNodePosition = async (nodeId, positionData, muted = false) => {
   // positionData should be { position_x, position_y, position_mode }
   const payload = {
@@ -70,7 +99,7 @@ export const resetPositions = async (payload) => {
   try {
     const response = await api.post(`/positions/reset`, payload);
     if (response.status === 200) {
-      toast.success("Positions reset successfully!");
+      toast.success("Positions reset!");
     } else {
       toast.error(response.data?.detail || "Failed to reset positions.");
     }
@@ -89,7 +118,7 @@ export const insertNode = async (payload) => {
   try {
     const response = await api.post(`/node/insert`, payload);
     if (response.status === 201) {
-      toast.success("Device inserted successfully!");
+      toast.success("Device inserted!");
     } else {
       toast.error(response.data?.detail || "Failed to insert device.");
     }
@@ -158,7 +187,7 @@ export const createEdge = async (edgeData, muted = false) => {
     const response = await api.post(`/edge`, payload);
     if (!muted) {
       if (response.status === 201) {
-        toast.success("Connection created successfully!");
+        toast.success("Connection created!");
       } else {
         toast.error(response.data?.detail || "Failed to create connection");
       }
@@ -222,7 +251,7 @@ export const deleteNode = async (deviceId, muted = false) => {
     const response = await api.delete(`/device/${deviceId}`); // <-- Changed URL
     if (!muted) {
       if (response.status === 200) {
-        toast.success("Device and all its connections deleted successfully!");
+        toast.success("Device and all its connections deleted!");
       } else {
         toast.error(response.data?.detail || "Failed to delete device.");
       }
@@ -259,7 +288,7 @@ export const deleteEdge = async (edgeId, muted = false) => {
 
     if (!muted) {
       if (response.status === 200) {
-        toast.success("Connection deleted successfully!");
+        toast.success("Connection deleted!");
       } else {
         toast.error(response.data?.detail || "Failed to delete connection.");
       }

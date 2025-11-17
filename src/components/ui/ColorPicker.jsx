@@ -22,7 +22,6 @@ const ColorPicker = ({ selectedColor, onChange }) => {
 
   return (
     <div className="relative w-full" ref={pickerRef}>
-      <label className="label-style">Cable Color</label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -42,7 +41,13 @@ const ColorPicker = ({ selectedColor, onChange }) => {
             <span className="text-slate-500">Select Cable Color</span>
           )}
         </span>
-        <span className="text-slate-500">▼</span>
+        <span
+          className={`text-slate-500 ${
+            isOpen ? "rotate-180" : ""
+          } transition-all`}
+        >
+          ▼
+        </span>
       </button>
       {isOpen && (
         <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-md z-20 p-2 grid grid-cols-4 gap-2">

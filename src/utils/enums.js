@@ -5,6 +5,7 @@ export const ACTIONS = {
   INSERT_NODE: "insertNode",
   DELETE_EDGE: "deleteEdge",
   SEND_TO_INVENTORY: "sendToInventory",
+  EDIT_EDGE: "editEdge",
 };
 
 export const CUST_STATUS = {
@@ -21,6 +22,7 @@ export const LABELS = {
   INSERT_DEVICE_ON_LINE: "Insert Device on Line",
   DELETE_CONNECTION: "Delete Connection",
   SEND_TO_INVENTORY: "Send to Inventory",
+  VIEW_DETAILS: "View Details",
 };
 
 export const NODE_TYPES_ENUM = {

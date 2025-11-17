@@ -72,6 +72,9 @@ const SelectRootNodeModal = lazy(() =>
 const ConfirmSaveModal = lazy(() =>
   import("../components/modals/ConfirmSaveModal.jsx")
 );
+const EditEdgeModal = lazy(() =>
+  import("../components/modals/EditEdgeModal.jsx")
+);
 const OrphanDrawer = lazy(() => import("../components/ui/OrphanDrawer.jsx"));
 
 const nodeTypes = { custom: CustomNode };
@@ -97,6 +100,10 @@ const NetworkDiagram = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
+  const [editEdgeModal, setEditEdgeModal] = useState({
+    isOpen: false,
+    edgeId: null,
+  });
   const [addModal, setAddModal] = useState({
     isOpen: false,
     position: null,
@@ -183,6 +190,32 @@ const NetworkDiagram = () => {
   const handleShowCustomers = useCallback((nodeData) => {
     setCustomerModalNode(nodeData);
   }, []);
+
+  const handleEdgeUpdate = useCallback(
+    (edgeId, fieldName, newValue) => {
+      setEdges((eds) =>
+        eds.map((edge) => {
+          // Find the edge (ReactFlow ID is "e-123", our ID is 123)
+          if (edge.id === `e-${edgeId}`) {
+            const newEdge = { ...edge };
+
+            // Update the correct property
+            if (fieldName === "cable_desc") {
+              newEdge.label = newValue;
+            } else if (fieldName === "cable_color") {
+              newEdge.style = { ...newEdge.style, stroke: newValue };
+            }
+
+            // You can add more 'else if' blocks here for other fields if needed
+
+            return newEdge;
+          }
+          return edge;
+        })
+      );
+    },
+    [setEdges] // Add setEdges to the dependency array
+  );
 
   const handleUndo = useCallback(() => {
     if (history.length === 0) return;
@@ -572,6 +605,12 @@ const NetworkDiagram = () => {
           isInsertion: false,
           parentNode,
         });
+        break;
+      }
+      case ACTIONS.EDIT_EDGE: {
+        // id is the full edge ID like "e-123"
+        const numericEdgeId = id.replace("e-", "");
+        setEditEdgeModal({ isOpen: true, edgeId: numericEdgeId });
         break;
       }
       case ACTIONS.SEND_TO_INVENTORY: {
@@ -1017,6 +1056,15 @@ const NetworkDiagram = () => {
                 target: targetId,
                 markerEnd: { type: MarkerType.ArrowClosed },
                 style: { stroke: item.cable_color || "#1e293b" },
+
+                // --- ADD THESE LINES ---
+                label: item.cable_desc,
+                labelStyle: { fontSize: "10px", fill: "#333", fontWeight: 600 },
+                labelBgStyle: {
+                  fill: "rgba(255, 255, 255, 0.7)",
+                  padding: "2px 4px",
+                  borderRadius: "2px",
+                },
               });
             }
           }
@@ -1673,6 +1721,13 @@ const NetworkDiagram = () => {
           node={detailModal.node}
           nodes={nodes} // <-- ADD THIS
           getNodeIcon={getNodeIcon} // <-- ADD THIS
+        />
+        <EditEdgeModal
+          isOpen={editEdgeModal.isOpen}
+          edgeId={editEdgeModal.edgeId}
+          onClose={() => setEditEdgeModal({ isOpen: false, edgeId: null })}
+          onUpdate={handleEdgeUpdate} // <-- ADD THIS
+          // onSave={() => window.location.reload()} // <-- REMOVE THIS
         />
         <SelectRootNodeModal
           isOpen={isSelectRootModalOpen}
