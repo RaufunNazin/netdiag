@@ -44,7 +44,7 @@ const HelpBox = ({ isEmpty }) => {
             Click{" "}
             {
               <button
-                className={`z-10 p-1.5 rounded-full text-white transition-all duration-200 bg-blue-500 hover:bg-blue-600`}
+                className={`z-10 p-1.5 rounded-full text-white transition-all duration-200 bg-orange-400 hover:bg-orange-400`}
               >
                 {UI_ICONS.edit}
               </button>
@@ -83,6 +83,30 @@ const HelpBox = ({ isEmpty }) => {
               </button>
             }{" "}
             to <b>reset</b> the layout.
+          </>,
+          <>
+            Use{" "}
+            {
+              <button
+                className={`relative z-20 p-1 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
+                title="Export Diagram"
+              >
+                {UI_ICONS.download}
+              </button>
+            }{" "}
+            to <b>export</b> the visible diagram.
+          </>,
+          <>
+            Use{" "}
+            {
+              <button
+                className={`p-1 rounded-full text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600`}
+                title={"Toggle Cable Labels"}
+              >
+                {UI_ICONS.tag}
+              </button>
+            }{" "}
+            to <b>show/hide</b> cable description.
           </>,
           <>
             Click{" "}

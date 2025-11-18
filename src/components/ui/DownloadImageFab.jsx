@@ -15,7 +15,7 @@ const DownloadImageFab = ({
       onClick={onClick}
       // Disable if explicitly disabled (e.g., loading page) OR if currently downloading
       disabled={disabled || isDownloading}
-      className={`absolute bottom-16 left-2 md:left-4 z-20 p-3 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`relative z-20 p-3 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       title="Export Diagram"
     >
       {isDownloading ? (

@@ -8,7 +8,7 @@ const EditFab = ({ isEditing, onClick }) => {
         ${
           isEditing
             ? "bg-green-500 hover:bg-green-600"
-            : "bg-blue-500 hover:bg-blue-600"
+            : "bg-orange-400 hover:bg-orange-400"
         }`}
       title={isEditing ? "Save and Lock Layout" : "Enable Editing"}
     >

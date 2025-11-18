@@ -52,6 +52,7 @@ import GuidanceToast from "../components/ui/GuidanceToast";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import DownloadImageFab from "../components/ui/DownloadImageFab.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
+import VerticalIconDock from "../components/ui/VerticalIconDock.jsx";
 const CustomerDetailModal = lazy(() =>
   import("../components/modals/CustomerDetailModal.jsx")
 );
@@ -106,7 +107,11 @@ const NetworkDiagram = () => {
   const [newConnections, setNewConnections] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [showEdgeLabels, setShowEdgeLabels] = useState(true);
+  const [showEdgeLabels, setShowEdgeLabels] = useState(() => {
+    const saved = localStorage.getItem("showEdgeLabels");
+    // Default to false if nothing is saved
+    return saved !== null ? JSON.parse(saved) : false;
+  });
   const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [editEdgeModal, setEditEdgeModal] = useState({
@@ -1653,6 +1658,10 @@ const NetworkDiagram = () => {
   }, [dynamicRootId, rootId]);
 
   useEffect(() => {
+    localStorage.setItem("showEdgeLabels", JSON.stringify(showEdgeLabels));
+  }, [showEdgeLabels]);
+
+  useEffect(() => {
     if (loading || isEmpty) {
       return;
     }
@@ -1788,35 +1797,42 @@ const NetworkDiagram = () => {
 
           {/* Add class to HelpBox */}
           <HelpBox isEmpty={isEmpty} className="diagram-ui-overlay" />
-          {/* Add class to ResetPositionsFab */}
-          <ResetPositionsFab
-            onReset={(scope) =>
-              setResetConfirmModal({
-                isOpen: true,
-                scope,
-                nodeId: null,
-                nodeName: "",
-              })
-            }
-            disabled={loading || isEditMode}
-            className="diagram-ui-overlay" // Pass class to its wrapper
-          />
-
-          {/* --- UPDATE YOUR ICON DOCK --- */}
-          {/* Add class to IconDock and fab-button to all children */}
-          <IconDock className="fab-dock diagram-ui-overlay">
-            {rootId === null && (
-              <SelectRootNodeFab
-                onClick={() => setSelectRootModalOpen(true)}
-                className="fab-button"
-              />
-            )}
+          <VerticalIconDock className="diagram-ui-overlay fab-dock">
+            <ResetPositionsFab
+              onReset={(scope) =>
+                setResetConfirmModal({
+                  isOpen: true,
+                  scope,
+                  nodeId: null,
+                  nodeName: "",
+                })
+              }
+              disabled={loading || isEditMode}
+              className="fab-button" // Pass class for filtering
+            />
+            <DownloadImageFab
+              onClick={handleExportClick}
+              disabled={loading || isEmpty}
+              isDownloading={isDownloading}
+              className="fab-button"
+            />
             <ToggleEdgeLabelsFab
               onClick={() => setShowEdgeLabels((prev) => !prev)}
               disabled={loading || isEmpty}
               isLabelsVisible={showEdgeLabels}
               className="fab-button"
             />
+            {rootId === null && (
+              <SelectRootNodeFab
+                onClick={() => setSelectRootModalOpen(true)}
+                className="fab-button"
+              />
+            )}
+          </VerticalIconDock>
+
+          {/* --- UPDATE YOUR ICON DOCK --- */}
+          {/* Add class to IconDock and fab-button to all children */}
+          <IconDock className="fab-dock diagram-ui-overlay">
             <AddNodeFab onClick={handleAddNodeClick} className="fab-button" />
             <EditFab
               isEditing={isEditMode}
@@ -1832,13 +1848,6 @@ const NetworkDiagram = () => {
           </IconDock>
         </>
       )}
-      {/* --- ADD THE NEW DOWNLOAD BUTTON --- */}
-      <DownloadImageFab
-        onClick={handleExportClick} // <-- WAS: onDownload
-        disabled={loading || isEmpty}
-        isDownloading={isDownloading}
-        className="fab-button"
-      />
       <Suspense fallback={<LoadingOverlay />}>
         <CustomerDetailModal
           isOpen={!!customerModalNode}
