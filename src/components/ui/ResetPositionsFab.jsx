@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { UI_ICONS } from "../../utils/icons";
 
-const ResetPositionsFab = ({ onReset, disabled }) => {
+const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -23,7 +23,10 @@ const ResetPositionsFab = ({ onReset, disabled }) => {
   };
 
   return (
-    <div ref={wrapperRef} className="absolute bottom-4 left-2 md:left-4 z-20">
+    <div
+      ref={wrapperRef}
+      className={`absolute bottom-4 left-2 md:left-4 z-20 ${className}`}
+    >
       {isOpen && (
         <div className="absolute bottom-full mb-2 w-48 bg-white rounded-md shadow-md py-1">
           <ul className="list-none p-0 m-0">

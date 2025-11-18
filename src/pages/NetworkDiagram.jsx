@@ -16,8 +16,11 @@ import ReactFlow, {
   useReactFlow,
   Background,
   MarkerType,
+  getRectOfNodes,
+  getTransformForBounds,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import { toPng } from "html-to-image";
 import { UI_ICONS } from "../utils/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -47,6 +50,7 @@ import IconDock from "../components/ui/IconDock.jsx";
 import HelpBox from "../components/ui/HelpBox.jsx";
 import GuidanceToast from "../components/ui/GuidanceToast";
 import EmptyState from "../components/ui/EmptyState.jsx";
+import DownloadImageFab from "../components/ui/DownloadImageFab.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 const CustomerDetailModal = lazy(() =>
   import("../components/modals/CustomerDetailModal.jsx")
@@ -96,7 +100,7 @@ const NetworkDiagram = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [orphanNodes, setOrphanNodes] = useState([]);
   const [newConnections, setNewConnections] = useState([]);
-
+  const [isDownloading, setIsDownloading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
@@ -251,6 +255,121 @@ const NetworkDiagram = () => {
   const handleDetailsClick = useCallback((nodeData) => {
     setDetailModal({ isOpen: true, node: { data: nodeData } });
   }, []);
+
+  const onDownload = useCallback(() => {
+    if (!reactFlowWrapper.current) {
+      toast.error("Diagram element not found.");
+      return;
+    }
+
+    const elementToCapture = reactFlowWrapper.current.querySelector(
+      ".react-flow__viewport"
+    );
+
+    if (!elementToCapture) {
+      toast.error("Diagram viewport not found.");
+      return;
+    }
+
+    // --- 1. SET LOADING STATE AND TOAST IMMEDIATELY ---
+    setIsDownloading(true);
+    toast.info("Exporting diagram... This may take a moment, please wait.");
+
+    // --- 2. DEFER THE HEAVY WORK WITH A TIMEOUT ---
+    setTimeout(() => {
+      // --- 3. ALL HEAVY PROCESSING MOVED INSIDE THE TIMEOUT ---
+      const nodesToCapture = reactFlowInstance.getNodes();
+      if (nodesToCapture.length === 0) {
+        toast.error("No nodes to capture.");
+        setIsDownloading(false);
+        toast.dismiss("download-toast");
+        return;
+      }
+
+      // 1. Get bounds (This is the main blocking call)
+      const nodesBounds = getRectOfNodes(nodesToCapture);
+
+      // 2. Define padding and scale
+      const padding = 100;
+      const scaleFactor = 2;
+
+      // 3. Calculate dynamic image dimensions
+      const imageWidth = (nodesBounds.width + padding * 2) * scaleFactor;
+      const imageHeight = (nodesBounds.height + padding * 2) * scaleFactor;
+
+      // 4. Calculate translation
+      const translateX = -nodesBounds.x + padding;
+      const translateY = -nodesBounds.y + padding;
+
+      // --- Dynamic Filename Logic ---
+      const getTimestamp = () => {
+        const pad = (num) => String(num).padStart(2, "0");
+        const now = new Date();
+
+        const year = now.getFullYear();
+        const month = pad(now.getMonth() + 1);
+        const day = pad(now.getDate());
+        const hours = pad(now.getHours());
+        const minutes = pad(now.getMinutes());
+        const seconds = pad(now.getSeconds());
+
+        return `${hours}.${minutes}.${seconds}-${year}_${month}_${day}`;
+      };
+
+      let filename = "";
+
+      if (rootId) {
+        // OLT View
+        const oltNode = nodes.find((n) => n.id === String(rootId));
+        const oltName = oltNode?.data?.label || "olt";
+        const sanitizedOltName = oltName.replace(/ /g, "_").toLowerCase();
+        filename = `${sanitizedOltName}_diagram_${getTimestamp()}.png`;
+      } else {
+        // General View
+        filename = `main_diagram_${getTimestamp()}.png`;
+      }
+      // --- End Filename Logic ---
+
+      // --- 4. RUN THE ASYNCHRONOUS PNG CONVERSION ---
+      toPng(elementToCapture, {
+        backgroundColor: "#ffffff",
+        width: imageWidth,
+        height: imageHeight,
+        style: {
+          width: imageWidth,
+          height: imageHeight,
+          transform: `scale(${scaleFactor}) translate(${translateX}px, ${translateY}px)`,
+        },
+        filter: (node) => {
+          if (
+            node?.classList?.contains("diagram-ui-overlay") ||
+            node?.classList?.contains("fab-button") ||
+            node?.classList?.contains("fab-dock") ||
+            node?.classList?.contains("react-flow__controls")
+          ) {
+            return false;
+          }
+          return true;
+        },
+      })
+        .then((dataUrl) => {
+          const a = document.createElement("a");
+          a.setAttribute("download", filename);
+          a.setAttribute("href", dataUrl);
+          a.click();
+          toast.dismiss("download-toast");
+          toast.success("Diagram export is ready!"); // <-- UPDATED
+        })
+        .catch((err) => {
+          console.error("Failed to export diagram:", err); // <-- UPDATED
+          toast.dismiss("download-toast");
+          toast.error("Sorry, failed to export the diagram."); // <-- UPDATED
+        })
+        .finally(() => {
+          setIsDownloading(false);
+        });
+    }, 100); // A 10ms delay is enough to let the UI update
+  }, [reactFlowInstance, reactFlowWrapper, rootId, nodes]);
 
   const handleNavigateClick = useCallback(
     (nodeId) => {
@@ -1597,12 +1716,12 @@ const NetworkDiagram = () => {
           <ContextMenu {...contextMenu} onAction={handleAction} />
         )}
       </ReactFlow>
-      <UserStatus />
+      <UserStatus className="diagram-ui-overlay" />
 
       {!isDrawerOpen && (
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md  hover:bg-blue-600 transition-all duration-200 text-white"
+          className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md  hover:bg-blue-600 transition-all duration-200 text-white diagram-ui-overlay"
           title="Open Inventory"
         >
           {UI_ICONS.chevronRight_main}
@@ -1613,15 +1732,15 @@ const NetworkDiagram = () => {
       {!loading && isEmpty && (
         <>
           <EmptyState />
-          <HelpBox isEmpty={isEmpty} />
-          <IconDock>
+          <HelpBox isEmpty={isEmpty} className="diagram-ui-overlay" />
+          <IconDock className="fab-dock diagram-ui-overlay">
             <AddNodeFab onClick={handleAddNodeClick} />
           </IconDock>
         </>
       )}
 
       {window.location.pathname !== "/" && (
-        <div className="absolute top-4 left-0 p-2 z-10 text-slate-700">
+        <div className="absolute top-4 left-0 p-2 z-10 text-slate-700 diagram-ui-overlay">
           <button
             className=""
             title={"Go Back"}
@@ -1634,13 +1753,17 @@ const NetworkDiagram = () => {
 
       {!isEmpty && (
         <>
+          {/* Add class to SearchControl */}
           <SearchControl
             nodes={nodes}
             onNodeFound={onNodeFound}
             diagramRoots={diagramRoots}
+            className="diagram-ui-overlay"
           />
 
-          <HelpBox isEmpty={isEmpty} />
+          {/* Add class to HelpBox */}
+          <HelpBox isEmpty={isEmpty} className="diagram-ui-overlay" />
+          {/* Add class to ResetPositionsFab */}
           <ResetPositionsFab
             onReset={(scope) =>
               setResetConfirmModal({
@@ -1651,18 +1774,41 @@ const NetworkDiagram = () => {
               })
             }
             disabled={loading || isEditMode}
+            className="diagram-ui-overlay" // Pass class to its wrapper
           />
-          <IconDock>
+
+          {/* --- UPDATE YOUR ICON DOCK --- */}
+          {/* Add class to IconDock and fab-button to all children */}
+          <IconDock className="fab-dock diagram-ui-overlay">
             {rootId === null && (
-              <SelectRootNodeFab onClick={() => setSelectRootModalOpen(true)} />
+              <SelectRootNodeFab
+                onClick={() => setSelectRootModalOpen(true)}
+                className="fab-button"
+              />
             )}
-            <AddNodeFab onClick={handleAddNodeClick} />
-            <EditFab isEditing={isEditMode} onClick={handleFabClick} />
-            <UndoFab onClick={handleUndo} disabled={history.length === 0} />
-            <ResetViewFab onClick={handleResetView} />
+            <AddNodeFab onClick={handleAddNodeClick} className="fab-button" />
+            <EditFab
+              isEditing={isEditMode}
+              onClick={handleFabClick}
+              className="fab-button"
+            />
+            <UndoFab
+              onClick={handleUndo}
+              disabled={history.length === 0}
+              className="fab-button"
+            />
+            <ResetViewFab onClick={handleResetView} className="fab-button" />
           </IconDock>
         </>
       )}
+      {/* --- ADD THE NEW DOWNLOAD BUTTON --- */}
+      <DownloadImageFab
+        onClick={onDownload}
+        // Disable button if page is loading, diagram is empty, OR download is in progress
+        disabled={loading || isEmpty}
+        isDownloading={isDownloading}
+        className="fab-button"
+      />
       <Suspense fallback={<LoadingOverlay />}>
         <CustomerDetailModal
           isOpen={!!customerModalNode}
