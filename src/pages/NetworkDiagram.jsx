@@ -17,7 +17,6 @@ import ReactFlow, {
   Background,
   MarkerType,
   getRectOfNodes,
-  getTransformForBounds,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { toPng } from "html-to-image";
@@ -57,6 +56,10 @@ const CustomerDetailModal = lazy(() =>
 );
 const NodeDetailModal = lazy(() =>
   import("../components/modals/NodeDetailModal.jsx")
+);
+const ConfirmExportModal = lazy(() =>
+  // <-- ADD THIS
+  import("../components/modals/ConfirmExportModal.jsx")
 );
 const AddNodeModal = lazy(() =>
   import("../components/modals/AddNodeModal.jsx")
@@ -125,6 +128,7 @@ const NetworkDiagram = () => {
     nodeId: null,
     nodeName: "",
   });
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -271,18 +275,25 @@ const NetworkDiagram = () => {
       return;
     }
 
-    // --- 1. SET LOADING STATE AND TOAST IMMEDIATELY ---
+    // --- 1. SET LOADING STATE IMMEDIATELY ---
+    // This is the *only* thing we do before yielding the thread.
+    // React will now render the LoadingOverlay on its next paint.
     setIsDownloading(true);
-    toast.info("Exporting diagram... This may take a moment, please wait.");
 
-    // --- 2. DEFER THE HEAVY WORK WITH A TIMEOUT ---
+    // --- 2. DEFER *ALL* OTHER WORK ---
+    // This timeout gives React time to render the overlay *before*
+    // we block the thread with toasts or heavy calculations.
     setTimeout(() => {
-      // --- 3. ALL HEAVY PROCESSING MOVED INSIDE THE TIMEOUT ---
+      // --- 3. SHOW TOAST *INSIDE* THE TIMEOUT ---
+      // It will appear *after* the overlay is already visible.
+      // We make it a "loading" toast that we can update later.
+
+      // --- 4. ALL HEAVY PROCESSING MOVED INSIDE THE TIMEOUT ---
       const nodesToCapture = reactFlowInstance.getNodes();
       if (nodesToCapture.length === 0) {
         toast.error("No nodes to capture.");
         setIsDownloading(false);
-        toast.dismiss("download-toast");
+        toast.dismiss("export-toast");
         return;
       }
 
@@ -305,14 +316,12 @@ const NetworkDiagram = () => {
       const getTimestamp = () => {
         const pad = (num) => String(num).padStart(2, "0");
         const now = new Date();
-
         const year = now.getFullYear();
         const month = pad(now.getMonth() + 1);
         const day = pad(now.getDate());
         const hours = pad(now.getHours());
         const minutes = pad(now.getMinutes());
         const seconds = pad(now.getSeconds());
-
         return `${hours}.${minutes}.${seconds}-${year}_${month}_${day}`;
       };
 
@@ -330,7 +339,7 @@ const NetworkDiagram = () => {
       }
       // --- End Filename Logic ---
 
-      // --- 4. RUN THE ASYNCHRONOUS PNG CONVERSION ---
+      // --- 5. RUN THE ASYNCHRONOUS PNG CONVERSION ---
       toPng(elementToCapture, {
         backgroundColor: "#ffffff",
         width: imageWidth,
@@ -357,20 +366,23 @@ const NetworkDiagram = () => {
           a.setAttribute("download", filename);
           a.setAttribute("href", dataUrl);
           a.click();
-          toast.dismiss("download-toast");
-          toast.success("Diagram export is ready!"); // <-- UPDATED
         })
         .catch((err) => {
-          console.error("Failed to export diagram:", err); // <-- UPDATED
-          toast.dismiss("download-toast");
-          toast.error("Sorry, failed to export the diagram."); // <-- UPDATED
+          console.error("Failed to export diagram:", err);
+          // Update toast to error
+          toast.error("Sorry, failed to export the diagram.");
         })
         .finally(() => {
+          // --- 6. HIDE THE OVERLAY ---
           setIsDownloading(false);
         });
-    }, 100); // A 10ms delay is enough to let the UI update
+    }, 100); // 100ms delay to ensure UI renders first
   }, [reactFlowInstance, reactFlowWrapper, rootId, nodes]);
-
+  const handleExportClick = () => {
+    // Don't open the modal if an export is already in progress
+    if (isDownloading) return;
+    setIsExportModalOpen(true);
+  };
   const handleNavigateClick = useCallback(
     (nodeId) => {
       navigate(`/${nodeId}`);
@@ -1729,6 +1741,9 @@ const NetworkDiagram = () => {
       )}
 
       {loading && <LoadingOverlay />}
+      {isDownloading && (
+        <LoadingOverlay message="Exporting diagram... This may take a moment, please wait." />
+      )}
       {!loading && isEmpty && (
         <>
           <EmptyState />
@@ -1803,8 +1818,7 @@ const NetworkDiagram = () => {
       )}
       {/* --- ADD THE NEW DOWNLOAD BUTTON --- */}
       <DownloadImageFab
-        onClick={onDownload}
-        // Disable button if page is loading, diagram is empty, OR download is in progress
+        onClick={handleExportClick} // <-- WAS: onDownload
         disabled={loading || isEmpty}
         isDownloading={isDownloading}
         className="fab-button"
@@ -1819,6 +1833,14 @@ const NetworkDiagram = () => {
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
           nodes={orphanNodes}
+        />
+        <ConfirmExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onConfirm={() => {
+            setIsExportModalOpen(false); // Close modal
+            onDownload(); // Run the export
+          }}
         />
         <EditNodeModal
           isOpen={editModal.isOpen}
