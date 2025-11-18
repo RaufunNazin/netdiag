@@ -42,6 +42,7 @@ import ResetViewFab from "../components/ui/ResetViewFab.jsx";
 import AddNodeFab from "../components/ui/AddNodeFab.jsx";
 import EditFab from "../components/ui/EditFab.jsx";
 import SelectRootNodeFab from "../components/ui/SelectRootNodeFab.jsx";
+import ToggleEdgeLabelsFab from "../components/ui/ToggleEdgeLabelsFab.jsx";
 import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
 import UndoFab from "../components/ui/UndoFab.jsx";
 import SearchControl from "../components/ui/SearchControl.jsx";
@@ -105,6 +106,7 @@ const NetworkDiagram = () => {
   const [newConnections, setNewConnections] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showEdgeLabels, setShowEdgeLabels] = useState(true);
   const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, node: null });
   const [editEdgeModal, setEditEdgeModal] = useState({
@@ -1595,9 +1597,17 @@ const NetworkDiagram = () => {
           ...edge,
           interactive: isEditMode,
           zIndex: isEditMode ? 1000 : 0,
+          labelStyle: {
+            ...edge.labelStyle, // Keep existing styles (color, font-size)
+            display: showEdgeLabels ? "block" : "none", // Toggle visibility
+          },
+          labelBgStyle: {
+            ...edge.labelBgStyle, // Keep existing styles (bg color, padding)
+            display: showEdgeLabels ? "block" : "none", // Toggle visibility
+          },
         })),
     };
-  }, [nodes, edges, isEditMode]);
+  }, [nodes, edges, isEditMode, showEdgeLabels]);
 
   useEffect(() => {
     if (rootId === undefined) {
@@ -1801,6 +1811,12 @@ const NetworkDiagram = () => {
                 className="fab-button"
               />
             )}
+            <ToggleEdgeLabelsFab
+              onClick={() => setShowEdgeLabels((prev) => !prev)}
+              disabled={loading || isEmpty}
+              isLabelsVisible={showEdgeLabels}
+              className="fab-button"
+            />
             <AddNodeFab onClick={handleAddNodeClick} className="fab-button" />
             <EditFab
               isEditing={isEditMode}
