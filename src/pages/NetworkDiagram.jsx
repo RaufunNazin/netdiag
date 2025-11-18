@@ -1602,13 +1602,13 @@ const NetworkDiagram = () => {
           ...edge,
           interactive: isEditMode,
           zIndex: isEditMode ? 1000 : 0,
+          label: showEdgeLabels ? edge.label : undefined,
+          // We can remove the display:none logic from styles now
           labelStyle: {
-            ...edge.labelStyle, // Keep existing styles (color, font-size)
-            display: showEdgeLabels ? "block" : "none", // Toggle visibility
+            ...edge.labelStyle, 
           },
           labelBgStyle: {
-            ...edge.labelBgStyle, // Keep existing styles (bg color, padding)
-            display: showEdgeLabels ? "block" : "none", // Toggle visibility
+            ...edge.labelBgStyle,
           },
         })),
     };
