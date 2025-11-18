@@ -60,7 +60,6 @@ const NodeDetailModal = lazy(() =>
   import("../components/modals/NodeDetailModal.jsx")
 );
 const ConfirmExportModal = lazy(() =>
-  // <-- ADD THIS
   import("../components/modals/ConfirmExportModal.jsx")
 );
 const AddNodeModal = lazy(() =>
@@ -109,7 +108,6 @@ const NetworkDiagram = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showEdgeLabels, setShowEdgeLabels] = useState(() => {
     const saved = localStorage.getItem("showEdgeLabels");
-    // Default to false if nothing is saved
     return saved !== null ? JSON.parse(saved) : false;
   });
   const [isSelectRootModalOpen, setSelectRootModalOpen] = useState(false);
@@ -139,21 +137,18 @@ const NetworkDiagram = () => {
 
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // --- MODIFIED INITIALIZATION ---
   const [rootId, setRootId] = useState(() => (id ? parseInt(id, 10) : null));
   const [dynamicRootId, setDynamicRootId] = useState(() =>
     id ? null : localStorage.getItem(MISC.DYNAMIC_ROOT_ID)
   );
 
-  // Initialize loading to true if we have a rootId (OLT page)
-  // OR if we are on the main page but have a dynamicRootId to load.
   const [loading, setLoading] = useState(() => {
     const initialRoot = id ? parseInt(id, 10) : null;
     if (initialRoot !== null) {
-      return true; // We are on an OLT page, load immediately.
+      return true;
     }
     const initialDynamic = localStorage.getItem(MISC.DYNAMIC_ROOT_ID);
-    return !!initialDynamic; // Load if we have a dynamic root, otherwise don't.
+    return !!initialDynamic;
   });
 
   const [isEmpty, setIsEmpty] = useState(false);
@@ -208,12 +203,12 @@ const NetworkDiagram = () => {
       {
         nodes: currentNodes,
         edges: currentEdges,
-        newConnections: newConnections, // <-- ADD THIS
+        newConnections: newConnections,
         deletedNodes: deletedNodes,
         deletedEdges: deletedEdges,
       },
     ]);
-  }, [reactFlowInstance, newConnections, deletedNodes, deletedEdges]); // <-- ADD newConnections
+  }, [reactFlowInstance, newConnections, deletedNodes, deletedEdges]);
 
   const handleShowCustomers = useCallback((nodeData) => {
     setCustomerModalNode(nodeData);
@@ -223,26 +218,21 @@ const NetworkDiagram = () => {
     (edgeId, fieldName, newValue) => {
       setEdges((eds) =>
         eds.map((edge) => {
-          // Find the edge (ReactFlow ID is "e-123", our ID is 123)
           if (edge.id === `e-${edgeId}`) {
             const newEdge = { ...edge };
 
-            // Update the correct property
             if (fieldName === "cable_desc") {
               newEdge.label = newValue;
             } else if (fieldName === "cable_color") {
               newEdge.style = { ...newEdge.style, stroke: newValue };
             }
-
-            // You can add more 'else if' blocks here for other fields if needed
-
             return newEdge;
           }
           return edge;
         })
       );
     },
-    [setEdges] // Add setEdges to the dependency array
+    [setEdges]
   );
 
   const handleUndo = useCallback(() => {
@@ -257,7 +247,7 @@ const NetworkDiagram = () => {
         setEdges(lastState.edges);
         setDeletedNodes(lastState.deletedNodes);
         setDeletedEdges(lastState.deletedEdges);
-        setNewConnections(lastState.newConnections); // <-- ADD THIS
+        setNewConnections(lastState.newConnections);
       }
       return newHistory;
     });
@@ -282,20 +272,9 @@ const NetworkDiagram = () => {
       return;
     }
 
-    // --- 1. SET LOADING STATE IMMEDIATELY ---
-    // This is the *only* thing we do before yielding the thread.
-    // React will now render the LoadingOverlay on its next paint.
     setIsDownloading(true);
 
-    // --- 2. DEFER *ALL* OTHER WORK ---
-    // This timeout gives React time to render the overlay *before*
-    // we block the thread with toasts or heavy calculations.
     setTimeout(() => {
-      // --- 3. SHOW TOAST *INSIDE* THE TIMEOUT ---
-      // It will appear *after* the overlay is already visible.
-      // We make it a "loading" toast that we can update later.
-
-      // --- 4. ALL HEAVY PROCESSING MOVED INSIDE THE TIMEOUT ---
       const nodesToCapture = reactFlowInstance.getNodes();
       if (nodesToCapture.length === 0) {
         toast.error("No nodes to capture.");
@@ -304,22 +283,17 @@ const NetworkDiagram = () => {
         return;
       }
 
-      // 1. Get bounds (This is the main blocking call)
       const nodesBounds = getRectOfNodes(nodesToCapture);
 
-      // 2. Define padding and scale
       const padding = 100;
       const scaleFactor = 2;
 
-      // 3. Calculate dynamic image dimensions
       const imageWidth = (nodesBounds.width + padding * 2) * scaleFactor;
       const imageHeight = (nodesBounds.height + padding * 2) * scaleFactor;
 
-      // 4. Calculate translation
       const translateX = -nodesBounds.x + padding;
       const translateY = -nodesBounds.y + padding;
 
-      // --- Dynamic Filename Logic ---
       const getTimestamp = () => {
         const pad = (num) => String(num).padStart(2, "0");
         const now = new Date();
@@ -335,18 +309,13 @@ const NetworkDiagram = () => {
       let filename = "";
 
       if (rootId) {
-        // OLT View
         const oltNode = nodes.find((n) => n.id === String(rootId));
         const oltName = oltNode?.data?.label || "olt";
         const sanitizedOltName = oltName.replace(/ /g, "_").toLowerCase();
         filename = `${sanitizedOltName}_diagram_${getTimestamp()}.png`;
       } else {
-        // General View
         filename = `main_diagram_${getTimestamp()}.png`;
       }
-      // --- End Filename Logic ---
-
-      // --- 5. RUN THE ASYNCHRONOUS PNG CONVERSION ---
       toPng(elementToCapture, {
         backgroundColor: "#ffffff",
         width: imageWidth,
@@ -376,17 +345,14 @@ const NetworkDiagram = () => {
         })
         .catch((err) => {
           console.error("Failed to export diagram:", err);
-          // Update toast to error
           toast.error("Sorry, failed to export the diagram.");
         })
         .finally(() => {
-          // --- 6. HIDE THE OVERLAY ---
           setIsDownloading(false);
         });
-    }, 100); // 100ms delay to ensure UI renders first
+    }, 100);
   }, [reactFlowInstance, reactFlowWrapper, rootId, nodes]);
   const handleExportClick = () => {
-    // Don't open the modal if an export is already in progress
     if (isDownloading) return;
     setIsExportModalOpen(true);
   };
@@ -480,22 +446,18 @@ const NetworkDiagram = () => {
     });
 
     try {
-      // --- MODIFIED ---
       const deleteEdgeFns = deletedEdges.map(
         (edgeId) => () => deleteEdge(edgeId, true)
       );
-
-      // updateConnectionFns removed
 
       const deleteNodeFns = deletedNodes.map(
         (nodeId) => () => deleteNode(nodeId, true)
       );
 
       const createConnectionFns = newConnections.map((connParams) => () => {
-        return createEdge(connParams, true); // Use the new util
+        return createEdge(connParams, true);
       });
 
-      // --- FIXED PAYLOAD ---
       const savePositionFns = movedNodes.map((node) => () => {
         return saveNodePosition(
           node.id,
@@ -504,10 +466,9 @@ const NetworkDiagram = () => {
             position_y: node.position.y,
             position_mode: 1,
           },
-          true // muted
+          true
         );
       });
-      // --- END FIX ---
 
       console.log("Saving changes sequentially...");
 
@@ -618,7 +579,6 @@ const NetworkDiagram = () => {
 
       const initialEdges = [];
       apiData.forEach((item) => {
-        // Check for parent_id AND a valid edge_id
         if (
           item.parent_id !== null &&
           item.parent_id !== 0 &&
@@ -631,15 +591,12 @@ const NetworkDiagram = () => {
 
           if (targetId) {
             initialEdges.push({
-              // --- FIX ---
-              // Use the unique edge ID from the database
               id: `e-${item.edge_id}`,
               source: String(item.parent_id),
               target: targetId,
               markerEnd: { type: MarkerType.ArrowClosed },
               style: { stroke: item.cable_color || "#1e293b" },
 
-              // --- ADD THESE LINES ---
               label: item.cable_desc,
               labelStyle: { fontSize: "10px", fill: "#333", fontWeight: 600 },
               labelBgStyle: {
@@ -989,7 +946,6 @@ const NetworkDiagram = () => {
           );
 
           const autoSavePromises = nodesToSave.map((node) => {
-            // --- MODIFIED ---
             return saveNodePosition(
               node.id,
               {
@@ -997,9 +953,8 @@ const NetworkDiagram = () => {
                 position_y: node.position.y,
                 position_mode: 0,
               },
-              true // for muted
+              true
             );
-            // --- END MODIFICATION ---
           });
 
           Promise.all(autoSavePromises)
@@ -1108,7 +1063,6 @@ const NetworkDiagram = () => {
       }
       const newEdge = {
         ...params,
-        // Use a more unique UI-side ID
         id: `reactflow__edge-${params.source}${params.sourceHandle || ""}-${
           params.target
         }${params.targetHandle || ""}`,
@@ -1116,13 +1070,11 @@ const NetworkDiagram = () => {
       };
       setEdges((eds) => addEdge(newEdge, eds));
 
-      // --- ADD THIS LOGIC BACK ---
       if (isEditMode) {
         setNewConnections((prev) => [...prev, params]);
       }
-      // --- END ADD ---
     },
-    [isEditMode, pushStateToHistory, setEdges, setNewConnections] // <-- Add setNewConnections
+    [isEditMode, pushStateToHistory, setEdges, setNewConnections]
   );
 
   const handleFabClick = useCallback(async () => {
@@ -1144,7 +1096,7 @@ const NetworkDiagram = () => {
 
       const hasChanges =
         movedNodes.length > 0 ||
-        newConnections.length > 0 || // <-- ADD THIS
+        newConnections.length > 0 ||
         deletedNodes.length > 0 ||
         deletedEdges.length > 0;
 
@@ -1245,7 +1197,6 @@ const NetworkDiagram = () => {
         break;
       }
       case ACTIONS.EDIT_EDGE: {
-        // id is the full edge ID like "e-123"
         const numericEdgeId = id.replace("e-", "");
         setEditEdgeModal({ isOpen: true, edgeId: numericEdgeId });
         break;
@@ -1260,7 +1211,7 @@ const NetworkDiagram = () => {
           );
 
           saveNodePosition(
-            id, // Pass the ID
+            id,
             {
               position_x: null,
               position_y: null,
@@ -1441,23 +1392,17 @@ const NetworkDiagram = () => {
     const { id, type } = deleteModal;
     try {
       if (type === MISC.DEVICE) {
-        // ...
-        await deleteNode(id); // <-- Call API
-        // --- MODIFIED ---
-        setNodes((nds) => nds.filter((n) => n.id !== id)); // <-- Update state
+        await deleteNode(id);
+        setNodes((nds) => nds.filter((n) => n.id !== id));
         setEdges((eds) =>
           eds.filter((e) => e.source !== id && e.target !== id)
         );
         toast.success("Device deleted.");
-        // --- END MODIFICATION ---
       } else {
-        // ...
         const edgeId = id.replace("e-", "");
-        await deleteEdge(edgeId); // <-- Call API
-        // --- MODIFIED ---
-        setEdges((eds) => eds.filter((e) => e.id !== id)); // <-- Update state
+        await deleteEdge(edgeId);
+        setEdges((eds) => eds.filter((e) => e.id !== id));
         toast.success("Connection deleted.");
-        // --- END MODIFICATION ---
       }
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error);
@@ -1516,22 +1461,18 @@ const NetworkDiagram = () => {
       initialNodesRef.current.push(newNode);
       setOrphanNodes((nds) => nds.filter((n) => n.id !== nodeData.id));
 
-      // --- MODIFIED ---
-      // Use the functional form to get the *actual* current state
       let wasAlreadyEditMode = false;
       setIsEditMode((current) => {
-        wasAlreadyEditMode = current; // Capture the state *before* setting
-        return true; // Always set to true
+        wasAlreadyEditMode = current;
+        return true;
       });
 
-      // Now the check is against the real value
       if (!wasAlreadyEditMode) {
         toast.info("Edit mode enabled.");
       }
-      // --- END MODIFICATION ---
 
       saveNodePosition(
-        nodeData.id, // Pass the ID
+        nodeData.id,
         {
           position_x: position.x,
           position_y: position.y,
@@ -1549,7 +1490,6 @@ const NetworkDiagram = () => {
       handleDetailsClick,
       handleNavigateClick,
       handleShowCustomers,
-      // isEditMode is no longer needed as a dependency
     ]
   );
 
@@ -1603,7 +1543,6 @@ const NetworkDiagram = () => {
           interactive: isEditMode,
           zIndex: isEditMode ? 1000 : 0,
           label: showEdgeLabels ? edge.label : undefined,
-          // We can remove the display:none logic from styles now
           labelStyle: {
             ...edge.labelStyle, 
           },
@@ -1787,7 +1726,6 @@ const NetworkDiagram = () => {
 
       {!isEmpty && (
         <>
-          {/* Add class to SearchControl */}
           <SearchControl
             nodes={nodes}
             onNodeFound={onNodeFound}
@@ -1795,7 +1733,6 @@ const NetworkDiagram = () => {
             className="diagram-ui-overlay"
           />
 
-          {/* Add class to HelpBox */}
           <HelpBox isEmpty={isEmpty} className="diagram-ui-overlay" />
           <VerticalIconDock className="diagram-ui-overlay fab-dock">
             <ResetPositionsFab
@@ -1808,7 +1745,7 @@ const NetworkDiagram = () => {
                 })
               }
               disabled={loading || isEditMode}
-              className="fab-button" // Pass class for filtering
+              className="fab-button"
             />
             <DownloadImageFab
               onClick={handleExportClick}
@@ -1830,8 +1767,6 @@ const NetworkDiagram = () => {
             )}
           </VerticalIconDock>
 
-          {/* --- UPDATE YOUR ICON DOCK --- */}
-          {/* Add class to IconDock and fab-button to all children */}
           <IconDock className="fab-dock diagram-ui-overlay">
             <AddNodeFab onClick={handleAddNodeClick} className="fab-button" />
             <EditFab
@@ -1863,8 +1798,8 @@ const NetworkDiagram = () => {
           isOpen={isExportModalOpen}
           onClose={() => setIsExportModalOpen(false)}
           onConfirm={() => {
-            setIsExportModalOpen(false); // Close modal
-            onDownload(); // Run the export
+            setIsExportModalOpen(false);
+            onDownload();
           }}
         />
         <EditNodeModal
@@ -1924,8 +1859,8 @@ const NetworkDiagram = () => {
           isOpen={detailModal.isOpen}
           onClose={() => setDetailModal({ isOpen: false, node: null })}
           node={detailModal.node}
-          nodes={nodes} // <-- ADD THIS
-          getNodeIcon={getNodeIcon} // <-- ADD THIS
+          nodes={nodes}
+          getNodeIcon={getNodeIcon}
         />
         <EditEdgeModal
           isOpen={editEdgeModal.isOpen}

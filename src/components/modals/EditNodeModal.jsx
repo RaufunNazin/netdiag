@@ -297,7 +297,7 @@ const EditNodeModal = ({
       await updateNodeDetails(node.id, payload);
       onSave();
     } catch (error) {
-      // Error already toasted
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -495,9 +495,7 @@ const EditNodeModal = ({
                     Cable Details
                   </div>
 
-                  <span className="text-slate-500">
-                    Click to toggle
-                  </span>
+                  <span className="text-slate-500">Click to toggle</span>
                 </button>
                 {isCableSectionExpanded && (
                   <>

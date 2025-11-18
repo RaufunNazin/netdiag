@@ -4,35 +4,29 @@ import { toast } from "react-toastify";
 import { LINK_TYPES } from "../../utils/constants";
 import ColorPicker from "../ui/ColorPicker";
 import { fetchEdgeDetails, updateEdgeDetails } from "../../utils/graphUtils";
-import { UI_ICONS } from "../../utils/icons"; // Assuming you have a pencil icon
+import { UI_ICONS } from "../../utils/icons";
 
-// ---
-// Re-usable View/Edit Field
-// ---
 const EditableField = ({
   label,
   value,
   name,
-  onSave, // This will be the API save function
+  onSave,
   type = "text",
   options = [],
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentValue, setCurrentValue] = useState(value);
 
-  // Update local value if prop changes (e.g., on reset)
   useEffect(() => {
     setCurrentValue(value);
   }, [value]);
 
   const handleSaveClick = async () => {
-    // Call the parent's save function
     await onSave(name, currentValue);
     setIsEditing(false);
   };
 
   const handleCancelClick = () => {
-    // Reset to original prop value
     setCurrentValue(value);
     setIsEditing(false);
   };
@@ -42,7 +36,6 @@ const EditableField = ({
       <label className="label-style">{label}</label>
       {isEditing ? (
         <div className="flex items-center gap-2">
-          {/* --- Render the correct input type --- */}
           {type === "select" ? (
             <select
               value={currentValue || ""}
@@ -64,7 +57,6 @@ const EditableField = ({
             />
           )}
 
-          {/* --- In-line Save/Cancel buttons --- */}
           <button
             onClick={handleSaveClick}
             className="btn-primary-sm text-blue-500"
@@ -98,9 +90,6 @@ const EditableField = ({
   );
 };
 
-// ---
-// Main Modal Component
-// ---
 const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
   const [formData, setFormData] = useState(null);
   const [originalData, setOriginalData] = useState(null);
@@ -113,7 +102,7 @@ const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
         try {
           const data = await fetchEdgeDetails(edgeId);
           setFormData(data);
-          setOriginalData(data); // Store the "pristine" data
+          setOriginalData(data);
         } catch (error) {
           onClose();
         }
@@ -123,12 +112,10 @@ const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
     }
   }, [isOpen, edgeId, onClose]);
 
-  // --- NEW: This function saves a single field to the API ---
   const handleFieldSave = async (fieldName, newValue) => {
     setIsLoading(true);
     let processedValue = newValue;
 
-    // Parse numeric fields
     const numericFields = ["cable_start", "cable_end", "cable_length"];
     if (numericFields.includes(fieldName)) {
       processedValue = parseInt(newValue, 10) || null;
@@ -140,7 +127,6 @@ const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
 
     try {
       await updateEdgeDetails(edgeId, payload);
-      // Success! Update both form and original data to "commit" the change
       const updatedData = { ...formData, [fieldName]: processedValue };
       setFormData(updatedData);
       setOriginalData(updatedData);
@@ -148,15 +134,12 @@ const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
         onUpdate(edgeId, fieldName, processedValue);
       }
     } catch (error) {
-      // Error is already toasted by the util
-      // Revert formData to originalData to cancel the UI change
       setFormData(originalData);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- NEW: This function resets the form to its last-saved state ---
   const handleReset = () => {
     setFormData(originalData);
     toast.info("Changes have been reset.");
@@ -219,7 +202,6 @@ const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
                 />
                 <div>
                   <label className="label-style">Cable Color</label>
-                  {/* ColorPicker saves immediately on change */}
                   <ColorPicker
                     selectedColor={formData.cable_color}
                     onChange={(color) => handleFieldSave("cable_color", color)}
@@ -236,7 +218,6 @@ const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
               </div>
             </div>
 
-            {/* --- MODIFIED: Bottom Button Group --- */}
             <div className="flex justify-end items-center border-t border-slate-200 pt-6 mt-8">
               <button
                 onClick={onClose}

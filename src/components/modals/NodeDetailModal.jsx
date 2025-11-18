@@ -1,12 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { CORE_COLORS_DATA } from "../../utils/constants";
-import { fetchNodeDetails } from "../../utils/graphUtils"; // For fetching data
-import { ICONS } from "../../components/CustomNode.jsx"; // For the icons
-
-// ---
-// SUB-COMPONENTS
-// ---
+import { fetchNodeDetails } from "../../utils/graphUtils";
+import { ICONS } from "../../components/CustomNode.jsx";
 
 const DetailItem = ({ label, value, className = "" }) => {
   if (value === null || value === undefined || value === "") return null;
@@ -97,11 +93,6 @@ const CableDetailDisplay = ({
     </div>
   );
 };
-
-// ---
-// MAIN COMPONENT
-// ---
-
 const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
   const [details, setDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -111,13 +102,11 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
     if (isOpen && node) {
       const loadDetails = async () => {
         setIsLoading(true);
-        setDetails(null); // Clear old data
+        setDetails(null);
         try {
-          // Fetch the full details using the node's ID
           const data = await fetchNodeDetails(node.data.id);
           setDetails(data);
         } catch (error) {
-          // Error is already toasted by fetchNodeDetails
           onClose();
         }
         setIsLoading(false);
@@ -128,7 +117,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
 
   if (!isOpen) return null;
 
-  // Show loading spinner while fetching
   if (isLoading || !details) {
     return (
       <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -147,7 +135,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
     device.ip ||
     device.vlan;
   const hasSplitterDetails = device.split_ratio || device.split_group;
-  // Check if there are any edges to display
   const hasCableDetails =
     (incoming_edges && incoming_edges.length > 0) ||
     (outgoing_edges && outgoing_edges.length > 0);
@@ -193,7 +180,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
               </>
             )}
 
-            {/* --- NEW COLLAPSIBLE CABLE SECTION --- */}
             {hasCableDetails && (
               <>
                 <button
@@ -245,7 +231,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
                 )}
               </>
             )}
-            {/* --- END CABLE SECTION --- */}
 
             {(hasLocationInfo || device.remarks) && (
               <>

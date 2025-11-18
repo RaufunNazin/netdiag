@@ -1,10 +1,8 @@
 import api from "../api";
 import { toast } from "react-toastify";
 
-// Fetches the detailed data for the modal
 export const fetchNodeDetails = async (nodeId) => {
   try {
-    // Assuming 'api' is your pre-configured axios instance
     const response = await api.get(`/node-details/${nodeId}`);
     return response.data;
   } catch (error) {
@@ -16,7 +14,6 @@ export const fetchNodeDetails = async (nodeId) => {
   }
 };
 
-// Saves the updated device and edge data
 export const updateNodeDetails = async (nodeId, payload) => {
   try {
     const response = await api.put(`/node-details/${nodeId}`, payload);
@@ -75,13 +72,11 @@ export const updateEdgeDetails = async (edgeId, payload, muted = false) => {
 };
 
 export const saveNodePosition = async (nodeId, positionData, muted = false) => {
-  // positionData should be { position_x, position_y, position_mode }
   const payload = {
     device_data: positionData,
     edges_to_update: [],
   };
   try {
-    // We use the NEW endpoint here
     await api.put(`/node-details/${nodeId}`, payload);
     if (!muted) {
       toast.success("Position saved!");
@@ -135,9 +130,6 @@ export const insertNode = async (payload) => {
 
 export const createNode = async (nodeData) => {
   try {
-    // --- MODIFIED ---
-    // Create a new object with only the device fields
-    // The backend will soon reject edge fields on this endpoint
     const devicePayload = {
       name: nodeData.name,
       node_type: nodeData.node_type,
@@ -155,9 +147,7 @@ export const createNode = async (nodeData) => {
       remarks: nodeData.remarks,
     };
 
-    // The endpoint is the same, but the payload is now clean
     const response = await api.post(`/device`, devicePayload);
-    // --- END MODIFICATION ---
 
     if (response.status === 201) {
       toast.success("Device created! Find it in the inventory drawer.");
@@ -175,10 +165,7 @@ export const createNode = async (nodeData) => {
   }
 };
 
-// Add this function to graphUtils.js
-
 export const createEdge = async (edgeData, muted = false) => {
-  // edgeData should be { source, target }
   const payload = {
     source_id: parseInt(edgeData.source, 10),
     target_id: parseInt(edgeData.target, 10),
@@ -248,7 +235,7 @@ export const getDescendants = (nodeId, allNodes, allEdges) => {
 
 export const deleteNode = async (deviceId, muted = false) => {
   try {
-    const response = await api.delete(`/device/${deviceId}`); // <-- Changed URL
+    const response = await api.delete(`/device/${deviceId}`);
     if (!muted) {
       if (response.status === 200) {
         toast.success("Device and all its connections deleted!");
@@ -258,7 +245,7 @@ export const deleteNode = async (deviceId, muted = false) => {
     }
     return response.data;
   } catch (error) {
-    console.error(`Error deleting node ${deviceId}:`, error); // <-- Changed logging
+    console.error(`Error deleting node ${deviceId}:`, error);
     if (!muted) {
       toast.error(
         error.response?.data?.detail ||
@@ -284,7 +271,7 @@ export const fetchOnuCustomerInfo = async (oltId, portName) => {
 
 export const deleteEdge = async (edgeId, muted = false) => {
   try {
-    const response = await api.delete(`/edge/${edgeId}`); // <-- Changed URL
+    const response = await api.delete(`/edge/${edgeId}`);
 
     if (!muted) {
       if (response.status === 200) {
@@ -295,7 +282,7 @@ export const deleteEdge = async (edgeId, muted = false) => {
     }
     return response.data;
   } catch (error) {
-    console.error(`Error deleting edge ${edgeId}:`, error); // <-- Changed logging
+    console.error(`Error deleting edge ${edgeId}:`, error);
     if (!muted) {
       toast.error(
         error.response?.data?.detail ||

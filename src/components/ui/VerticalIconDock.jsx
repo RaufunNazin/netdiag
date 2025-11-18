@@ -3,12 +3,10 @@ import { UI_ICONS } from "../../utils/icons";
 
 const VerticalIconDock = ({ children, className = "" }) => {
   const [isOpen, setIsOpen] = useState(() => {
-    // Use a unique key for this dock's local storage
     const savedState = localStorage.getItem("isVerticalDockOpen");
-    return savedState !== null ? JSON.parse(savedState) : false; // Default to closed
+    return savedState !== null ? JSON.parse(savedState) : false;
   });
 
-  // Save open/closed state to local storage
   useEffect(() => {
     localStorage.setItem("isVerticalDockOpen", JSON.stringify(isOpen));
   }, [isOpen]);
@@ -18,14 +16,11 @@ const VerticalIconDock = ({ children, className = "" }) => {
   };
 
   return (
-    // This is the main container, combining both elements
     <div
       className={`fixed bottom-4 left-2 md:left-4 z-20 flex flex-col items-center 
                  rounded-full border border-slate-200/70 
                  bg-white/80 p-2 shadow-none backdrop-blur-sm ${className}`}
     >
-      {/* Menu that expands upwards. 
-          flex-col-reverse stacks items from bottom to top. */}
       <div
         className={`flex flex-col-reverse items-center gap-2 overflow-hidden 
                    transition-all duration-500 ease-in-out
@@ -38,7 +33,6 @@ const VerticalIconDock = ({ children, className = "" }) => {
         {children}
       </div>
 
-      {/* Toggle Button - Now part of the same container */}
       <button
         onClick={toggleDock}
         className={`flex h-10 w-10 shrink-0 items-center justify-center 

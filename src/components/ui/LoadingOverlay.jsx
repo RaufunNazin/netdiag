@@ -383,45 +383,34 @@ const tips = [
     an OLT view.
   </>,
 ];
-
-// --- Helper function: Moved outside the component ---
-// This lets us use it in the useState initializer.
 const getNewTip = () => {
   const index = Math.floor(Math.random() * tips.length);
   return tips[index];
 };
 
-// --- MODIFIED LoadingOverlay Component ---
 const LoadingOverlay = ({ message }) => {
-  // --- UPDATED STATE ---
-  // Use a "lazy initializer" to set the first tip immediately.
-  // This function only runs ONCE on the initial render.
   const [currentTip, setCurrentTip] = useState(getNewTip);
 
   useEffect(() => {
-    // Set up an interval to change the tip every 3 seconds
     const intervalId = setInterval(() => {
       setCurrentTip(getNewTip());
-    }, 3000); // 3 seconds
+    }, 3000);
 
-    // Cleanup function
     return () => {
       clearInterval(intervalId);
     };
-  }, []); // Empty dependency array is correct here
+  }, []);
 
   return (
     <div className="absolute inset-0 p-2 z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 gap-5">
       <div className="w-12 h-12 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
 
-      {/* Conditionally render the message if it exists */}
       {message && (
         <p className="text-lg md:text-xl font-medium text-white text-center">
           {message}
         </p>
       )}
 
-      {/* Show the cycling tip (it will now have a value on first render) */}
       {currentTip && (
         <p className="text-lg md:text-2xl font-medium text-white text-center">
           Tip: {currentTip}

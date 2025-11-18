@@ -9,7 +9,6 @@ const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      // We need to check if click is outside the button AND the menu (which is now in a portal)
       const menuElement = document.getElementById("reset-positions-menu");
 
       if (
@@ -29,12 +28,9 @@ const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
 
   const handleToggle = () => {
     if (!isOpen && buttonRef.current) {
-      // Calculate position before opening
       const rect = buttonRef.current.getBoundingClientRect();
       setMenuPosition({
-        // Align top of menu with top of button
         top: rect.top,
-        // Position menu 12px to the right of the button
         left: rect.right + 12,
       });
     }
@@ -58,7 +54,6 @@ const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
         {UI_ICONS.reset_main}
       </button>
 
-      {/* Render the menu outside the VerticalDock using a Portal */}
       {isOpen &&
         createPortal(
           <div
@@ -67,7 +62,6 @@ const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
               top: menuPosition.top,
               left: menuPosition.left,
             }}
-            // Use 'fixed' positioning so it floats above everything based on screen coordinates
             className="fixed z-[9999] w-48 bg-white rounded-md shadow-xl border border-slate-100 py-1 animate-in fade-in zoom-in-95 duration-100 origin-top-left"
           >
             <ul className="list-none p-0 m-0">

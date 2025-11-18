@@ -216,27 +216,21 @@ const CustomNode = ({ data, isConnectable }) => {
   };
 
   const borderClass = useMemo(() => {
-    // If the node is highlighted, this class takes priority over all others.
-    // We use border-4 to make it more prominent than the status border.
     if (data.isHighlighted) {
       return "border-4 border-blue-500";
     }
 
-    // If not highlighted, check for ONU status
     if (data.node_type === NODE_TYPES_ENUM.ONU) {
       if (data.status === 1) {
-        // Apply default border + override top/right with green status
         return "border-2 border-slate-400 border-r-4 border-t-4 border-r-green-500 border-t-green-500";
       }
       if (data.status === 2) {
-        // Apply default border + override top/right with red status
         return "border-2 border-slate-400 border-r-4 border-t-4 border-r-[#d43c3c] border-t-[#d43c3c]";
       }
     }
 
-    // Default border for all other cases
     return "border-2 border-slate-400";
-  }, [data.isHighlighted, data.node_type, data.status]); // Dependencies
+  }, [data.isHighlighted, data.node_type, data.status]);
 
   const handleDetailsClick = (e) => {
     e.stopPropagation();
