@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
   useState,
@@ -48,11 +47,13 @@ import UndoFab from "../components/ui/UndoFab.jsx";
 import SearchControl from "../components/ui/SearchControl.jsx";
 import IconDock from "../components/ui/IconDock.jsx";
 import HelpBox from "../components/ui/HelpBox.jsx";
-import GuidanceToast from "../components/ui/GuidanceToast";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import DownloadImageFab from "../components/ui/DownloadImageFab.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import VerticalIconDock from "../components/ui/VerticalIconDock.jsx";
+const WelcomeModal = lazy(() =>
+  import("../components/modals/WelcomeModal.jsx")
+);
 const CustomerDetailModal = lazy(() =>
   import("../components/modals/CustomerDetailModal.jsx")
 );
@@ -99,7 +100,7 @@ const NetworkDiagram = () => {
   const reactFlowWrapper = useRef(null);
   const reactFlowInstance = useReactFlow();
   const initialNodesRef = useRef([]);
-
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [orphanNodes, setOrphanNodes] = useState([]);
@@ -1047,14 +1048,11 @@ const NetworkDiagram = () => {
     return numsA.length - numsB.length;
   };
 
-  const onNodeDragStart = useCallback(
-    (event, node) => {
-      if (isEditMode) {
-        pushStateToHistory();
-      }
-    },
-    [isEditMode, pushStateToHistory]
-  );
+  const onNodeDragStart = useCallback(() => {
+    if (isEditMode) {
+      pushStateToHistory();
+    }
+  }, [isEditMode, pushStateToHistory]);
 
   const onConnect = useCallback(
     (params) => {
@@ -1178,7 +1176,7 @@ const NetworkDiagram = () => {
     [setNodes, isEditMode]
   );
 
-  const handleAction = (action, { id, node }) => {
+  const handleAction = (action, { id }) => {
     setContextMenu(null);
     switch (action) {
       case ACTIONS.ADD_NODE: {
@@ -1269,9 +1267,9 @@ const NetworkDiagram = () => {
   };
 
   const handleAddNodeSave = useCallback(
-    async (formData, position) => {
+    async (formData) => {
       try {
-        const { parentNode, isInsertion } = addModal;
+        const { parentNode } = addModal;
         if (addModal.isInsertion && insertionEdge) {
           const originalEdgeRecordId = parseInt(
             insertionEdge.id.replace("e-", ""),
@@ -1342,6 +1340,24 @@ const NetworkDiagram = () => {
       handleShowCustomers,
     ]
   );
+
+  useEffect(() => {
+    // Only show if we are NOT loading and the diagram is Empty
+    if (!loading && isEmpty) {
+      // Optional: Check if they've seen it before to prevent spamming
+      const hasSeenGuide = localStorage.getItem("hasSeenWelcomeGuide");
+
+      if (!hasSeenGuide) {
+        setIsWelcomeOpen(true);
+      }
+    }
+  }, [loading, isEmpty]);
+
+  // 4. Handler to close and save preference
+  const handleCloseWelcome = () => {
+    setIsWelcomeOpen(false);
+    localStorage.setItem("hasSeenWelcomeGuide", "true");
+  };
 
   const handleOptimisticDelete = useCallback(
     (id, type) => {
@@ -1544,7 +1560,7 @@ const NetworkDiagram = () => {
           zIndex: isEditMode ? 1000 : 0,
           label: showEdgeLabels ? edge.label : undefined,
           labelStyle: {
-            ...edge.labelStyle, 
+            ...edge.labelStyle,
           },
           labelBgStyle: {
             ...edge.labelBgStyle,
@@ -1599,58 +1615,6 @@ const NetworkDiagram = () => {
   useEffect(() => {
     localStorage.setItem("showEdgeLabels", JSON.stringify(showEdgeLabels));
   }, [showEdgeLabels]);
-
-  useEffect(() => {
-    if (loading || isEmpty) {
-      return;
-    }
-
-    const toastId = "guidance-toast";
-    const justAdded = sessionStorage.getItem("justAddedNode");
-
-    const isRootSelectedAndValid =
-      dynamicRootId && nodes.some((n) => n.id === dynamicRootId);
-
-    if (isRootSelectedAndValid) {
-      toast.dismiss(toastId);
-      return;
-    }
-
-    const hasRootCandidate = nodes.some((node) =>
-      ["Router", "Managed Switch", "Unmanaged Switch"].includes(
-        node.data.node_type
-      )
-    );
-
-    if (justAdded) {
-      sessionStorage.removeItem("justAddedNode");
-      if (hasRootCandidate) {
-        toast(
-          <GuidanceToast
-            title="Next Step: Set Your Root Node"
-            message="Great! Now click the <strong>sitemap icon</strong> (bottom center) to select your new Router/Switch as the root of the network."
-          />,
-          { toastId, autoClose: false, closeOnClick: true, type: "info" }
-        );
-      } else {
-        toast(
-          <GuidanceToast
-            title="Next Step: Add a Core Device"
-            message="To build your network, you need a starting point. Please add a <strong>Router</strong> or a <strong>Switch</strong> to serve as your root device."
-          />,
-          { toastId, autoClose: false, closeOnClick: true, type: "info" }
-        );
-      }
-    } else if (rootId === null && hasRootCandidate && !isRootSelectedAndValid) {
-      toast(
-        <GuidanceToast
-          title="Select a Root Node"
-          message="Welcome! To get started, please select a root device for your network view using the <strong>sitemap icon</strong>."
-        />,
-        { toastId, autoClose: false, closeOnClick: true, type: "info" }
-      );
-    }
-  }, [nodes, loading, isEmpty, dynamicRootId, rootId]);
 
   return (
     <div
@@ -1784,6 +1748,7 @@ const NetworkDiagram = () => {
         </>
       )}
       <Suspense fallback={<LoadingOverlay />}>
+        <WelcomeModal isOpen={isWelcomeOpen} onClose={handleCloseWelcome} />
         <CustomerDetailModal
           isOpen={!!customerModalNode}
           onClose={() => setCustomerModalNode(null)}

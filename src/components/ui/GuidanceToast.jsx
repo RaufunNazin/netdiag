@@ -3,10 +3,9 @@ const GuidanceToast = ({ title, message, closeToast }) => {
     <div className="flex items-start" onClick={closeToast}>
       <div>
         <p className="font-bold text-slate-800">{title}</p>
-        <p
-          className="text-sm text-slate-600"
-          dangerouslySetInnerHTML={{ __html: message }}
-        />
+        <div className="text-sm text-slate-600 mt-1 leading-relaxed">
+          {message}
+        </div>
       </div>
     </div>
   );
