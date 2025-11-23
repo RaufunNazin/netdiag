@@ -5,6 +5,7 @@ import { LINK_TYPES } from "../../utils/constants";
 import ColorPicker from "../ui/ColorPicker";
 import { fetchEdgeDetails, updateEdgeDetails } from "../../utils/graphUtils";
 import { UI_ICONS } from "../../utils/icons";
+import CustomSelect from "../ui/CustomSelect";
 
 const EditableField = ({
   label,
@@ -37,17 +38,12 @@ const EditableField = ({
       {isEditing ? (
         <div className="flex items-center gap-2">
           {type === "select" ? (
-            <select
-              value={currentValue || ""}
+            <CustomSelect
+              value={currentValue}
+              options={options}
               onChange={(e) => setCurrentValue(e.target.value)}
-              className="input-style flex-grow"
-            >
-              {options.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+              placeholder={`Select ${label}`}
+            />
           ) : (
             <input
               type={type}

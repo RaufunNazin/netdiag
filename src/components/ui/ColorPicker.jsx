@@ -10,6 +10,11 @@ const ColorPicker = ({ selectedColor, onChange }) => {
     setIsOpen(false);
   };
 
+  const handleClear = (e) => {
+    e.stopPropagation(); // Prevent opening the dropdown when clearing
+    onChange(""); // Or null, depending on how your backend handles it
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (pickerRef.current && !pickerRef.current.contains(event.target)) {
@@ -20,35 +25,62 @@ const ColorPicker = ({ selectedColor, onChange }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const selectedColorObj = CORE_COLORS_DATA.find(
+    (color) => color.hex === selectedColor
+  );
+
   return (
     <div className="relative w-full" ref={pickerRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="input-style flex items-center justify-between text-left"
-      >
-        <span className="flex items-center">
-          <span
-            className="w-5 h-5 rounded-full mr-3"
-            style={{
-              backgroundColor:
-                CORE_COLORS_DATA.find((color) => color.hex === selectedColor)
-                  ?.hex || "#FFFFFF",
-            }}
-          />
-          {CORE_COLORS_DATA.find((color) => color.hex === selectedColor)
-            ?.name || (
-            <span className="text-slate-500">Select Cable Color</span>
-          )}
-        </span>
-        <span
-          className={`text-slate-500 ${
-            isOpen ? "rotate-180" : ""
-          } transition-all`}
+      <div className="relative flex items-center">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="input-style flex items-center justify-between text-left w-full"
         >
-          ▼
-        </span>
-      </button>
+          <span className="flex items-center">
+            <span
+              className="w-5 h-5 rounded-full mr-3 border border-slate-200"
+              style={{
+                backgroundColor: selectedColorObj?.hex || "#FFFFFF",
+              }}
+            />
+            {selectedColorObj?.name || (
+              <span className="text-slate-400">Select Color</span>
+            )}
+          </span>
+
+          {/* Updated Chevron Icon */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-4 w-4 text-slate-500 ml-2 transition-transform duration-200 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+
+        {/* Clear Button */}
+        {selectedColor && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-8 text-lg text-slate-400 hover:text-red-500 transition-colors"
+            title="Clear color"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
       {isOpen && (
         <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-md z-20 p-2 grid grid-cols-4 gap-2">
           {CORE_COLORS_DATA.map((color) => (
@@ -57,7 +89,7 @@ const ColorPicker = ({ selectedColor, onChange }) => {
               type="button"
               onClick={() => handleColorSelect(color.hex)}
               aria-label={color.name}
-              className={`py-2 rounded-md text-sm text-center font-semibold hover:opacity-80 transition-opacity ${color.text}`}
+              className={`py-2 rounded-md text-sm text-center font-semibold hover:opacity-80 transition-opacity border border-transparent hover:border-slate-300 ${color.text}`}
               style={{ backgroundColor: color.hex }}
             >
               {color.name}

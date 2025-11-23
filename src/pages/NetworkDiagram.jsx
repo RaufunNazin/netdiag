@@ -86,7 +86,6 @@ const EditEdgeModal = lazy(() =>
 );
 const OrphanDrawer = lazy(() => import("../components/ui/OrphanDrawer.jsx"));
 
-const nodeTypes = { custom: CustomNode };
 const NODES_PER_COLUMN = 8;
 const GRID_X_SPACING = 300;
 const GRID_Y_SPACING = 80;
@@ -100,6 +99,7 @@ const NetworkDiagram = () => {
   const reactFlowWrapper = useRef(null);
   const reactFlowInstance = useReactFlow();
   const initialNodesRef = useRef([]);
+  const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -1342,14 +1342,20 @@ const NetworkDiagram = () => {
   );
 
   useEffect(() => {
-    // Only show if we are NOT loading and the diagram is Empty
-    if (!loading && isEmpty) {
-      // Optional: Check if they've seen it before to prevent spamming
-      const hasSeenGuide = localStorage.getItem("hasSeenWelcomeGuide");
+    // 1. Don't run if loading or if the diagram is NOT empty
+    if (loading || !isEmpty) {
+      return;
+    }
 
-      if (!hasSeenGuide) {
-        setIsWelcomeOpen(true);
-      }
+    // 2. Get the value
+    const hasSeenGuide = localStorage.getItem("hasSeenWelcomeGuide");
+
+    // 3. Debug: Check your console to see what is actually being read
+    console.log("Welcome Guide Status:", hasSeenGuide);
+
+    // 4. Strict Check: Only open if the value is NOT explicitly the string "true"
+    if (hasSeenGuide !== "true") {
+      setIsWelcomeOpen(true);
     }
   }, [loading, isEmpty]);
 

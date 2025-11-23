@@ -9,6 +9,7 @@ import {
 } from "../../utils/constants";
 import ColorPicker from "../ui/ColorPicker";
 import SegmentedInput from "../ui/SegmentedInput";
+import CustomSelect from "../ui/CustomSelect";
 import { NODE_TYPES_ENUM, MISC } from "../../utils/enums";
 import { fetchNodeDetails, updateNodeDetails } from "../../utils/graphUtils";
 import { ICONS } from "../../components/CustomNode.jsx";
@@ -63,18 +64,12 @@ const CableDetailForm = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
         <div>
           <label className="label-style">Link Type</label>
-          <select
-            name="link_type"
+          <CustomSelect
             value={edge.link_type || "Fiber Optic"}
-            onChange={handleChange}
-            className="input-style"
-          >
-            {LINK_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+            options={LINK_TYPES}
+            onChange={handleChange} // CustomSelect sends event-like object { target: { value } }
+            placeholder="Select Link Type"
+          />
         </div>
         <div>
           <label className="label-style">Cable ID</label>
@@ -341,18 +336,16 @@ const EditNodeModal = ({
                   <label className="label-style">
                     Device <span className="text-[#d43c3c]">*</span>
                   </label>
-                  <select
-                    name="node_type"
+                  <CustomSelect
                     value={deviceData.node_type}
-                    onChange={handleDeviceChange}
-                    className="input-style"
-                  >
-                    {NODE_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                    options={NODE_TYPES}
+                    onChange={(e) =>
+                      handleDeviceChange({
+                        target: { name: "node_type", value: e.target.value },
+                      })
+                    }
+                    placeholder="Select Device Type"
+                  />
                 </div>
 
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
@@ -396,18 +389,19 @@ const EditNodeModal = ({
                   <>
                     <div>
                       <label className="label-style">Device Type</label>
-                      <select
-                        name="device_type"
-                        value={deviceData.device_type || ""}
-                        onChange={handleDeviceChange}
-                        className="input-style"
-                      >
-                        {DEVICE_TYPES.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
+                      <CustomSelect
+                        value={deviceData.device_type}
+                        options={DEVICE_TYPES}
+                        onChange={(e) =>
+                          handleDeviceChange({
+                            target: {
+                              name: "device_type",
+                              value: e.target.value,
+                            },
+                          })
+                        }
+                        placeholder="Select Device Type"
+                      />
                     </div>
                     <div>
                       <label className="label-style">MAC</label>
@@ -451,101 +445,125 @@ const EditNodeModal = ({
                       <label className="label-style">
                         Split Ratio <span className="text-[#d43c3c]">*</span>
                       </label>
-                      <select
-                        name="split_ratio"
-                        value={deviceData.split_ratio || ""}
-                        onChange={handleDeviceChange}
-                        className="input-style"
-                        placeholder="Select split ratio"
-                      >
-                        {SPLIT_RATIOS.map((ratio) => (
-                          <option key={ratio} value={ratio}>
-                            {ratio}
-                          </option>
-                        ))}
-                      </select>
+                      <CustomSelect
+                        placeholder="Select Ratio"
+                        value={deviceData.split_ratio}
+                        options={SPLIT_RATIOS} // Assuming SPLIT_RATIOS is like [2, 4, 8, 16...]
+                        onChange={(e) =>
+                          handleDeviceChange({
+                            target: {
+                              name: "split_ratio",
+                              value: e.target.value,
+                            },
+                          })
+                        }
+                      />
                     </div>
                     <div>
-                      <label className="label-style">Split Group</label>
-                      <input
-                        type="text"
-                        name="split_group"
-                        value={deviceData.split_group || ""}
-                        onChange={handleDeviceChange}
-                        className="input-style"
-                        placeholder="Enter split group"
+                      <label className="label-style">Split Color Group</label>
+                      <CustomSelect
+                        placeholder="Select Group"
+                        value={deviceData.split_color_grp}
+                        options={["A", "B"]}
+                        onChange={(e) =>
+                          handleDeviceChange({
+                            target: {
+                              name: "split_color_grp",
+                              value: e.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="label-style block mb-1">
+                        Split Color
+                      </label>
+                      <ColorPicker
+                        selectedColor={deviceData.split_color}
+                        onChange={(color) =>
+                          handleDeviceChange({
+                            target: { name: "split_color", value: color },
+                          })
+                        }
                       />
                     </div>
                   </>
                 )}
-
-                <button
-                  type="button"
-                  className="md:col-span-2 text-slate-700 mt-6 flex items-center text-left justify-between w-full p-3 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all duration-200"
-                  onClick={() => setIsCableSectionExpanded((prev) => !prev)}
-                >
-                  <div className="text-lg font-bold flex items-center gap-2">
-                    <span
-                      className={`transition-transform ${
-                        isCableSectionExpanded ? "rotate-90" : ""
-                      }`}
-                    >
-                      ▶
-                    </span>
-                    Cable Details
-                  </div>
-
-                  <span className="text-slate-500">Click to toggle</span>
-                </button>
-                {isCableSectionExpanded && (
+                {(incomingEdges.length > 0 || outgoingEdges.length > 0) && (
                   <>
-                    {incomingEdges.length === 0 &&
-                      outgoingEdges.length === 0 && (
-                        <p className="md:col-span-2 text-slate-500 italic">
-                          No cables are connected to this device.
-                        </p>
-                      )}
-                    {incomingEdges.map((edge) => {
-                      const otherNodeId = String(edge.source_id);
-                      const otherNode = nodes.find((n) => n.id === otherNodeId);
+                    <button
+                      type="button"
+                      className="md:col-span-2 text-slate-700 mt-6 flex items-center text-left justify-between w-full p-3 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all duration-200"
+                      onClick={() => setIsCableSectionExpanded((prev) => !prev)}
+                    >
+                      <div className="text-lg font-bold flex items-center gap-2">
+                        <span
+                          className={`transition-transform ${
+                            isCableSectionExpanded ? "rotate-90" : ""
+                          }`}
+                        >
+                          ▶
+                        </span>
+                        Cable Details
+                      </div>
 
-                      if (!otherNode) {
-                        return null;
-                      }
+                      <span className="text-slate-500">Click to toggle</span>
+                    </button>
+                    {isCableSectionExpanded && (
+                      <>
+                        {incomingEdges.length === 0 &&
+                          outgoingEdges.length === 0 && (
+                            <p className="md:col-span-2 text-slate-500 italic">
+                              No cables are connected to this device.
+                            </p>
+                          )}
+                        {incomingEdges.map((edge) => {
+                          const otherNodeId = String(edge.source_id);
+                          const otherNode = nodes.find(
+                            (n) => n.id === otherNodeId
+                          );
 
-                      return (
-                        <CableDetailForm
-                          key={edge.id}
-                          edge={edge}
-                          onChange={handleEdgeChange}
-                          direction="Incoming"
-                          otherNodeData={otherNode?.data}
-                          getNodeIcon={getNodeIcon}
-                        />
-                      );
-                    })}
-                    {outgoingEdges.map((edge) => {
-                      const otherNodeId = String(edge.target_id);
-                      const otherNode = nodes.find((n) => n.id === otherNodeId);
+                          if (!otherNode) {
+                            return null;
+                          }
 
-                      if (!otherNode) {
-                        return null;
-                      }
+                          return (
+                            <CableDetailForm
+                              key={edge.id}
+                              edge={edge}
+                              onChange={handleEdgeChange}
+                              direction="Incoming"
+                              otherNodeData={otherNode?.data}
+                              getNodeIcon={getNodeIcon}
+                            />
+                          );
+                        })}
+                        {outgoingEdges.map((edge) => {
+                          const otherNodeId = String(edge.target_id);
+                          const otherNode = nodes.find(
+                            (n) => n.id === otherNodeId
+                          );
 
-                      return (
-                        <CableDetailForm
-                          key={edge.id}
-                          edge={edge}
-                          onChange={handleEdgeChange}
-                          direction="Outgoing"
-                          otherNodeData={otherNode?.data}
-                          getNodeIcon={getNodeIcon}
-                        />
-                      );
-                    })}
+                          if (!otherNode) {
+                            return null;
+                          }
+
+                          return (
+                            <CableDetailForm
+                              key={edge.id}
+                              edge={edge}
+                              onChange={handleEdgeChange}
+                              direction="Outgoing"
+                              otherNodeData={otherNode?.data}
+                              getNodeIcon={getNodeIcon}
+                            />
+                          );
+                        })}
+                      </>
+                    )}
                   </>
                 )}
-
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
                   Other Information
                 </h4>

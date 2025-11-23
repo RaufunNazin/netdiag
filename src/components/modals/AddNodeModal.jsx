@@ -7,6 +7,7 @@ import {
 } from "../../utils/constants";
 import SegmentedInput from "../ui/SegmentedInput";
 import ColorPicker from "../ui/ColorPicker";
+import CustomSelect from "../ui/CustomSelect";
 import { NODE_TYPES_ENUM, MISC } from "../../utils/enums";
 
 const STORAGE_KEY = "addNodeFormData";
@@ -153,38 +154,34 @@ const AddNodeModal = ({
             {isInsertion && (
               <div>
                 <label className="label-style">Link Type</label>
-                <select
-                  name="link_type"
+                <CustomSelect
                   value={formData.link_type}
-                  onChange={handleChange}
-                  className="input-style"
-                >
-                  {LINK_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
+                  options={LINK_TYPES}
+                  onChange={(e) =>
+                    handleChange({
+                      target: { name: "link_type", value: e.target.value },
+                    })
+                  }
+                  placeholder="Select Link Type"
+                />
               </div>
             )}
             <div>
               <label className="label-style">
                 Node Type <span className="text-[#d43c3c]">*</span>
               </label>
-              <select
-                name="node_type"
+              <CustomSelect
                 value={formData.node_type}
-                onChange={handleChange}
-                className="input-style"
-              >
-                {NODE_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+                options={NODE_TYPES}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "node_type", value: e.target.value },
+                  })
+                }
+                placeholder="Select Node Type"
+              />
             </div>
-            {formData.node_type && (
+            {
               <>
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
                   Device Detail
@@ -226,18 +223,19 @@ const AddNodeModal = ({
                   <>
                     <div>
                       <label className="label-style">Device Type</label>
-                      <select
-                        name="device_type"
+                      <CustomSelect
                         value={formData.device_type}
-                        onChange={handleChange}
-                        className="input-style"
-                      >
-                        {DEVICE_TYPES.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
+                        options={DEVICE_TYPES}
+                        onChange={(e) =>
+                          handleChange({
+                            target: {
+                              name: "device_type",
+                              value: e.target.value,
+                            },
+                          })
+                        }
+                        placeholder="Select Device Type"
+                      />
                     </div>
                     <div>
                       <label className="label-style">MAC</label>
@@ -272,7 +270,7 @@ const AddNodeModal = ({
                   </>
                 )}
               </>
-            )}
+            }
             {formData.node_type === NODE_TYPES_ENUM.SPLITTER && (
               <>
                 <h4 className="md:col-span-2 text-lg font-bold text-slate-700 mt-6">
@@ -282,19 +280,16 @@ const AddNodeModal = ({
                   <label className="label-style">
                     Split Ratio <span className="text-[#d43c3c]">*</span>
                   </label>
-                  <select
-                    name="split_ratio"
+                  <CustomSelect
                     value={formData.split_ratio}
-                    onChange={handleChange}
-                    className="input-style"
-                    placeholder="Select split ratio"
-                  >
-                    {SPLIT_RATIOS.map((ratio) => (
-                      <option key={ratio} value={ratio}>
-                        {ratio}
-                      </option>
-                    ))}
-                  </select>
+                    options={SPLIT_RATIOS}
+                    onChange={(e) =>
+                      handleChange({
+                        target: { name: "split_ratio", value: e.target.value },
+                      })
+                    }
+                    placeholder="Select Split Ratio"
+                  />
                 </div>
                 <div>
                   <label className="label-style">Split Group</label>
@@ -381,7 +376,7 @@ const AddNodeModal = ({
                 </div>
               </div>
             )}
-            {formData.node_type && (
+            {
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
                 <h4 className="md:col-span-3 text-lg font-bold text-slate-700 mt-6">
                   Other Info
@@ -424,7 +419,7 @@ const AddNodeModal = ({
                   ></textarea>
                 </div>
               </div>
-            )}
+            }
           </div>
         </div>
 
