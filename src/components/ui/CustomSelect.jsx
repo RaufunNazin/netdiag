@@ -16,8 +16,8 @@ const CustomSelect = ({
   };
 
   const handleClear = (e) => {
-    e.stopPropagation(); // Prevent opening the dropdown
-    onChange({ target: { value: "" } }); // Send empty value to parent
+    e.stopPropagation();
+    onChange({ target: { value: "" } });
   };
 
   useEffect(() => {
@@ -54,7 +54,6 @@ const CustomSelect = ({
             {value || placeholder}
           </span>
 
-          {/* Chevron Icon */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className={`h-4 w-4 text-slate-500 ml-2 transition-transform duration-200 ${
@@ -73,7 +72,6 @@ const CustomSelect = ({
           </svg>
         </button>
 
-        {/* Clear Button - Only shows if a value is selected and not disabled */}
         {value && !disabled && (
           <button
             type="button"
@@ -110,7 +108,6 @@ const CustomSelect = ({
               const optionLabel =
                 typeof option === "object" ? option.label : option;
 
-              // Skip rendering if value is empty/null
               if (
                 optionValue === "" ||
                 optionValue === null ||

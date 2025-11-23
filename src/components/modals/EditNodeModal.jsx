@@ -67,7 +67,7 @@ const CableDetailForm = ({
           <CustomSelect
             value={edge.link_type || "Fiber Optic"}
             options={LINK_TYPES}
-            onChange={handleChange} // CustomSelect sends event-like object { target: { value } }
+            onChange={handleChange}
             placeholder="Select Link Type"
           />
         </div>
@@ -448,7 +448,7 @@ const EditNodeModal = ({
                       <CustomSelect
                         placeholder="Select Ratio"
                         value={deviceData.split_ratio}
-                        options={SPLIT_RATIOS} // Assuming SPLIT_RATIOS is like [2, 4, 8, 16...]
+                        options={SPLIT_RATIOS}
                         onChange={(e) =>
                           handleDeviceChange({
                             target: {

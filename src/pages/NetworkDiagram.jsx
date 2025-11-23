@@ -204,7 +204,7 @@ const NetworkDiagram = () => {
       {
         nodes: currentNodes,
         edges: currentEdges,
-        orphanNodes: orphanNodes, // <--- Add orphanNodes to history
+        orphanNodes: orphanNodes,
         newConnections: newConnections,
         deletedNodes: deletedNodes,
         deletedEdges: deletedEdges,
@@ -215,7 +215,7 @@ const NetworkDiagram = () => {
     newConnections,
     deletedNodes,
     deletedEdges,
-    orphanNodes, // <--- Add orphanNodes dependency
+    orphanNodes,
   ]);
 
   const handleShowCustomers = useCallback((nodeData) => {
@@ -1015,20 +1015,15 @@ const NetworkDiagram = () => {
   const handleResetPositions = useCallback(
     async (scope, nodeId = null) => {
       try {
-        // --- 1. DETECT ISOLATED NODES BEFORE RESET ---
         const currentNodes = reactFlowInstance.getNodes();
         const currentEdges = reactFlowInstance.getEdges();
 
-        // Filter nodes based on what is being reset (Specific node, Manual only, or All)
         const nodesBeingReset = currentNodes.filter((n) => {
-          if (nodeId) return n.id === nodeId; // Single node reset
-          if (scope === "manual") return n.data.position_mode === 1; // Manual reset
-          return true; // All reset
+          if (nodeId) return n.id === nodeId;
+          if (scope === "manual") return n.data.position_mode === 1;
+          return true;
         });
 
-        // Identify nodes that:
-        // 1. Are NOT the current root (roots stay on diagram even if unconnected)
-        // 2. Have NO connected edges (isolated)
         const unconnectedNodes = nodesBeingReset.filter((n) => {
           const isRoot =
             String(n.id) === String(rootId) ||
@@ -1040,7 +1035,6 @@ const NetworkDiagram = () => {
           );
           return !hasConnections;
         });
-        // ---------------------------------------------
 
         const payload = {
           sw_id: rootId ? parseInt(rootId, 10) : null,
@@ -1051,9 +1045,7 @@ const NetworkDiagram = () => {
         await resetPositions(payload);
         await loadInitialData();
 
-        // --- 2. SHOW TOAST IF APPLICABLE ---
         if (unconnectedNodes.length > 0) {
-          // Create a comma-separated string of names (max 3 for brevity)
           const names = unconnectedNodes
             .slice(0, 3)
             .map((n) => n.data.label)
@@ -1064,13 +1056,12 @@ const NetworkDiagram = () => {
             `${names}${suffix} sent to inventory (no cables attached).`
           );
         }
-        // -----------------------------------
       } catch (error) {
         console.error("Failed to reset positions:", error);
         setLoading(false);
       }
     },
-    [rootId, dynamicRootId, reactFlowInstance] // Added dynamicRootId to deps
+    [rootId, dynamicRootId, reactFlowInstance]
   );
 
   const handleConfirmReset = useCallback(async () => {
@@ -1393,24 +1384,19 @@ const NetworkDiagram = () => {
   );
 
   useEffect(() => {
-    // 1. Don't run if loading or if the diagram is NOT empty
     if (loading || !isEmpty) {
       return;
     }
 
-    // 2. Get the value
     const hasSeenGuide = localStorage.getItem("hasSeenWelcomeGuide");
 
-    // 3. Debug: Check your console to see what is actually being read
     console.log("Welcome Guide Status:", hasSeenGuide);
 
-    // 4. Strict Check: Only open if the value is NOT explicitly the string "true"
     if (hasSeenGuide !== "true") {
       setIsWelcomeOpen(true);
     }
   }, [loading, isEmpty]);
 
-  // 4. Handler to close and save preference
   const handleCloseWelcome = () => {
     setIsWelcomeOpen(false);
     localStorage.setItem("hasSeenWelcomeGuide", "true");
