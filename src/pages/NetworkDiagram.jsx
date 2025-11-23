@@ -204,12 +204,19 @@ const NetworkDiagram = () => {
       {
         nodes: currentNodes,
         edges: currentEdges,
+        orphanNodes: orphanNodes, // <--- Add orphanNodes to history
         newConnections: newConnections,
         deletedNodes: deletedNodes,
         deletedEdges: deletedEdges,
       },
     ]);
-  }, [reactFlowInstance, newConnections, deletedNodes, deletedEdges]);
+  }, [
+    reactFlowInstance,
+    newConnections,
+    deletedNodes,
+    deletedEdges,
+    orphanNodes, // <--- Add orphanNodes dependency
+  ]);
 
   const handleShowCustomers = useCallback((nodeData) => {
     setCustomerModalNode(nodeData);
@@ -246,6 +253,7 @@ const NetworkDiagram = () => {
       if (lastState) {
         setNodes(lastState.nodes);
         setEdges(lastState.edges);
+        setOrphanNodes(lastState.orphanNodes);
         setDeletedNodes(lastState.deletedNodes);
         setDeletedEdges(lastState.deletedEdges);
         setNewConnections(lastState.newConnections);
@@ -1007,20 +1015,62 @@ const NetworkDiagram = () => {
   const handleResetPositions = useCallback(
     async (scope, nodeId = null) => {
       try {
+        // --- 1. DETECT ISOLATED NODES BEFORE RESET ---
+        const currentNodes = reactFlowInstance.getNodes();
+        const currentEdges = reactFlowInstance.getEdges();
+
+        // Filter nodes based on what is being reset (Specific node, Manual only, or All)
+        const nodesBeingReset = currentNodes.filter((n) => {
+          if (nodeId) return n.id === nodeId; // Single node reset
+          if (scope === "manual") return n.data.position_mode === 1; // Manual reset
+          return true; // All reset
+        });
+
+        // Identify nodes that:
+        // 1. Are NOT the current root (roots stay on diagram even if unconnected)
+        // 2. Have NO connected edges (isolated)
+        const unconnectedNodes = nodesBeingReset.filter((n) => {
+          const isRoot =
+            String(n.id) === String(rootId) ||
+            String(n.id) === String(dynamicRootId);
+          if (isRoot) return false;
+
+          const hasConnections = currentEdges.some(
+            (e) => e.source === n.id || e.target === n.id
+          );
+          return !hasConnections;
+        });
+        // ---------------------------------------------
+
         const payload = {
           sw_id: rootId ? parseInt(rootId, 10) : null,
           scope: nodeId ? null : scope,
           node_id: nodeId ? parseInt(nodeId, 10) : null,
         };
-        await resetPositions(payload);
 
+        await resetPositions(payload);
         await loadInitialData();
+
+        // --- 2. SHOW TOAST IF APPLICABLE ---
+        if (unconnectedNodes.length > 0) {
+          // Create a comma-separated string of names (max 3 for brevity)
+          const names = unconnectedNodes
+            .slice(0, 3)
+            .map((n) => n.data.label)
+            .join(", ");
+          const suffix = unconnectedNodes.length > 3 ? "..." : "";
+
+          toast.info(
+            `${names}${suffix} sent to inventory (no cables attached).`
+          );
+        }
+        // -----------------------------------
       } catch (error) {
         console.error("Failed to reset positions:", error);
         setLoading(false);
       }
     },
-    [rootId]
+    [rootId, dynamicRootId, reactFlowInstance] // Added dynamicRootId to deps
   );
 
   const handleConfirmReset = useCallback(async () => {
@@ -1200,6 +1250,7 @@ const NetworkDiagram = () => {
         break;
       }
       case ACTIONS.SEND_TO_INVENTORY: {
+        pushStateToHistory();
         const nodeToSend = nodes.find((n) => n.id === id);
         if (nodeToSend) {
           setOrphanNodes((prev) => [...prev, nodeToSend]);
@@ -1479,6 +1530,8 @@ const NetworkDiagram = () => {
         },
       };
 
+      pushStateToHistory();
+
       setNodes((nds) => nds.concat(newNode));
       initialNodesRef.current.push(newNode);
       setOrphanNodes((nds) => nds.filter((n) => n.id !== nodeData.id));
@@ -1512,6 +1565,7 @@ const NetworkDiagram = () => {
       handleDetailsClick,
       handleNavigateClick,
       handleShowCustomers,
+      pushStateToHistory,
     ]
   );
 
