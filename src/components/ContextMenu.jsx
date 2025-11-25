@@ -9,11 +9,12 @@ const ContextMenu = ({ id, top, left, onAction, node, ...props }) => {
         const nodeItems = [
           { label: LABELS.EDIT_DEVICE, action: ACTIONS.EDIT_NODE },
           { label: LABELS.RESET_POSITION, action: ACTIONS.RESET_POSITION },
+          { label: "Highlight Path", action: "HIGHLIGHT_PATH" },
           { label: LABELS.DELETE_DEVICE, action: ACTIONS.DELETE_NODE },
         ];
 
         if (node?.data?.parent_id === null || node?.data?.parent_id === 0) {
-          nodeItems.splice(2, 0, {
+          nodeItems.splice(3, 0, {
             label: LABELS.SEND_TO_INVENTORY,
             action: ACTIONS.SEND_TO_INVENTORY,
           });

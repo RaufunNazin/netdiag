@@ -494,7 +494,7 @@ const EditNodeModal = ({
                   <>
                     <button
                       type="button"
-                      className="md:col-span-2 text-slate-700 mt-6 flex items-center text-left justify-between w-full p-3 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all duration-200"
+                      className="md:col-span-2 text-slate-700 mt-6 flex items-center text-left justify-between w-full p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200"
                       onClick={() => setIsCableSectionExpanded((prev) => !prev)}
                     >
                       <div className="text-lg font-bold flex items-center gap-2">

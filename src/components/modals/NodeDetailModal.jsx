@@ -184,17 +184,21 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
               <>
                 <button
                   type="button"
-                  className="md:col-span-3 text-lg font-bold text-slate-700 mt-6 flex items-center text-left"
+                  className="md:col-span-3 text-slate-700 mt-6 flex items-center text-left justify-between w-full p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200"
                   onClick={() => setIsCableSectionExpanded((prev) => !prev)}
                 >
-                  <span
-                    className={`mr-2 transition-transform ${
-                      isCableSectionExpanded ? "rotate-90" : ""
-                    }`}
-                  >
-                    ▶
-                  </span>
-                  Cable Details
+                  <div className="text-lg font-bold flex items-center gap-2">
+                    <span
+                      className={`transition-transform ${
+                        isCableSectionExpanded ? "rotate-90" : ""
+                      }`}
+                    >
+                      ▶
+                    </span>
+                    Cable Details
+                  </div>
+
+                  <span className="text-slate-500">Click to toggle</span>
                 </button>
 
                 {isCableSectionExpanded && (

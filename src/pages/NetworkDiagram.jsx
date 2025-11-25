@@ -157,6 +157,7 @@ const NetworkDiagram = () => {
   const [customerModalNode, setCustomerModalNode] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [history, setHistory] = useState([]);
+  const [highlightedPath, setHighlightedPath] = useState(null);
   const [deletedNodes, setDeletedNodes] = useState([]);
   const [deletedEdges, setDeletedEdges] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
@@ -218,6 +219,40 @@ const NetworkDiagram = () => {
     orphanNodes,
   ]);
 
+  const handleHighlightPath = useCallback(
+    (startNodeId) => {
+      const pathNodeIds = new Set([startNodeId]);
+      const pathEdgeIds = new Set();
+      const queue = [startNodeId];
+      const visited = new Set([startNodeId]);
+
+      while (queue.length > 0) {
+        const currentId = queue.shift();
+
+        const incomingEdges = edges.filter((e) => e.target === currentId);
+
+        incomingEdges.forEach((edge) => {
+          pathEdgeIds.add(edge.id);
+          const parentId = edge.source;
+
+          if (!visited.has(parentId)) {
+            visited.add(parentId);
+            pathNodeIds.add(parentId);
+            queue.push(parentId);
+          }
+        });
+      }
+
+      setHighlightedPath({ nodes: pathNodeIds, edges: pathEdgeIds });
+
+      toast.info("Path highlighted. Click anywhere on the diagram to clear.", {
+        autoClose: 3000,
+        toastId: "highlight-toast",
+      });
+    },
+    [edges]
+  );
+
   const handleShowCustomers = useCallback((nodeData) => {
     setCustomerModalNode(nodeData);
   }, []);
@@ -232,7 +267,11 @@ const NetworkDiagram = () => {
             if (fieldName === "cable_desc") {
               newEdge.label = newValue;
             } else if (fieldName === "cable_color") {
-              newEdge.style = { ...newEdge.style, stroke: newValue, strokeWidth: 3 };
+              newEdge.style = {
+                ...newEdge.style,
+                stroke: newValue,
+                strokeWidth: 3,
+              };
             }
             return newEdge;
           }
@@ -1198,7 +1237,12 @@ const NetworkDiagram = () => {
   const onEdgeContextMenu = (event, edge) =>
     handleContextMenu(event, "edge", edge);
 
-  const onPaneClick = useCallback(() => setContextMenu(null), []);
+  const onPaneClick = useCallback(() => {
+    setContextMenu(null);
+    if (highlightedPath) {
+      setHighlightedPath(null);
+    }
+  }, [highlightedPath]);
 
   const onNodeClick = useCallback(
     (event, node) => {
@@ -1238,6 +1282,10 @@ const NetworkDiagram = () => {
       case ACTIONS.EDIT_EDGE: {
         const numericEdgeId = id.replace("e-", "");
         setEditEdgeModal({ isOpen: true, edgeId: numericEdgeId });
+        break;
+      }
+      case "HIGHLIGHT_PATH": {
+        handleHighlightPath(id);
         break;
       }
       case ACTIONS.SEND_TO_INVENTORY: {
@@ -1591,29 +1639,63 @@ const NetworkDiagram = () => {
         hiddenEdgeIds.forEach((id) => hidden.edgeIds.add(id));
       }
     }
+
+    const filteredNodes = allNodes.filter((n) => !hidden.nodeIds.has(n.id));
+    const filteredEdges = edges.filter(
+      (e) =>
+        !hidden.edgeIds.has(e.id) &&
+        !hidden.nodeIds.has(e.source) &&
+        !hidden.nodeIds.has(e.target)
+    );
+
+    const finalNodes = filteredNodes.map((node) => {
+      if (!highlightedPath) return node;
+      const isInPath = highlightedPath.nodes.has(node.id);
+
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          opacity: isInPath ? 1 : 0.1,
+          transition: "opacity 0.4s ease",
+        },
+        zIndex: isInPath ? 1001 : 0,
+      };
+    });
+
+    const finalEdges = filteredEdges.map((edge) => {
+      const baseEdge = {
+        ...edge,
+        interactive: isEditMode,
+        zIndex: isEditMode ? 1000 : 0,
+        label: showEdgeLabels ? edge.label : undefined,
+        labelStyle: { ...edge.labelStyle },
+        labelBgStyle: { ...edge.labelBgStyle },
+      };
+
+      if (!highlightedPath) return baseEdge;
+
+      const isInPath = highlightedPath.edges.has(edge.id);
+
+      return {
+        ...baseEdge,
+        animated: isInPath,
+        style: {
+          ...baseEdge.style,
+          stroke: isInPath ? "#f59e0b" : baseEdge.style?.stroke,
+          strokeWidth: isInPath ? 3 : 1,
+          opacity: isInPath ? 1 : 0.05,
+          transition: "opacity 0.4s ease",
+        },
+        zIndex: isInPath ? 1000 : -1,
+      };
+    });
+
     return {
-      visibleNodes: allNodes.filter((n) => !hidden.nodeIds.has(n.id)),
-      visibleEdges: edges
-        .filter(
-          (e) =>
-            !hidden.edgeIds.has(e.id) &&
-            !hidden.nodeIds.has(e.source) &&
-            !hidden.nodeIds.has(e.target)
-        )
-        .map((edge) => ({
-          ...edge,
-          interactive: isEditMode,
-          zIndex: isEditMode ? 1000 : 0,
-          label: showEdgeLabels ? edge.label : undefined,
-          labelStyle: {
-            ...edge.labelStyle,
-          },
-          labelBgStyle: {
-            ...edge.labelBgStyle,
-          },
-        })),
+      visibleNodes: finalNodes,
+      visibleEdges: finalEdges,
     };
-  }, [nodes, edges, isEditMode, showEdgeLabels]);
+  }, [nodes, edges, isEditMode, showEdgeLabels, highlightedPath]);
 
   useEffect(() => {
     if (rootId === undefined) {
