@@ -463,12 +463,12 @@ const EditNodeModal = ({
                       <label className="label-style">Split Color Group</label>
                       <CustomSelect
                         placeholder="Select Group"
-                        value={deviceData.split_color_grp}
+                        value={deviceData.split_group}
                         options={["A", "B"]}
                         onChange={(e) =>
                           handleDeviceChange({
                             target: {
-                              name: "split_color_grp",
+                              name: "split_group",
                               value: e.target.value,
                             },
                           })

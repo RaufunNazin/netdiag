@@ -22,8 +22,9 @@ const initialState = {
   serial_no: "",
   mac: "",
   ip: "",
-  split_ratio: "",
+  split_ratio: null,
   split_group: "",
+  split_color: "",
   cable_id: "",
   cable_start: "",
   cable_end: "",
@@ -293,13 +294,29 @@ const AddNodeModal = ({
                 </div>
                 <div>
                   <label className="label-style">Split Group</label>
-                  <input
-                    type="text"
-                    name="split_group"
+                  <CustomSelect
+                    placeholder="Select Group"
                     value={formData.split_group}
-                    onChange={handleChange}
-                    className="input-style"
-                    placeholder="Enter split group"
+                    options={["A", "B"]}
+                    onChange={(e) =>
+                      handleChange({
+                        target: {
+                          name: "split_group",
+                          value: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="label-style block mb-1">Split Color</label>
+                  <ColorPicker
+                    selectedColor={formData.split_color}
+                    onChange={(color) =>
+                      handleChange({
+                        target: { name: "split_color", value: color },
+                      })
+                    }
                   />
                 </div>
               </>

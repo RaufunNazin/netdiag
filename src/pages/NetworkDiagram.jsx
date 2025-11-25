@@ -232,7 +232,7 @@ const NetworkDiagram = () => {
             if (fieldName === "cable_desc") {
               newEdge.label = newValue;
             } else if (fieldName === "cable_color") {
-              newEdge.style = { ...newEdge.style, stroke: newValue };
+              newEdge.style = { ...newEdge.style, stroke: newValue, strokeWidth: 3 };
             }
             return newEdge;
           }
@@ -604,7 +604,7 @@ const NetworkDiagram = () => {
               source: String(item.parent_id),
               target: targetId,
               markerEnd: { type: MarkerType.ArrowClosed },
-              style: { stroke: item.cable_color || "#1e293b" },
+              style: { stroke: item.cable_color || "#1e293b", strokeWidth: 3 },
 
               label: item.cable_desc,
               labelStyle: { fontSize: "10px", fill: "#333", fontWeight: 600 },

@@ -42,7 +42,7 @@ const useNetworkLayout = () => {
             sourceHandle: "right",
             targetHandle: "left",
             markerEnd: { type: MarkerType.ArrowClosed },
-            style: { stroke: item.cable_color || "#1e293b" },
+            style: { stroke: item.cable_color || "#1e293b", strokeWidth: 3 },
           }));
 
         const { nodes: dagreLayoutedNodes, edges: layoutedEdges } =
