@@ -141,11 +141,15 @@ const CustomNode = ({ data, isConnectable }) => {
   const [isPopoverVisible, setIsPopoverVisible] = useState(false);
   const [expandedCustomerMac, setExpandedCustomerMac] = useState(null);
   const [customerData, setCustomerData] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const hoverTimeoutRef = useRef(null);
   const nodeRef = useRef(null);
   const isMobile = useIsMobile();
+
+  // NEW: Ref to track the search input
+  const inputRef = useRef(null);
 
   const [popoverDirectionY, setPopoverDirectionY] = useState("up");
 
@@ -162,6 +166,7 @@ const CustomNode = ({ data, isConnectable }) => {
     if (isMobile) return;
 
     clearTimeout(hoverTimeoutRef.current);
+    setSearchTerm("");
 
     if (nodeRef.current) {
       const rect = nodeRef.current.getBoundingClientRect();
@@ -197,8 +202,13 @@ const CustomNode = ({ data, isConnectable }) => {
     if (isMobile) return;
 
     hoverTimeoutRef.current = setTimeout(() => {
+      // FIX: Don't close if the search input is focused
+      if (inputRef.current && document.activeElement === inputRef.current) {
+        return;
+      }
       setIsPopoverVisible(false);
       setExpandedCustomerMac(null);
+      setSearchTerm("");
     }, 300);
   };
 
@@ -245,6 +255,17 @@ const CustomNode = ({ data, isConnectable }) => {
     e.stopPropagation();
     if (data.onNavigateClick) data.onNavigateClick(data.id);
   };
+
+  const filteredCustomers = useMemo(() => {
+    if (!customerData) return [];
+    if (!searchTerm) return customerData;
+    const lowerTerm = searchTerm.toLowerCase();
+    return customerData.filter(
+      (c) =>
+        (c.cid && String(c.cid).toLowerCase().includes(lowerTerm)) ||
+        (c.mac && c.mac.toLowerCase().includes(lowerTerm))
+    );
+  }, [customerData, searchTerm]);
 
   return (
     <div ref={nodeRef}>
@@ -364,14 +385,33 @@ const CustomNode = ({ data, isConnectable }) => {
               </div>
             ) : customerData && customerData.length > 0 ? (
               <div className="flex flex-col">
-                {customerData.map((customer) => (
-                  <CustomerRow
-                    key={customer.mac || customer.cid}
-                    customer={customer}
-                    isExpanded={expandedCustomerMac === customer.mac}
-                    onExpand={() => setExpandedCustomerMac(customer.mac)}
-                  />
-                ))}
+                {customerData.length > 3 && (
+                  <div className="mb-2 border-b border-slate-100 pb-2">
+                    <input
+                      ref={inputRef} // <--- Added Ref here
+                      type="text"
+                      placeholder="Search ID or MAC..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                {filteredCustomers.length > 0 ? (
+                  filteredCustomers.map((customer) => (
+                    <CustomerRow
+                      key={customer.mac || customer.cid}
+                      customer={customer}
+                      isExpanded={expandedCustomerMac === customer.mac}
+                      onExpand={() => setExpandedCustomerMac(customer.mac)}
+                    />
+                  ))
+                ) : (
+                  <div className="py-2 text-center text-xs text-slate-500 italic">
+                    No matching customers found
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center justify-center gap-2">
