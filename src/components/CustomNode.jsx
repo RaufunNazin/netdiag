@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { memo, useState, useRef, useMemo } from "react";
+import { memo, useState, useRef, useMemo, useEffect } from "react";
 import { Handle, Position } from "reactflow";
 import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
@@ -135,6 +135,7 @@ const POPOVER_WIDTH_PX = 256;
 const POPOVER_PADDING_PX = 16;
 const POPOVER_ESTIMATED_HEIGHT = 300;
 const POPOVER_MARGIN_PX = 8;
+const INITIAL_DISPLAY_LIMIT = 5;
 
 const CustomNode = ({ data, isConnectable }) => {
   const { id } = useParams();
@@ -142,15 +143,16 @@ const CustomNode = ({ data, isConnectable }) => {
   const [expandedCustomerMac, setExpandedCustomerMac] = useState(null);
   const [customerData, setCustomerData] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showAll, setShowAll] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+
   const hoverTimeoutRef = useRef(null);
   const nodeRef = useRef(null);
-  const isMobile = useIsMobile();
-
-  // NEW: Ref to track the search input
+  const popoverRef = useRef(null);
   const inputRef = useRef(null);
 
+  const isMobile = useIsMobile();
   const [popoverDirectionY, setPopoverDirectionY] = useState("up");
 
   const loadCustomerData = async () => {
@@ -167,6 +169,7 @@ const CustomNode = ({ data, isConnectable }) => {
 
     clearTimeout(hoverTimeoutRef.current);
     setSearchTerm("");
+    setShowAll(false);
 
     if (nodeRef.current) {
       const rect = nodeRef.current.getBoundingClientRect();
@@ -202,13 +205,13 @@ const CustomNode = ({ data, isConnectable }) => {
     if (isMobile) return;
 
     hoverTimeoutRef.current = setTimeout(() => {
-      // FIX: Don't close if the search input is focused
       if (inputRef.current && document.activeElement === inputRef.current) {
         return;
       }
       setIsPopoverVisible(false);
       setExpandedCustomerMac(null);
       setSearchTerm("");
+      setShowAll(false);
     }, 300);
   };
 
@@ -216,6 +219,33 @@ const CustomNode = ({ data, isConnectable }) => {
     if (isMobile) return;
     clearTimeout(hoverTimeoutRef.current);
   };
+
+  // UPDATED: Click Outside Listener with Capture Phase
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // If popover is not visible, do nothing
+      if (!isPopoverVisible) return;
+
+      // Check if click is inside the popover OR inside the node (trigger)
+      const isInsidePopover =
+        popoverRef.current && popoverRef.current.contains(event.target);
+      const isInsideNode =
+        nodeRef.current && nodeRef.current.contains(event.target);
+
+      if (!isInsidePopover && !isInsideNode) {
+        setIsPopoverVisible(false);
+        setExpandedCustomerMac(null);
+        setSearchTerm("");
+        setShowAll(false);
+      }
+    };
+
+    // Use 'true' for useCapture to catch events before React Flow stops them
+    document.addEventListener("mousedown", handleClickOutside, true);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside, true);
+    };
+  }, [isPopoverVisible]);
 
   const handleShowCustomers = (e) => {
     e.stopPropagation();
@@ -260,12 +290,34 @@ const CustomNode = ({ data, isConnectable }) => {
     if (!customerData) return [];
     if (!searchTerm) return customerData;
     const lowerTerm = searchTerm.toLowerCase();
-    return customerData.filter(
-      (c) =>
-        (c.cid && String(c.cid).toLowerCase().includes(lowerTerm)) ||
-        (c.mac && c.mac.toLowerCase().includes(lowerTerm))
-    );
+
+    return customerData.filter((c) => {
+      const cid = String(c.cid || "").toLowerCase();
+      const mac = String(c.mac || "").toLowerCase();
+      const owner = String(c.owner || "").toLowerCase();
+      const status = String(c.st2 || "").toLowerCase();
+      const onlineStatus = c.online1 === 1 ? "online" : "offline";
+      const expiry = c.expiry_date
+        ? new Date(c.expiry_date).toLocaleString().toLowerCase()
+        : "";
+
+      return (
+        cid.includes(lowerTerm) ||
+        mac.includes(lowerTerm) ||
+        owner.includes(lowerTerm) ||
+        status.includes(lowerTerm) ||
+        onlineStatus.includes(lowerTerm) ||
+        expiry.includes(lowerTerm)
+      );
+    });
   }, [customerData, searchTerm]);
+
+  const displayedCustomers = useMemo(() => {
+    if (showAll) return filteredCustomers;
+    return filteredCustomers.slice(0, INITIAL_DISPLAY_LIMIT);
+  }, [filteredCustomers, showAll]);
+
+  const remainingCount = filteredCustomers.length - displayedCustomers.length;
 
   return (
     <div ref={nodeRef}>
@@ -364,6 +416,7 @@ const CustomNode = ({ data, isConnectable }) => {
         data.node_type === NODE_TYPES_ENUM.ONU &&
         createPortal(
           <div
+            ref={popoverRef}
             onMouseEnter={cancelHidePopoverTimer}
             onMouseLeave={startHidePopoverTimer}
             style={{
@@ -388,9 +441,9 @@ const CustomNode = ({ data, isConnectable }) => {
                 {customerData.length > 3 && (
                   <div className="mb-2 border-b border-slate-100 pb-2">
                     <input
-                      ref={inputRef} // <--- Added Ref here
+                      ref={inputRef}
                       type="text"
-                      placeholder="Search ID or MAC..."
+                      placeholder="Search..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 focus:border-blue-500 focus:outline-none"
@@ -398,15 +451,34 @@ const CustomNode = ({ data, isConnectable }) => {
                   </div>
                 )}
 
-                {filteredCustomers.length > 0 ? (
-                  filteredCustomers.map((customer) => (
-                    <CustomerRow
-                      key={customer.mac || customer.cid}
-                      customer={customer}
-                      isExpanded={expandedCustomerMac === customer.mac}
-                      onExpand={() => setExpandedCustomerMac(customer.mac)}
-                    />
-                  ))
+                {displayedCustomers.length > 0 ? (
+                  <>
+                    {displayedCustomers.map((customer) => (
+                      <CustomerRow
+                        key={customer.mac || customer.cid}
+                        customer={customer}
+                        isExpanded={expandedCustomerMac === customer.mac}
+                        onExpand={() => setExpandedCustomerMac(customer.mac)}
+                      />
+                    ))}
+
+                    <div className="pt-2 flex justify-center items-center gap-1 text-xs">
+                      {!showAll && remainingCount > 0 && (
+                        <span className="text-slate-500">
+                          +{remainingCount} more
+                        </span>
+                      )}
+
+                      {filteredCustomers.length > INITIAL_DISPLAY_LIMIT && (
+                        <button
+                          onClick={() => setShowAll(!showAll)}
+                          className="font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          {showAll ? "Show Less" : "Show All"}
+                        </button>
+                      )}
+                    </div>
+                  </>
                 ) : (
                   <div className="py-2 text-center text-xs text-slate-500 italic">
                     No matching customers found
