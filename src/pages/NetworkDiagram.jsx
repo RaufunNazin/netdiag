@@ -22,6 +22,7 @@ import { toPng } from "html-to-image";
 import { UI_ICONS } from "../utils/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { jwtDecode } from "jwt-decode";
 import {
   fetchData,
   getDescendants,
@@ -85,6 +86,9 @@ const EditEdgeModal = lazy(() =>
   import("../components/modals/EditEdgeModal.jsx")
 );
 const OrphanDrawer = lazy(() => import("../components/ui/OrphanDrawer.jsx"));
+const ConfirmLogoutModal = lazy(() =>
+  import("../components/modals/ConfirmLogoutModal.jsx")
+);
 
 const NODES_PER_COLUMN = 8;
 const GRID_X_SPACING = 300;
@@ -107,6 +111,8 @@ const NetworkDiagram = () => {
   const [newConnections, setNewConnections] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [showEdgeLabels, setShowEdgeLabels] = useState(() => {
     const saved = localStorage.getItem("showEdgeLabels");
     return saved !== null ? JSON.parse(saved) : false;
@@ -252,6 +258,28 @@ const NetworkDiagram = () => {
     },
     [edges]
   );
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setUser({ firstName: decodedToken.first_name || decodedToken.sub });
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+        localStorage.removeItem("access_token");
+        navigate("/login");
+      }
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    navigate("/login", {
+      state: { message: "You have been logged out successfully." },
+      replace: true,
+    });
+  };
 
   const handleShowCustomers = useCallback((nodeData) => {
     setCustomerModalNode(nodeData);
@@ -1778,7 +1806,11 @@ const NetworkDiagram = () => {
           <ContextMenu {...contextMenu} onAction={handleAction} />
         )}
       </ReactFlow>
-      <UserStatus className="diagram-ui-overlay" />
+      <UserStatus
+        user={user}
+        onLogoutClick={() => setIsLogoutModalOpen(true)}
+        className="diagram-ui-overlay"
+      />
 
       {!isDrawerOpen && (
         <button
@@ -1857,6 +1889,13 @@ const NetworkDiagram = () => {
                 className="fab-button"
               />
             )}
+            <button
+              className="fab-button md:hidden bg-[#ef4444] hover:bg-[#d43c3c] text-white p-2 rounded-full transition-all duration-200 flex items-center justify-center w-10 h-10"
+              onClick={() => setIsLogoutModalOpen(true)}
+              title="Logout"
+            >
+              {UI_ICONS.signOut}
+            </button>
           </VerticalIconDock>
 
           <IconDock className="fab-dock diagram-ui-overlay">
@@ -1894,6 +1933,12 @@ const NetworkDiagram = () => {
             setIsExportModalOpen(false);
             onDownload();
           }}
+        />
+        <ConfirmLogoutModal
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={handleLogout}
+          userName={user?.firstName}
         />
         <EditNodeModal
           isOpen={editModal.isOpen}
