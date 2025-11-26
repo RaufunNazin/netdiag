@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { UI_ICONS } from "../../utils/icons";
 import { MODE } from "../../utils/enums";
 
@@ -8,6 +8,10 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [mode, setMode] = useState(MODE.DEVICE);
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
+
   const normalize = (str) => {
     return str
       ? str
@@ -16,6 +20,27 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
           .toLowerCase()
       : "";
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
+        setIsExpanded(false);
+        setIsFocused(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (isExpanded && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isExpanded]);
 
   const handleSearch = (e) => {
     const val = e.target.value;
@@ -80,6 +105,7 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
     setMode(newMode);
     setQuery("");
     setResults([]);
+    if (inputRef.current) inputRef.current.focus();
   };
 
   const handleKeyDown = (e) => {
@@ -87,6 +113,17 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
       handleSelect(results[0]);
       e.target.blur();
     }
+  };
+
+  const handleExpand = () => {
+    setIsExpanded(true);
+  };
+
+  const handleCollapse = (e) => {
+    e.stopPropagation();
+    setIsExpanded(false);
+    setQuery("");
+    setResults([]);
   };
 
   const showRootList =
@@ -97,37 +134,65 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
     (diagramRoots?.main || diagramRoots?.sub?.length > 0);
 
   return (
-    <div className="absolute top-4 right-4 z-10 w-80 flex flex-col gap-2">
-      <div className="bg-white/90 rounded-lg backdrop-blur-sm shadow-sm flex items-center p-1.5 border border-slate-200">
-        {/* Toggle Switch */}
-        <div className="flex bg-slate-100 rounded-md p-0.5 mr-2 shrink-0">
-          <button
-            onClick={() => handleModeSwitch(MODE.DEVICE)}
-            className={`p-1.5 rounded-md transition-all duration-200 flex items-center justify-center ${
-              mode === MODE.DEVICE
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-400 hover:text-slate-600"
-            }`}
-            title="Search Devices"
-          >
-            {UI_ICONS.device}
-          </button>
-          <button
-            onClick={() => handleModeSwitch(MODE.USER)}
-            className={`p-1.5 rounded-md transition-all duration-200 flex items-center justify-center ${
-              mode === MODE.USER
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-400 hover:text-slate-600"
-            }`}
-            title="Search Users"
-          >
-            {UI_ICONS.user}
-          </button>
+    <div
+      ref={containerRef}
+      className={`absolute top-4 right-4 z-10 flex flex-col gap-2 transition-all duration-500 ease-in-out ${
+        isExpanded ? "w-96" : "w-10"
+      }`}
+    >
+      <div
+        className={`bg-white/90 rounded-lg backdrop-blur-sm shadow-sm border border-slate-200 flex items-center overflow-hidden h-10 transition-colors duration-300 ${
+          isExpanded ? "bg-white" : "hover:bg-slate-50 cursor-pointer"
+        }`}
+        onClick={!isExpanded ? handleExpand : undefined}
+      >
+        {/* Search Icon / Trigger */}
+        {/* UPDATED: Hides (w-0, opacity-0) when expanded */}
+        <div
+          className={`flex items-center justify-center text-slate-500 shrink-0 transition-all duration-300 ease-in-out pr-1 ${
+            isExpanded ? "w-0 opacity-0 overflow-hidden" : "w-10 opacity-100"
+          }`}
+        >
+          {UI_ICONS.search}
         </div>
 
-        {/* Input Field */}
-        <div className="flex-1 flex items-center">
+        {/* Expanded Content (Toggle + Input + Close) */}
+        <div
+          className={`flex flex-1 items-center pl-1 pr-2 transition-opacity duration-300 ${
+            isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          {/* Toggle Switch */}
+          <div className="flex bg-slate-100 rounded-md p-0.5 mr-2 shrink-0">
+            <button
+              onClick={() => handleModeSwitch(MODE.DEVICE)}
+              className={`p-1 rounded-md transition-all duration-200 flex items-center justify-center ${
+                mode === MODE.DEVICE
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+              title="Search Devices"
+              tabIndex={isExpanded ? 0 : -1}
+            >
+              {UI_ICONS.device}
+            </button>
+            <button
+              onClick={() => handleModeSwitch(MODE.USER)}
+              className={`p-1 rounded-md transition-all duration-200 flex items-center justify-center ${
+                mode === MODE.USER
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+              title="Search Users"
+              tabIndex={isExpanded ? 0 : -1}
+            >
+              {UI_ICONS.user}
+            </button>
+          </div>
+
+          {/* Input Field */}
           <input
+            ref={inputRef}
             type="text"
             value={query}
             onChange={handleSearch}
@@ -137,15 +202,25 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
             placeholder={
               mode === MODE.DEVICE ? "Search Devices..." : "Search Users..."
             }
-            className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+            className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none min-w-0"
+            tabIndex={isExpanded ? 0 : -1}
           />
-          <div className="ml-1 text-slate-400">{UI_ICONS.search}</div>
+
+          {/* Close Button */}
+          <button
+            onClick={handleCollapse}
+            className="ml-1 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
+            title="Close Search"
+            tabIndex={isExpanded ? 0 : -1}
+          >
+            {UI_ICONS.cross}
+          </button>
         </div>
       </div>
 
       {/* Results Dropdown */}
-      {(results.length > 0 || showRootList) && (
-        <div className="bg-white/95 rounded-lg border border-slate-200 shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+      {isExpanded && (results.length > 0 || showRootList) && (
+        <div className="bg-white/95 rounded-lg border border-slate-200 shadow-lg overflow-hidden max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
           <ul className="py-1">
             {results.map((item, idx) => (
               <li
@@ -167,15 +242,15 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
                           {item.uname || "Unknown username"}
                         </span>
                         <span className="text-xs text-slate-500 font-mono">
-                          Customer ID: {item.cid || "Unknown ID"}
+                          ID: {item.cid || "N/A"}
                         </span>
                       </div>
-                      <span className="text-xs text-slate-500 bg-slate-100 px-1 rounded truncate max-w-[120px] h-fit">
-                        ONU: {item.onu_name}
+                      <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded h-fit">
+                        {item.onu_name}
                       </span>
                     </div>
-                    <span className="text-xs text-slate-500 font-mono">
-                      MAC: {item.mac}
+                    <span className="text-[10px] text-slate-400 font-mono mt-0.5">
+                      {item.mac}
                     </span>
                   </div>
                 )}
