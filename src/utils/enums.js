@@ -45,4 +45,9 @@ export const MISC = {
   NODE: "node",
   EDGE: "edge",
   DYNAMIC_ROOT_ID: "dynamicRootId",
-}
+};
+
+export const MODE = {
+  DEVICE: "device",
+  USER: "user",
+};

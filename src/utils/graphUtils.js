@@ -292,3 +292,23 @@ export const deleteEdge = async (edgeId, muted = false) => {
     throw error;
   }
 };
+
+export const fetchCustomerSearchIndex = async () => {
+  try {
+    const response = await api.get("/customers/search-index");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch customer index:", error);
+    return [];
+  }
+};
+
+export const fetchCustomerIndexVersion = async () => {
+  try {
+    const response = await api.get("/customers/index-version");
+    return response.data.version;
+  } catch (error) {
+    console.warn("Failed to check index version", error);
+    return null;
+  }
+};

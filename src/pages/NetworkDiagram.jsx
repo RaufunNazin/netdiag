@@ -34,6 +34,7 @@ import {
   resetPositions,
   createEdge,
 } from "../utils/graphUtils";
+import useCustomerSearchIndex from "../utils/useCustomerSearchIndex";
 import { ACTIONS, NODE_TYPES_ENUM, MISC } from "../utils/enums";
 import CustomNode from "../components/CustomNode.jsx";
 import ContextMenu from "../components/ContextMenu.jsx";
@@ -103,6 +104,7 @@ const NetworkDiagram = () => {
   const reactFlowWrapper = useRef(null);
   const reactFlowInstance = useReactFlow();
   const initialNodesRef = useRef([]);
+  const { customerIndex } = useCustomerSearchIndex();
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -1854,6 +1856,7 @@ const NetworkDiagram = () => {
             nodes={nodes}
             onNodeFound={onNodeFound}
             diagramRoots={diagramRoots}
+            customerIndex={customerIndex} // <--- Pass the index here
             className="diagram-ui-overlay"
           />
 
