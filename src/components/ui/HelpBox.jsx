@@ -104,6 +104,17 @@ const HelpBox = ({ isEmpty }) => {
           <>
             {
               <button
+                className={`p-1 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200`}
+                title="Trace Network Path"
+              >
+                {UI_ICONS.route}
+              </button>
+            }{" "}
+            <b>Shows full path</b> between 2 devices.
+          </>,
+          <>
+            {
+              <button
                 className="px-0.5 py-1 bg-blue-500 rounded-r-sm shadow-md hover:bg-blue-600 transition-all duration-200 text-white"
                 title="Open Inventory"
               >

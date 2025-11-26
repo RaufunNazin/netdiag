@@ -312,3 +312,18 @@ export const fetchCustomerIndexVersion = async () => {
     return null;
   }
 };
+
+export const tracePath = async (sourceId, targetId, includeOthers) => {
+  try {
+    const response = await api.post("/trace-path", {
+      source_id: parseInt(sourceId),
+      target_id: parseInt(targetId),
+      include_others: includeOthers,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Trace path failed", error);
+    toast.error(error.response?.data?.detail || "Failed to trace path.");
+    throw error;
+  }
+};

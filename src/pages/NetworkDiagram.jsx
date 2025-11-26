@@ -41,6 +41,7 @@ import ContextMenu from "../components/ContextMenu.jsx";
 import UserStatus from "../components/ui/UserStatus";
 import ResetViewFab from "../components/ui/ResetViewFab.jsx";
 import AddNodeFab from "../components/ui/AddNodeFab.jsx";
+import TraceRouteFab from "../components/ui/TraceRouteFab.jsx";
 import EditFab from "../components/ui/EditFab.jsx";
 import SelectRootNodeFab from "../components/ui/SelectRootNodeFab.jsx";
 import ToggleEdgeLabelsFab from "../components/ui/ToggleEdgeLabelsFab.jsx";
@@ -86,6 +87,9 @@ const ConfirmSaveModal = lazy(() =>
 const EditEdgeModal = lazy(() =>
   import("../components/modals/EditEdgeModal.jsx")
 );
+const TracePathModal = lazy(() =>
+  import("../components/modals/TracePathModal.jsx")
+);
 const OrphanDrawer = lazy(() => import("../components/ui/OrphanDrawer.jsx"));
 const ConfirmLogoutModal = lazy(() =>
   import("../components/modals/ConfirmLogoutModal.jsx")
@@ -113,6 +117,7 @@ const NetworkDiagram = () => {
   const [newConnections, setNewConnections] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isTraceModalOpen, setIsTraceModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [showEdgeLabels, setShowEdgeLabels] = useState(() => {
@@ -1899,6 +1904,11 @@ const NetworkDiagram = () => {
             >
               {UI_ICONS.signOut}
             </button>
+            <TraceRouteFab
+              onClick={() => setIsTraceModalOpen(true)}
+              disabled={loading || isEditMode}
+              className="fab-button"
+            />
           </VerticalIconDock>
 
           <IconDock className="fab-dock diagram-ui-overlay">
@@ -1936,6 +1946,12 @@ const NetworkDiagram = () => {
             setIsExportModalOpen(false);
             onDownload();
           }}
+        />
+        <TracePathModal
+          isOpen={isTraceModalOpen}
+          onClose={() => setIsTraceModalOpen(false)}
+          allNodes={nodes} // Pass main diagram nodes for search
+          getNodeIcon={getNodeIcon}
         />
         <ConfirmLogoutModal
           isOpen={isLogoutModalOpen}
