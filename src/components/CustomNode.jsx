@@ -137,7 +137,7 @@ const POPOVER_ESTIMATED_HEIGHT = 300;
 const POPOVER_MARGIN_PX = 8;
 const INITIAL_DISPLAY_LIMIT = 5;
 
-const CustomNode = ({ data, isConnectable }) => {
+const CustomNode = ({ data, isConnectable, selected }) => {
   const { id } = useParams();
   const [isPopoverVisible, setIsPopoverVisible] = useState(false);
   const [expandedCustomerMac, setExpandedCustomerMac] = useState(null);
@@ -252,21 +252,25 @@ const CustomNode = ({ data, isConnectable }) => {
   };
 
   const borderClass = useMemo(() => {
+    if (selected) {
+      return "border-2 border-blue-500 z-50 bg-blue-100";
+    }
+
     if (data.isHighlighted) {
-      return "border-4 border-blue-500";
+      return "border-2 border-[#ef4444] bg-red-100";
     }
 
     if (data.node_type === NODE_TYPES_ENUM.ONU) {
       if (data.status === 1) {
-        return "border-2 border-slate-400 border-r-4 border-t-4 border-r-green-500 border-t-green-500";
+        return "border-2 border-slate-400 border-r-4 border-r-green-500 bg-white";
       }
       if (data.status === 2) {
-        return "border-2 border-slate-400 border-r-4 border-t-4 border-r-[#d43c3c] border-t-[#d43c3c]";
+        return "border-2 border-slate-400 border-r-4 border-r-[#d43c3c] bg-white";
       }
     }
 
-    return "border-2 border-slate-400";
-  }, [data.isHighlighted, data.node_type, data.status]);
+    return "border-2 border-slate-400 bg-white";
+  }, [data.isHighlighted, data.node_type, data.status, selected]);
 
   const handleDetailsClick = (e) => {
     e.stopPropagation();
@@ -318,9 +322,7 @@ const CustomNode = ({ data, isConnectable }) => {
   return (
     <div ref={nodeRef}>
       <div
-        className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-slate-800 ${
-          data.isCollapsed ? "bg-slate-300" : "bg-white"
-        } ${borderClass} transition-all`}
+        className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-slate-800 ${borderClass} transition-all`}
       >
         {id ? (
           data.node_type !== NODE_TYPES_ENUM.OLT && (
