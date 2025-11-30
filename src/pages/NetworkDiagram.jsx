@@ -1748,6 +1748,112 @@ const NetworkDiagram = () => {
   ]);
 
   useEffect(() => {
+    const handleKeyDown = (event) => {
+      const activeTag = document.activeElement.tagName;
+      const isInputActive = ["INPUT", "TEXTAREA", "SELECT"].includes(activeTag);
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        if (event.shiftKey) {
+          handleExportClick();
+        } else if (isEditMode) {
+          handleFabClick();
+        }
+        return;
+      }
+
+      if (event.key === "Escape") {
+        setEditModal({ isOpen: false, node: null });
+        setAddModal((prev) => ({ ...prev, isOpen: false }));
+        setDetailModal({ isOpen: false, node: null });
+        setIsTraceModalOpen(false);
+        setIsDrawerOpen(false);
+        setIsLogoutModalOpen(false);
+        setIsExportModalOpen(false);
+        setCustomerModalNode(null);
+        setContextMenu(null);
+
+        setHighlightedPath(null);
+
+        setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
+        setEdges((eds) => eds.map((e) => ({ ...e, selected: false })));
+        return;
+      }
+
+      if (isInputActive) return;
+
+      switch (event.key.toLowerCase()) {
+        case "0":
+          handleResetView();
+          break;
+        case "l":
+          setShowEdgeLabels((prev) => !prev);
+          break;
+        case "t":
+          setIsTraceModalOpen((prev) => !prev);
+          break;
+        case "i":
+          setIsDrawerOpen((prev) => !prev);
+          break;
+        case "r":
+          setResetConfirmModal({
+            isOpen: true,
+            scope: null,
+            nodeId: null,
+            nodeName: "",
+          });
+          break;
+        case "e":
+          handleFabClick();
+          break;
+        case "n":
+          handleAddNodeClick();
+          break;
+        case "z":
+          if ((event.ctrlKey || event.metaKey) && isEditMode) {
+            handleUndo();
+          }
+          break;
+        case "delete":
+        case "backspace":
+          if (isEditMode) {
+            const selectedNode = nodes.find((n) => n.selected);
+            const selectedEdge = edges.find((e) => e.selected);
+
+            if (selectedNode) {
+              setDeleteModal({
+                isOpen: true,
+                id: selectedNode.id,
+                type: MISC.DEVICE,
+              });
+            } else if (selectedEdge) {
+              setDeleteModal({
+                isOpen: true,
+                id: selectedEdge.id,
+                type: "connection",
+              });
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    isEditMode,
+    nodes,
+    edges,
+    handleFabClick,
+    handleExportClick,
+    handleResetView,
+    handleAddNodeClick,
+    handleUndo,
+  ]);
+
+  useEffect(() => {
     const newRootId = id ? parseInt(id, 10) : null;
     setRootId(newRootId);
 
@@ -1799,6 +1905,7 @@ const NetworkDiagram = () => {
         edgesUpdatable={false}
         onNodeDragStart={onNodeDragStart}
         panOnDrag={!isEditMode}
+        deleteKeyCode={null}
         onPaneClick={onPaneClick}
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}

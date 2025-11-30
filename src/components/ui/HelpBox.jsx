@@ -1,199 +1,263 @@
 import React, { useState } from "react";
 import { UI_ICONS } from "../../utils/icons";
 
+const ShortcutRow = ({ keys, description }) => (
+  <div className="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0">
+    <span className="text-sm text-slate-600">{description}</span>
+    <div className="flex gap-1">
+      {keys.map((k, i) => (
+        <kbd
+          key={i}
+          className="min-w-[20px] text-center px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 text-[10px] font-mono font-bold text-slate-600"
+        >
+          {k}
+        </kbd>
+      ))}
+    </div>
+  </div>
+);
+
 const HelpBox = ({ isEmpty }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("guide");
 
-  const helpContent = isEmpty
-    ? {
-        title: "Getting Started",
-        points: [
-          <>
-            Your network is empty. The <b>plus icon</b> below adds your first
-            device.
-          </>,
-          "Options like Edit Mode become available after adding a device.",
-        ],
-      }
-    : {
-        title: "How to Use",
-        points: [
-          <>
-            The <b>Search bar</b> (top right) locates any device.
-          </>,
+  const guideContent = isEmpty
+    ? [
+        <span key="empty1">
+          Your network is empty. The <b>plus icon</b> below adds your first
+          device.
+        </span>,
+        <span key="empty2">
+          Options like Edit Mode become available after adding a device.
+        </span>,
+      ]
+    : [
+        <span key="search">
+          The <b>Search bar</b> (top right) locates any device.
+        </span>,
 
-          <>
-            {
-              <button className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600">
-                {UI_ICONS.root}
-              </button>
-            }{" "}
-            Selects a new <b>root device</b> for the main view.
-          </>,
-          <>
-            {
-              <button className="z-10 p-1 rounded-full text-white transition-all duration-200 hover:bg-green-600 bg-green-500">
-                {UI_ICONS.add}
-              </button>
-            }{" "}
-            <b>Adds</b> a new device to the diagram.
-          </>,
-          <>
-            {
-              <button
-                className={`z-10 p-1.5 rounded-full text-white transition-all duration-200 bg-orange-400 hover:bg-orange-400`}
-              >
-                {React.cloneElement(UI_ICONS.edit, {
-                  className: `w-2 h-2`,
-                })}
-              </button>
-            }{" "}
-            Enters <b>Edit Mode</b> to move nodes, create connections, etc.
-          </>,
-          <>
-            {
-              <button
-                className={`p-1 bg-[#ef4444] rounded-full text-white transition-all duration-300 ease-in-out hover:bg-[#d43c3c] focus:outline-none cursor-pointer`}
-              >
-                {UI_ICONS.undo}
-              </button>
-            }{" "}
-            <b>Undoes</b> the last change in Edit Mode.
-          </>,
-          <>
-            {
-              <button className="z-10 rounded-full bg-blue-500 p-1 text-white transition-all duration-200 hover:bg-blue-600">
-                {UI_ICONS.expand}
-              </button>
-            }{" "}
-            <b>Adjusts</b> the view and centers it.
-          </>,
-          <>
-            {
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="p-1 rounded-full shadow-md text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rotate-90 hover:rotate-0"
-              >
-                {UI_ICONS.reset}
-              </button>
-            }{" "}
-            <b>Resets</b> the layout.
-          </>,
-          <>
-            {
-              <button
-                className={`relative z-20 p-1 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
-                title="Export Diagram"
-              >
-                {UI_ICONS.download}
-              </button>
-            }{" "}
-            <b>Exports</b> the visible diagram.
-          </>,
-          <>
-            {
-              <button
-                className={`p-1 rounded-full text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600`}
-                title={"Toggle Cable Labels"}
-              >
-                {UI_ICONS.tag}
-              </button>
-            }{" "}
-            <b>Shows/Hides</b> cable descriptions.
-          </>,
-          <>
-            {
-              <button
-                className={`p-1 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200`}
-                title="Trace Network Path"
-              >
-                {UI_ICONS.route}
-              </button>
-            }{" "}
-            <b>Shows full path</b> between 2 devices.
-          </>,
-          <>
-            {
-              <button
-                className="px-0.5 py-1 bg-blue-500 rounded-r-sm shadow-md hover:bg-blue-600 transition-all duration-200 text-white"
-                title="Open Inventory"
-              >
-                {UI_ICONS.chevronRight_main}
-              </button>
-            }{" "}
-            Accesses your <b>inventory</b>.
-          </>,
-          <>
-            Connections are made from{" "}
-            <span className="inline-block w-3 h-3 bg-orange-500 rounded-full mr-1" />{" "}
-            ⟶{" "}
-            <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1" />
-          </>,
-          <>
-            Clicking any device <b>Expands</b> or <b>Collapses</b> its children.
-          </>,
-          <>
-            Hovering on{" "}
-            {
-              <button className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700">
-                {UI_ICONS.info}
-              </button>
-            }{" "}
-            on an ONU node displays <b>customer details.</b>
-          </>,
-          <>
-            Clicking on{" "}
-            {
-              <button className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700">
-                {UI_ICONS.info}
-              </button>
-            }{" "}
-            displays <b>device details.</b>
-          </>,
-          <>
-            Clicking{" "}
-            {
-              <button className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700">
-                {UI_ICONS.chevronRight}
-              </button>
-            }{" "}
-            on an OLT node opens the <b>OLT view.</b>
-          </>,
-        ],
-      };
+        <span key="root" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+            {UI_ICONS.root}
+          </button>{" "}
+          Selects a new <b>root device</b> for the view.
+        </span>,
+
+        <span key="add" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-green-500 p-1 text-white  flex items-center justify-center">
+            {UI_ICONS.add}
+          </button>{" "}
+          <b>Adds</b> a new device to the diagram.
+        </span>,
+
+        <span key="edit" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-orange-400 p-1.5 text-white  flex items-center justify-center">
+            {React.cloneElement(UI_ICONS.edit, { className: "w-3 h-3" })}
+          </button>{" "}
+          Enters <b>Edit Mode</b> (Move, Connect, Delete).
+        </span>,
+
+        <span key="undo" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-[#ef4444] p-1 text-white  flex items-center justify-center">
+            {UI_ICONS.undo}
+          </button>{" "}
+          <b>Undoes</b> the last action.
+        </span>,
+
+        <span key="fit" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+            {UI_ICONS.expand}
+          </button>{" "}
+          <b>Centers</b> the view on screen.
+        </span>,
+
+        <span key="reset" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-[#ef4444] p-1 text-white  flex items-center justify-center rotate-90">
+            {UI_ICONS.reset}
+          </button>{" "}
+          <b>Resets</b> node layout positions.
+        </span>,
+
+        <span key="export" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+            {UI_ICONS.download}
+          </button>{" "}
+          <b>Exports</b> the diagram as a PNG.
+        </span>,
+
+        <span key="labels" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+            {UI_ICONS.tag}
+          </button>{" "}
+          <b>Toggles</b> cable descriptions.
+        </span>,
+
+        <span key="trace" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+            {UI_ICONS.route}
+          </button>{" "}
+          <b>Traces</b> the path between two devices.
+        </span>,
+
+        <span key="inventory" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-r-sm bg-blue-500 p-1 text-white  flex items-center justify-center">
+            {UI_ICONS.chevronRight_main}
+          </button>{" "}
+          Accesses the <b>Inventory</b> drawer.
+        </span>,
+
+        <span key="connection" className="flex items-center gap-1">
+          Connects from{" "}
+          <span className="inline-block w-2.5 h-2.5 bg-orange-500 rounded-full mx-1" />
+          ⟶{" "}
+          <span className="inline-block w-2.5 h-2.5 bg-blue-500 rounded-full mx-1" />
+          .
+        </span>,
+
+        <span key="collapse">
+          Clicking any device <b>Expands</b> or <b>Collapses</b> its children.
+        </span>,
+
+        <span key="onu_info" className="flex items-center gap-2">
+          Hovering on{" "}
+          <button className="p-0.5 text-slate-400 bg-slate-100 rounded-full border border-slate-200">
+            {UI_ICONS.info}
+          </button>{" "}
+          (ONU) shows <b>customer details</b>.
+        </span>,
+
+        <span key="dev_info" className="flex items-center gap-2">
+          Clicking on{" "}
+          <button className="p-0.5 text-slate-400 bg-slate-100 rounded-full border border-slate-200">
+            {UI_ICONS.info}
+          </button>{" "}
+          shows <b>device details</b>.
+        </span>,
+
+        <span key="olt_nav" className="flex items-center gap-2">
+          Clicking{" "}
+          <button className="p-0.5 text-slate-400 bg-slate-100 rounded-full border border-slate-200">
+            {UI_ICONS.chevronRight}
+          </button>{" "}
+          (OLT) opens the <b>OLT view</b>.
+        </span>,
+      ];
 
   return (
     <div className="absolute bottom-4 right-2 md:right-4 z-10">
       <div
-        className={`w-84 rounded-lg border border-slate-200 bg-white/80 p-4 shadow-md backdrop-blur-sm z-20 ${
-          isOpen ? "block" : "hidden"
+        className={`w-80 md:w-96 rounded-xl border border-slate-200 bg-white/95 p-0 shadow-xl backdrop-blur-sm z-20 overflow-hidden transition-all duration-300 origin-bottom-right ${
+          isOpen
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-4 pointer-events-none hidden"
         }`}
       >
-        <h3 className="mb-2 text-lg font-bold text-slate-800">
-          {helpContent.title}
-        </h3>
-        <ul className="list-inside list-disc space-y-2 text-sm text-slate-600">
-          {helpContent.points.map((point, index) => (
-            <li key={index}>{point}</li>
-          ))}
-        </ul>
-        <div className="mt-2 border-t border-slate-300 pt-1 text-[10px] text-slate-400 text-center">
+        {/* Tab Header */}
+        <div className="flex border-b border-slate-200 bg-slate-50">
+          <button
+            onClick={() => setActiveTab("guide")}
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${
+              activeTab === "guide"
+                ? "text-blue-600 bg-white border-b-2 border-blue-500"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+            }`}
+          >
+            Visual Guide
+          </button>
+          <button
+            onClick={() => setActiveTab("shortcuts")}
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${
+              activeTab === "shortcuts"
+                ? "text-blue-600 bg-white border-b-2 border-blue-500"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+            }`}
+          >
+            Keyboard Shortcuts
+          </button>
+        </div>
+
+        {/* Scrollable Content Area */}
+        <div className="p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
+          {activeTab === "guide" ? (
+            <ul className="space-y-3 text-sm text-slate-600">
+              {guideContent.map((point, index) => (
+                <li key={index} className="flex items-start leading-snug">
+                  <span className="mr-2 mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">
+                  Global
+                </h4>
+                <ShortcutRow
+                  keys={["Ctrl", "F"]}
+                  description="Search Devices"
+                />
+                <ShortcutRow
+                  keys={["Esc"]}
+                  description="Close Modals / Clear"
+                />
+                <ShortcutRow keys={["0"]} description="Fit View to Screen" />
+                <ShortcutRow
+                  keys={["Ctrl", "Shift", "S"]}
+                  description="Export Diagram"
+                />
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">
+                  Editing
+                </h4>
+                <ShortcutRow keys={["E"]} description="Toggle Edit Mode" />
+                <ShortcutRow keys={["N"]} description="Add New Node" />
+                <ShortcutRow keys={["Ctrl", "S"]} description="Save Changes" />
+                <ShortcutRow
+                  keys={["Ctrl", "Z"]}
+                  description="Undo Last Action"
+                />
+                <ShortcutRow
+                  keys={["Del"]}
+                  description="Delete Selected Item (Only in Edit Mode)"
+                />
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">
+                  Tools
+                </h4>
+                <ShortcutRow keys={["T"]} description="Trace Route" />
+                <ShortcutRow keys={["I"]} description="Toggle Inventory" />
+                <ShortcutRow keys={["L"]} description="Toggle Cable Labels" />
+                <ShortcutRow keys={["R"]} description="Reset Node Positions" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-2 bg-slate-50 border-t border-slate-200 text-[10px] text-slate-400 text-center">
           Built using{" "}
           <a
             href="https://github.com/xyflow/xyflow"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-slate-500 transition-colors duration-200"
+            className="underline hover:text-slate-500"
           >
             xyflow
           </a>{" "}
           © webkid GmbH (MIT License)
         </div>
       </div>
-      <div className="flex justify-end mt-2">
+
+      <div className="flex justify-end mt-3">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-all duration-200"
+          className={`p-2 rounded-full  text-white transition-all duration-300 ${
+            isOpen ? "bg-slate-700 rotate-180" : "bg-blue-500 rotate-0"
+          }`}
         >
           {isOpen ? UI_ICONS.cross : UI_ICONS.question}
         </button>

@@ -126,6 +126,24 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
     setResults([]);
   };
 
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        setIsExpanded(true);
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+          }
+        }, 50);
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
   const showRootList =
     isFocused &&
     query.length === 0 &&
@@ -187,6 +205,7 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
           </div>
 
           <input
+            id="diagram-search-input"
             ref={inputRef}
             type="text"
             value={query}
