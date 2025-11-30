@@ -1,6 +1,5 @@
 import { UI_ICONS } from "./icons";
 
-// ALWAYS add the newest release at the TOP of this array
 export const APP_CHANGELOGS = [
   {
     version: "1.2.0",
@@ -14,7 +13,7 @@ export const APP_CHANGELOGS = [
             devices. Supports <em>Direct</em> and <em>Neighboring</em> modes.
           </span>
         ),
-        icon: UI_ICONS.route, // Reusing your existing icons
+        icon: UI_ICONS.route,
       },
       {
         text: (
@@ -28,11 +27,10 @@ export const APP_CHANGELOGS = [
       },
       {
         text: "Performance improvements for large network graphs.",
-        icon: UI_ICONS.check, // Assuming you have a check or generic icon
+        icon: UI_ICONS.check,
       },
     ],
   },
-  // You can keep old versions here for history if you ever want a "See all changes" page
   {
     version: "1.1.0",
     date: "Oct 15, 2025",

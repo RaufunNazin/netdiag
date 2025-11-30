@@ -146,8 +146,6 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
         }`}
         onClick={!isExpanded ? handleExpand : undefined}
       >
-        {/* Search Icon / Trigger */}
-        {/* UPDATED: Hides (w-0, opacity-0) when expanded */}
         <div
           className={`flex items-center justify-center text-slate-500 shrink-0 transition-all duration-300 ease-in-out pr-1 ${
             isExpanded ? "w-0 opacity-0 overflow-hidden" : "w-10 opacity-100"
@@ -156,13 +154,11 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
           {UI_ICONS.search}
         </div>
 
-        {/* Expanded Content (Toggle + Input + Close) */}
         <div
           className={`flex flex-1 items-center pl-1 pr-2 transition-opacity duration-300 ${
             isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          {/* Toggle Switch */}
           <div className="flex bg-slate-100 rounded-md p-0.5 mr-2 shrink-0">
             <button
               onClick={() => handleModeSwitch(MODE.DEVICE)}
@@ -190,7 +186,6 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
             </button>
           </div>
 
-          {/* Input Field */}
           <input
             ref={inputRef}
             type="text"
@@ -206,7 +201,6 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
             tabIndex={isExpanded ? 0 : -1}
           />
 
-          {/* Close Button */}
           <button
             onClick={handleCollapse}
             className="ml-1 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
@@ -218,7 +212,6 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
         </div>
       </div>
 
-      {/* Results Dropdown */}
       {isExpanded && (results.length > 0 || showRootList) && (
         <div className="bg-white/95 rounded-lg border border-slate-200 shadow-lg overflow-hidden max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
           <ul className="py-1">

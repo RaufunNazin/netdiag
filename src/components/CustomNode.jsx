@@ -220,13 +220,10 @@ const CustomNode = ({ data, isConnectable }) => {
     clearTimeout(hoverTimeoutRef.current);
   };
 
-  // UPDATED: Click Outside Listener with Capture Phase
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // If popover is not visible, do nothing
       if (!isPopoverVisible) return;
 
-      // Check if click is inside the popover OR inside the node (trigger)
       const isInsidePopover =
         popoverRef.current && popoverRef.current.contains(event.target);
       const isInsideNode =
@@ -240,7 +237,6 @@ const CustomNode = ({ data, isConnectable }) => {
       }
     };
 
-    // Use 'true' for useCapture to catch events before React Flow stops them
     document.addEventListener("mousedown", handleClickOutside, true);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside, true);

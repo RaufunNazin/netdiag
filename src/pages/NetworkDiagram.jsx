@@ -1862,7 +1862,7 @@ const NetworkDiagram = () => {
             nodes={nodes}
             onNodeFound={onNodeFound}
             diagramRoots={diagramRoots}
-            customerIndex={customerIndex} // <--- Pass the index here
+            customerIndex={customerIndex}
             className="diagram-ui-overlay"
           />
 
@@ -1952,7 +1952,7 @@ const NetworkDiagram = () => {
         <TracePathModal
           isOpen={isTraceModalOpen}
           onClose={() => setIsTraceModalOpen(false)}
-          allNodes={nodes} // Pass main diagram nodes for search
+          allNodes={nodes}
           getNodeIcon={getNodeIcon}
         />
         <ConfirmLogoutModal

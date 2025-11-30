@@ -23,8 +23,7 @@ import "reactflow/dist/style.css";
 import CustomNode from "../CustomNode";
 import { tracePath } from "../../utils/graphUtils";
 import { UI_ICONS } from "../../utils/icons";
-import AsyncDeviceSelect from "../ui/AsyncDeviceSelect"; // IMPORT NEW COMPONENT
-
+import AsyncDeviceSelect from "../ui/AsyncDeviceSelect";
 const NODE_WIDTH = 250;
 const NODE_HEIGHT = 80;
 
@@ -72,21 +71,19 @@ const TraceDiagramContent = ({ initialNodes, initialEdges }) => {
     setTimeout(() => fitView({ padding: 0.2 }), 50);
   }, [initialNodes, initialEdges, fitView, setNodes, setEdges]);
 
-  // --- UPDATED DOWNLOAD LOGIC ---
   const onDownload = useCallback(() => {
     if (!reactFlowWrapper.current) return;
 
     toPng(reactFlowWrapper.current, {
       backgroundColor: "#fff",
       filter: (node) => {
-        // Filter out elements we don't want in the screenshot
         const classList = node.classList;
         if (!classList) return true;
 
         return (
-          !classList.contains("react-flow__controls") && // Hide Zoom/Fit controls
-          !classList.contains("react-flow__panel") && // Hide the Panel container
-          !classList.contains("download-btn") // Hide the button itself
+          !classList.contains("react-flow__controls") &&
+          !classList.contains("react-flow__panel") &&
+          !classList.contains("download-btn")
         );
       },
     }).then((dataUrl) => {
@@ -112,11 +109,10 @@ const TraceDiagramContent = ({ initialNodes, initialEdges }) => {
         proOptions={{ hideAttribution: true }}
       >
         <Background variant="dots" gap={12} size={1} />
-        <Controls /> {/* This will be filtered out by the class name */}
+        <Controls />
         <Panel position="top-right">
           <button
             onClick={onDownload}
-            // Added 'download-btn' class for filtering
             className="download-btn bg-blue-600 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-blue-700 flex items-center gap-2 text-sm"
           >
             {UI_ICONS.download} Download PNG
@@ -134,7 +130,6 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
   const [traceData, setTraceData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setSource(null);
@@ -171,7 +166,7 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
           icon: getNodeIcon(dev.node_type),
           onDetailsClick: undefined,
           onNavigateClick: undefined,
-          isTraceMode: true, // Optional: Use this in CustomNode to hide edit handles
+          isTraceMode: true,
         },
         position: { x: 0, y: 0 },
       }));
@@ -197,7 +192,6 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
   return (
     <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
       <div className="bg-white w-full max-w-6xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
-        {/* Header */}
         <div className="p-4 border-b border-slate-200 bg-white flex flex-col gap-4 z-50 shadow-sm">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2">
@@ -212,7 +206,6 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-4 items-end lg:items-center">
-            {/* Selectors */}
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
               <div className="w-full sm:w-64">
                 <AsyncDeviceSelect
@@ -233,7 +226,6 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
               </div>
             </div>
 
-            {/* Controls */}
             <div className="flex items-center gap-3 ml-auto">
               <div className="flex bg-slate-100 p-1 rounded-lg">
                 <button
@@ -269,7 +261,6 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
           </div>
         </div>
 
-        {/* Diagram Area */}
         <div className="flex-grow bg-slate-50 relative overflow-hidden">
           {traceData ? (
             <ReactFlowProvider>

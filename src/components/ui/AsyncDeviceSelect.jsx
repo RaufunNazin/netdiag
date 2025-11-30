@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import api from "../../api"; // Ensure this points to your axios instance
+import api from "../../api";
 import { UI_ICONS } from "../../utils/icons";
 
 const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
@@ -9,7 +9,6 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // Debounce Search
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (query.length < 2) {
@@ -18,7 +17,6 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
       }
       setIsLoading(true);
       try {
-        // Calls your existing backend search endpoint
         const { data } = await api.get(`/search/devices?q=${query}`);
         setResults(data);
         setIsOpen(true);
@@ -32,7 +30,6 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -49,7 +46,7 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
   const handleSelect = (item) => {
     onSelect(item);
     setIsOpen(false);
-    setQuery(""); // Reset query or keep it? Reset looks cleaner
+    setQuery("");
   };
 
   const clearSelection = () => {
@@ -60,7 +57,6 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
   return (
     <div className="relative w-full" ref={containerRef}>
       {selectedItem ? (
-        // Selected State
         <div
           className={`flex items-center justify-between w-full p-2 rounded-lg border ${
             label === "Source"
@@ -88,7 +84,6 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
           </button>
         </div>
       ) : (
-        // Input State
         <div className="relative">
           <input
             type="text"
@@ -108,7 +103,6 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
         </div>
       )}
 
-      {/* Dropdown Results */}
       {isOpen && results.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
           {results.map((node) => (

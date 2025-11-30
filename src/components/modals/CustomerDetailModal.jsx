@@ -111,7 +111,6 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [expandedCustomerMac, setExpandedCustomerMac] = useState(null);
 
-  // Search and Display State
   const [searchTerm, setSearchTerm] = useState("");
   const [showAll, setShowAll] = useState(false);
 
@@ -122,7 +121,6 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
         setCustomerData([]);
         setExpandedCustomerMac(null);
 
-        // Reset filters on open
         setSearchTerm("");
         setShowAll(false);
 
@@ -137,7 +135,6 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
     }
   }, [isOpen, nodeData]);
 
-  // Filter Logic
   const filteredCustomers = useMemo(() => {
     if (!customerData) return [];
     if (!searchTerm) return customerData;
@@ -164,7 +161,6 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
     });
   }, [customerData, searchTerm]);
 
-  // Pagination Logic
   const displayedCustomers = useMemo(() => {
     if (showAll) return filteredCustomers;
     return filteredCustomers.slice(0, INITIAL_DISPLAY_LIMIT);
@@ -186,7 +182,6 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
           Customers on {nodeData.label || nodeData.name}
         </h3>
 
-        {/* Search Bar */}
         {!isLoading && customerData && customerData.length > 3 && (
           <div className="mb-4">
             <input
@@ -228,7 +223,6 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
                 </div>
               )}
 
-              {/* Show All / Show Less Controls */}
               {filteredCustomers.length > INITIAL_DISPLAY_LIMIT && (
                 <div className="pt-4 flex flex-col justify-center items-center gap-2 border-t border-slate-100 mt-2">
                   {!showAll && remainingCount > 0 && (
