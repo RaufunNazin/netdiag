@@ -54,6 +54,7 @@ import EmptyState from "../components/ui/EmptyState.jsx";
 import DownloadImageFab from "../components/ui/DownloadImageFab.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import VerticalIconDock from "../components/ui/VerticalIconDock.jsx";
+import ChangelogModal from "../components/modals/ChangelogModal.jsx";
 const WelcomeModal = lazy(() =>
   import("../components/modals/WelcomeModal.jsx")
 );
@@ -1927,6 +1928,7 @@ const NetworkDiagram = () => {
           </IconDock>
         </>
       )}
+      <ChangelogModal />
       <Suspense fallback={<LoadingOverlay />}>
         <WelcomeModal isOpen={isWelcomeOpen} onClose={handleCloseWelcome} />
         <CustomerDetailModal
