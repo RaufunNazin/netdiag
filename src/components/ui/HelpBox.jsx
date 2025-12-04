@@ -255,8 +255,10 @@ const HelpBox = ({ isEmpty }) => {
       <div className="flex justify-end mt-3">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`p-2 rounded-full  text-white transition-all duration-300 ${
-            isOpen ? "bg-slate-700 rotate-180" : "bg-blue-500 rotate-0"
+          className={`p-2 rounded-full  text-blue-500 transition-all duration-300 ${
+            isOpen
+              ? "bg-slate-200 border border-slate-300 rotate-180"
+              : "bg-slate-100 border border-slate-200 rotate-0"
           }`}
         >
           {isOpen ? UI_ICONS.cross : UI_ICONS.question}

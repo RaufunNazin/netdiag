@@ -5,10 +5,14 @@ const TraceRouteFab = ({ onClick, disabled, className = "" }) => {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`p-3 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      // Added 'trace-fab-btn' class
+      className={`trace-fab-btn p-3 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${className}`}
       title="Trace Network Path"
     >
-      {UI_ICONS.route_main}
+       {/* Fixed size wrapper + icon class */}
+      <div className="w-4 h-4 flex items-center justify-center icon-trace">
+        {UI_ICONS.route_main}
+      </div>
     </button>
   );
 };

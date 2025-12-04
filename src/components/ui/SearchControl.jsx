@@ -159,7 +159,7 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
       }`}
     >
       <div
-        className={`bg-white/90 rounded-lg backdrop-blur-sm shadow-sm border border-slate-200 flex items-center overflow-hidden h-10 transition-colors duration-300 ${
+        className={`bg-white/90 rounded-lg backdrop-blur-sm border border-slate-200 flex items-center overflow-hidden h-10 transition-colors duration-300 ${
           isExpanded ? "bg-white" : "hover:bg-slate-50 cursor-pointer"
         }`}
         onClick={!isExpanded ? handleExpand : undefined}
@@ -182,7 +182,7 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
               onClick={() => handleModeSwitch(MODE.DEVICE)}
               className={`p-1 rounded-md transition-all duration-200 flex items-center justify-center ${
                 mode === MODE.DEVICE
-                  ? "bg-white text-blue-600 shadow-sm"
+                  ? "bg-white text-blue-600"
                   : "text-slate-400 hover:text-slate-600"
               }`}
               title="Search Devices"
@@ -194,7 +194,7 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
               onClick={() => handleModeSwitch(MODE.USER)}
               className={`p-1 rounded-md transition-all duration-200 flex items-center justify-center ${
                 mode === MODE.USER
-                  ? "bg-white text-blue-600 shadow-sm"
+                  ? "bg-white text-blue-600"
                   : "text-slate-400 hover:text-slate-600"
               }`}
               title="Search Users"
@@ -232,7 +232,7 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
       </div>
 
       {isExpanded && (results.length > 0 || showRootList) && (
-        <div className="bg-white/95 rounded-lg border border-slate-200 shadow-lg overflow-hidden max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="bg-white/95 rounded-lg border border-slate-200 overflow-hidden max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
           <ul className="py-1">
             {results.map((item, idx) => (
               <li
