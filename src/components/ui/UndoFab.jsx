@@ -12,7 +12,7 @@ const UndoFab = ({ onClick, disabled }) => {
             ? "cursor-not-allowed bg-slate-400 hover:bg-slate-400"
             : "cursor-pointer"
         }`}
-        title="Undo Last Action"
+        title="Undo Last Action [CTRL+Z]"
       >
         {/* Fixed size wrapper + icon class */}
         <div className="w-5 h-5 flex items-center justify-center icon-undo">

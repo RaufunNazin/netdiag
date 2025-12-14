@@ -195,7 +195,7 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
         <div className="p-4 border-b border-slate-200 bg-white flex flex-col gap-4 z-50 shadow-sm">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2">
-              {UI_ICONS.route} Trace Network Path
+              Trace Network Path
             </h2>
             <button
               onClick={onClose}
@@ -230,7 +230,7 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
               <div className="flex bg-slate-100 p-1 rounded-lg">
                 <button
                   onClick={() => setMode("direct")}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  className={`px-3 py-2 text-xs font-medium rounded-md transition-all ${
                     mode === "direct"
                       ? "bg-white text-slate-800 shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
@@ -240,7 +240,7 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
                 </button>
                 <button
                   onClick={() => setMode("neighbor")}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  className={`px-3 py-2 text-xs font-medium rounded-md transition-all ${
                     mode === "neighbor"
                       ? "bg-white text-slate-800 shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
@@ -253,7 +253,7 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
               <button
                 onClick={handleTrace}
                 disabled={isLoading || !source || !target}
-                className="btn-primary py-2 px-6 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                className="btn-primary shadow-none py-2 px-6 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               >
                 {isLoading ? "Tracing..." : "Show Route"}
               </button>

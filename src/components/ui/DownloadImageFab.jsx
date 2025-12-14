@@ -12,7 +12,7 @@ const DownloadImageFab = ({
       disabled={disabled || isDownloading}
       // Added 'download-fab-btn' class
       className={`download-fab-btn relative z-20 p-3 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${className}`}
-      title="Export Diagram"
+      title="Export Diagram [CTRL+SHIFT+S]"
     >
       {isDownloading ? (
         // Spinner doesn't need the wrapper, it's already sized

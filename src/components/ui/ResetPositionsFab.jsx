@@ -51,7 +51,7 @@ const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
         disabled={disabled}
         // Added 'reset-fab-btn' class
         className={`reset-fab-btn p-3 rounded-full text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${className}`}
-        title="Reset Positions"
+        title="Reset Positions [R]"
       >
         {/* Fixed size wrapper + icon class */}
         <div className="w-4 h-4 flex items-center justify-center icon-reset">

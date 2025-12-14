@@ -10,7 +10,7 @@ const EditFab = ({ isEditing, onClick }) => {
             ? "bg-green-500 hover:bg-green-600"
             : "bg-orange-400 hover:bg-orange-500"
         }`}
-      title={isEditing ? "Save and Lock Layout" : "Enable Editing"}
+      title={isEditing ? "Save and Lock Layout [CTRL + S]/[E]" : "Enable Editing [E]"}
     >
       {/* FIX: Added 'w-6 h-6 flex items-center justify-center'.
          This creates a fixed bounding box. Even if the icon rotates 

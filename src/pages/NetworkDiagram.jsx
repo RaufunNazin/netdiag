@@ -1931,7 +1931,7 @@ const NetworkDiagram = () => {
         <button
           onClick={() => setIsDrawerOpen(true)}
           className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md  hover:bg-blue-600 transition-all duration-200 text-white diagram-ui-overlay"
-          title="Open Inventory"
+          title="Open Inventory [I]"
         >
           {UI_ICONS.chevronRight_main}
         </button>

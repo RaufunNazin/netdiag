@@ -81,7 +81,7 @@ const OrphanDrawer = ({ isOpen, onClose, nodes }) => {
           <button
             onClick={onClose}
             className="p-1 text-slate-500 hover:text-slate-800"
-            title="Close Inventory"
+            title="Close Inventory [ESC]"
           >
             {UI_ICONS.chevronLeft}
           </button>

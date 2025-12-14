@@ -17,7 +17,7 @@ const ToggleEdgeLabelsFab = ({
           ? "bg-blue-500 hover:bg-blue-600"
           : "bg-slate-300 hover:bg-slate-400"
       } ${className}`}
-      title={isLabelsVisible ? "Hide Cable Labels" : "Show Cable Labels"}
+      title={isLabelsVisible ? "Hide Cable Labels [L]" : "Show Cable Labels [L]"}
     >
        {/* Fixed size wrapper + icon class */}
       <div className="w-4 h-4 flex items-center justify-center icon-tag">
