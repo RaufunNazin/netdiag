@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UI_ICONS } from "../../utils/icons";
 
 const ShortcutRow = ({ keys, description }) => (
@@ -20,6 +20,33 @@ const ShortcutRow = ({ keys, description }) => (
 const HelpBox = ({ isEmpty }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("guide");
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) {
+        return;
+      }
+
+      if (e.key.toLowerCase() === "h") {
+        e.preventDefault();
+        setIsOpen((prev) => !prev);
+      }
+
+      if (isOpen) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setIsOpen(false);
+        }
+        if (e.key === "Tab") {
+          e.preventDefault();
+          setActiveTab((prev) => (prev === "guide" ? "shortcuts" : "guide"));
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   const guideContent = isEmpty
     ? [
@@ -257,6 +284,7 @@ const HelpBox = ({ isEmpty }) => {
               ? "bg-slate-200 border border-slate-300 rotate-180"
               : "bg-slate-100 border border-slate-200 rotate-0"
           }`}
+          title={isOpen ? "Close Help [H/ESC]" : "Open Help [H]"}
         >
           {isOpen ? UI_ICONS.cross : UI_ICONS.question}
         </button>
