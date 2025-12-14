@@ -109,24 +109,22 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
   };
 
   const handleKeyDown = (e) => {
-    // Select result on Enter
     if (e.key === "Enter" && results.length > 0) {
       handleSelect(results[0]);
       e.target.blur();
     }
 
-    // Collapse on Escape
     if (e.key === "Escape") {
-      e.preventDefault(); // Prevent default browser behavior
-      e.stopPropagation(); // Stop event bubbling
+      e.preventDefault();
+      e.stopPropagation();
       setIsExpanded(false);
       setQuery("");
       setResults([]);
-      e.target.blur(); // Remove focus from input
+      e.target.blur();
     }
 
     if (e.key === "Tab") {
-      e.preventDefault(); // Prevent focus from moving to the next element
+      e.preventDefault();
       const newMode = mode === MODE.DEVICE ? MODE.USER : MODE.DEVICE;
       handleModeSwitch(newMode);
     }

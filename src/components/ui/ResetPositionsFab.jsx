@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { UI_ICONS } from "../../utils/icons";
 
 const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
-  // ... (keep existing state and useEffect) ...
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const buttonRef = useRef(null);
@@ -49,16 +48,13 @@ const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
         ref={buttonRef}
         onClick={handleToggle}
         disabled={disabled}
-        // Added 'reset-fab-btn' class
         className={`reset-fab-btn p-3 rounded-full text-white bg-[#ef4444] hover:bg-[#d43c3c] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${className}`}
         title="Reset Positions [R]"
       >
-        {/* Fixed size wrapper + icon class */}
         <div className="w-4 h-4 flex items-center justify-center icon-reset">
           {UI_ICONS.reset_main}
         </div>
       </button>
-      {/* ... (keep portal code) ... */}
       {isOpen &&
         createPortal(
           <div

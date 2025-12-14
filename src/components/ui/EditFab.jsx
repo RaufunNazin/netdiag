@@ -12,10 +12,6 @@ const EditFab = ({ isEditing, onClick }) => {
         }`}
       title={isEditing ? "Save and Lock Layout [CTRL + S]/[E]" : "Enable Editing [E]"}
     >
-      {/* FIX: Added 'w-6 h-6 flex items-center justify-center'.
-         This creates a fixed bounding box. Even if the icon rotates 
-         outside this box visually, the button size won't change.
-      */}
       <div
         className={`w-4 h-4 flex items-center justify-center ${
           isEditing ? "icon-locking" : "icon-writing"

@@ -152,7 +152,6 @@ const HelpBox = ({ isEmpty }) => {
             : "opacity-0 translate-y-4 pointer-events-none hidden"
         }`}
       >
-        {/* Tab Header */}
         <div className="flex border-b border-slate-200 bg-slate-50">
           <button
             onClick={() => setActiveTab("guide")}
@@ -175,8 +174,6 @@ const HelpBox = ({ isEmpty }) => {
             Keyboard Shortcuts
           </button>
         </div>
-
-        {/* Scrollable Content Area */}
         <div className="p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
           {activeTab === "guide" ? (
             <ul className="space-y-3 text-sm text-slate-600">
