@@ -109,9 +109,26 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
   };
 
   const handleKeyDown = (e) => {
+    // Select result on Enter
     if (e.key === "Enter" && results.length > 0) {
       handleSelect(results[0]);
       e.target.blur();
+    }
+
+    // Collapse on Escape
+    if (e.key === "Escape") {
+      e.preventDefault(); // Prevent default browser behavior
+      e.stopPropagation(); // Stop event bubbling
+      setIsExpanded(false);
+      setQuery("");
+      setResults([]);
+      e.target.blur(); // Remove focus from input
+    }
+
+    if (e.key === "Tab") {
+      e.preventDefault(); // Prevent focus from moving to the next element
+      const newMode = mode === MODE.DEVICE ? MODE.USER : MODE.DEVICE;
+      handleModeSwitch(newMode);
     }
   };
 
@@ -223,7 +240,7 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
           <button
             onClick={handleCollapse}
             className="ml-1 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
-            title="Close Search"
+            title="Close Search [ESC]"
             tabIndex={isExpanded ? 0 : -1}
           >
             {UI_ICONS.cross}
