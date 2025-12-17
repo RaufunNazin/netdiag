@@ -255,6 +255,8 @@ const HelpBox = ({ isEmpty }) => {
                 </h4>
                 <ShortcutRow keys={["T"]} description="Trace Route" />
                 <ShortcutRow keys={["I"]} description="Toggle Inventory" />
+                <ShortcutRow keys={["B"]} description="Toggle Bottom Dock" />
+                <ShortcutRow keys={["V"]} description="Toggle Vertical Dock" />
                 <ShortcutRow keys={["L"]} description="Toggle Cable Labels" />
                 <ShortcutRow keys={["R"]} description="Reset Node Positions" />
               </div>

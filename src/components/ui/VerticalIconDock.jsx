@@ -11,6 +11,19 @@ const VerticalIconDock = ({ children, className = "" }) => {
     localStorage.setItem("isVerticalDockOpen", JSON.stringify(isOpen));
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
+
+      if (e.key.toLowerCase() === "v") {
+        setIsOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const toggleDock = () => {
     setIsOpen((prev) => !prev);
   };
@@ -38,7 +51,7 @@ const VerticalIconDock = ({ children, className = "" }) => {
         className={`flex h-10 w-10 shrink-0 items-center justify-center 
                    rounded-full bg-transparent text-slate-600 transition-all 
                    duration-500 ease-in-out`}
-        title={isOpen ? "Hide Tools" : "Show Tools"}
+        title={isOpen ? "Hide Vertical Dock [V]" : "Show Vertical Dock [V]"}
       >
         <span
           className={`transition-transform duration-500 ease-in-out 

@@ -11,6 +11,19 @@ const IconDock = ({ children }) => {
     localStorage.setItem("isDockOpen", JSON.stringify(isOpen));
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
+
+      if (e.key.toLowerCase() === "b") {
+        setIsOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const toggleDock = () => {
     setIsOpen((prev) => !prev);
   };
@@ -34,7 +47,7 @@ const IconDock = ({ children }) => {
         className={`flex h-10 w-10 shrink-0 items-center justify-center 
                    rounded-full bg-transparent text-slate-600 transition-all 
                    duration-500 ease-in-out ${isOpen ? "ml-2" : "ml-0"}`}
-        title={isOpen ? "Hide Toolbar" : "Show Toolbar"}
+        title={isOpen ? "Hide Bottom Dock [B]" : "Show Bottom Dock [B]"}
       >
         <span
           className={`transition-transform duration-500 ease-in-out 
