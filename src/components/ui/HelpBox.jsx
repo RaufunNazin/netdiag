@@ -19,7 +19,7 @@ const ShortcutRow = ({ keys, description }) => (
 
 const HelpBox = ({ isEmpty }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("guide");
+  const [activeTab, setActiveTab] = useState("shortcuts");
 
   useEffect(() => {
     const handleKeyDown = (e) => {

@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { memo, useState, useRef, useMemo, useEffect } from "react";
-import { Handle, Position } from "reactflow";
+import { Handle, Position } from "@xyflow/react";
 import { createPortal } from "react-dom";
 import { fetchOnuCustomerInfo } from "../utils/graphUtils";
 import { useParams } from "react-router-dom";

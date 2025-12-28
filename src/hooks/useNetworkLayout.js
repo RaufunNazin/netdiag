@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNodesState, useEdgesState, MarkerType } from "reactflow";
+import { useNodesState, useEdgesState, MarkerType } from "@xyflow/react";
 import { fetchData, getDescendants } from "../utils/nodeHelpers";
 import { getLayoutedElements } from "../utils/layout";
 import {

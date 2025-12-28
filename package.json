@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.12",
+    "@xyflow/react": "^12.10.0",
     "axios": "^1.12.2",
     "dagre": "^0.8.5",
     "html-to-image": "^1.11.11",
@@ -19,7 +20,6 @@
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.4",
     "react-toastify": "^11.0.5",
-    "reactflow": "^11.11.4",
     "tailwindcss": "^4.1.12"
   },
   "devDependencies": {

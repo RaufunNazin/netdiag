@@ -1,12 +1,7 @@
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import {
-  useState,
-  useCallback,
-  useRef,
-  useMemo,
-  useEffect,
-} from "react";
-import ReactFlow, {
   useNodesState,
+  ReactFlow,
   useEdgesState,
   Background,
   MarkerType,
@@ -14,11 +9,11 @@ import ReactFlow, {
   ReactFlowProvider,
   Panel,
   Controls,
-} from "reactflow";
+} from "@xyflow/react";
 import dagre from "dagre";
 import { toPng } from "html-to-image";
 import { toast } from "react-toastify";
-import "reactflow/dist/style.css";
+import "@xyflow/react/dist/style.css";
 
 import CustomNode from "../CustomNode";
 import { tracePath } from "../../utils/graphUtils";

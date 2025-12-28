@@ -8,16 +8,18 @@ import {
   Suspense,
   lazy,
 } from "react";
-import ReactFlow, {
+import {
   useNodesState,
   useEdgesState,
   addEdge,
+  ReactFlow,
   useReactFlow,
   Background,
   MarkerType,
-  getRectOfNodes,
-} from "reactflow";
-import "reactflow/dist/style.css";
+  getNodesBounds,
+  Panel,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
 import { UI_ICONS } from "../utils/icons";
 import { useNavigate, useParams } from "react-router-dom";
@@ -111,6 +113,7 @@ const NetworkDiagram = () => {
   const initialNodesRef = useRef([]);
   const { customerIndex } = useCustomerSearchIndex();
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
+  const [colorMode, setColorMode] = useState("dark");
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -367,7 +370,7 @@ const NetworkDiagram = () => {
         return;
       }
 
-      const nodesBounds = getRectOfNodes(nodesToCapture);
+      const nodesBounds = getNodesBounds(nodesToCapture);
 
       const padding = 100;
       const scaleFactor = 2;
@@ -1902,7 +1905,7 @@ const NetworkDiagram = () => {
         isValidConnection={isValidConnection}
         nodesDraggable={isEditMode}
         nodesConnectable={isEditMode}
-        edgesUpdatable={false}
+        defaultEdgeOptions={{ updatable: false }}
         onNodeDragStart={onNodeDragStart}
         panOnDrag={!isEditMode}
         deleteKeyCode={null}
@@ -1915,8 +1918,23 @@ const NetworkDiagram = () => {
         elevateNodesOnSelect={false}
         nodeTypes={nodeTypes}
         onMoveEnd={onMoveEnd}
+        colorMode={colorMode}
       >
         <Background variant="dots" gap={12} size={1} />
+        <Panel
+          position="top-right"
+          className="bg-white/80 dark:bg-gray-800/80 p-2 rounded-md shadow-md backdrop-blur-sm z-50"
+        >
+          <select
+            onChange={(e) => setColorMode(e.target.value)}
+            value={colorMode}
+            className="p-1 rounded border border-gray-300 text-sm"
+          >
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="system">System</option>
+          </select>
+        </Panel>
         {contextMenu && (
           <ContextMenu {...contextMenu} onAction={handleAction} />
         )}
