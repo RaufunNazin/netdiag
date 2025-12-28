@@ -35,23 +35,29 @@ const ColorPicker = ({ selectedColor, onChange }) => {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="input-style flex items-center justify-between text-left w-full"
+          // Added dark:bg-slate-800, dark:border-slate-600, dark:text-slate-200
+          className="input-style flex items-center justify-between text-left w-full bg-white dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200"
         >
           <span className="flex items-center">
             <span
-              className="w-5 h-5 rounded-full mr-3 border border-slate-200"
+              // Added dark:border-slate-600
+              className="w-5 h-5 rounded-full mr-3 border border-slate-200 dark:border-slate-600"
               style={{
                 backgroundColor: selectedColorObj?.hex || "#FFFFFF",
               }}
             />
             {selectedColorObj?.name || (
-              <span className="text-slate-400">Select Color</span>
+              // Added dark:text-slate-500
+              <span className="text-slate-400 dark:text-slate-500">
+                Select Color
+              </span>
             )}
           </span>
 
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className={`h-4 w-4 text-slate-500 ml-2 transition-transform duration-200 ${
+            // Added dark:text-slate-400
+            className={`h-4 w-4 text-slate-500 dark:text-slate-400 ml-2 transition-transform duration-200 ${
               isOpen ? "rotate-180" : ""
             }`}
             fill="none"
@@ -71,7 +77,8 @@ const ColorPicker = ({ selectedColor, onChange }) => {
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-8 text-lg text-slate-400 hover:text-red-500 transition-colors"
+            // Added dark:text-slate-500 and dark:hover:text-red-400
+            className="absolute right-8 text-lg text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 transition-colors"
             title="Clear color"
           >
             ✕
@@ -80,14 +87,15 @@ const ColorPicker = ({ selectedColor, onChange }) => {
       </div>
 
       {isOpen && (
-        <div className="absolute top-full mt-1 w-full bg-white border border-slate-300 rounded-md shadow-md z-20 p-2 grid grid-cols-4 gap-2">
+        <div className="absolute top-full mt-1 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-md z-20 p-2 grid grid-cols-4 gap-2">
           {CORE_COLORS_DATA.map((color) => (
             <button
               key={color.name}
               type="button"
               onClick={() => handleColorSelect(color.hex)}
               aria-label={color.name}
-              className={`py-2 rounded-md text-sm text-center font-semibold hover:opacity-80 transition-opacity border border-transparent hover:border-slate-300 ${color.text}`}
+              // Added dark:hover:border-slate-500
+              className={`py-2 rounded-md text-sm text-center font-semibold hover:opacity-80 transition-opacity border border-transparent hover:border-slate-300 dark:hover:border-slate-500 ${color.text}`}
               style={{ backgroundColor: color.hex }}
             >
               {color.name}

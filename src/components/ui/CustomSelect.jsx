@@ -40,15 +40,19 @@ const CustomSelect = ({
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
+          // Added dark:bg-slate-800/50 (disabled) and dark:bg-slate-800 (enabled)
           className={`input-style flex items-center justify-between text-left w-full ${
             disabled
-              ? "opacity-50 cursor-not-allowed bg-slate-100"
-              : "bg-white cursor-pointer"
+              ? "opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800/50"
+              : "bg-white dark:bg-slate-800 cursor-pointer"
           }`}
         >
           <span
+            // Added dark:text-slate-500 (placeholder) and dark:text-slate-200 (value)
             className={`block truncate mr-6 ${
-              !value ? "text-slate-400" : "text-slate-800"
+              !value
+                ? "text-slate-400 dark:text-slate-500"
+                : "text-slate-800 dark:text-slate-200"
             }`}
           >
             {value || placeholder}
@@ -56,7 +60,8 @@ const CustomSelect = ({
 
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className={`h-4 w-4 text-slate-500 ml-2 transition-transform duration-200 ${
+            // Added dark:text-slate-400
+            className={`h-4 w-4 text-slate-500 dark:text-slate-400 ml-2 transition-transform duration-200 ${
               isOpen ? "rotate-180" : ""
             }`}
             fill="none"
@@ -76,7 +81,8 @@ const CustomSelect = ({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-8 text-slate-400 hover:text-red-500 transition-colors z-10"
+            // Added dark:text-slate-500 and dark:hover:text-red-400
+            className="absolute right-8 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 transition-colors z-10"
             title="Clear selection"
           >
             <svg
@@ -96,9 +102,11 @@ const CustomSelect = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white border border-slate-300 p-1 text-base shadow-lg focus:outline-none sm:text-sm">
+        // Added dark:bg-slate-800 and dark:border-slate-700
+        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-1 text-base shadow-lg focus:outline-none sm:text-sm">
           {options.length === 0 ? (
-            <div className="relative cursor-default select-none py-2 px-4 text-slate-500 italic">
+            // Added dark:text-slate-400
+            <div className="relative cursor-default select-none py-2 px-4 text-slate-500 dark:text-slate-400 italic">
               No options
             </div>
           ) : (
@@ -122,16 +130,18 @@ const CustomSelect = ({
                 <div
                   key={index}
                   onClick={() => handleSelect(optionValue)}
-                  className={`relative cursor-pointer select-none rounded py-2 pl-3 pr-9 hover:bg-blue-50 transition-colors ${
+                  // Added dark:hover:bg-slate-700, dark:text-blue-400, dark:bg-blue-900/20, dark:text-slate-200
+                  className={`relative cursor-pointer select-none rounded py-2 pl-3 pr-9 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors ${
                     isSelected
-                      ? "font-semibold text-blue-600 bg-blue-50"
-                      : "text-slate-900"
+                      ? "font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                      : "text-slate-900 dark:text-slate-200"
                   }`}
                 >
                   <span className="block truncate">{optionLabel}</span>
 
                   {isSelected && (
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600">
+                    // Added dark:text-blue-400
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600 dark:text-blue-400">
                       <svg
                         className="h-4 w-4"
                         xmlns="http://www.w3.org/2000/svg"

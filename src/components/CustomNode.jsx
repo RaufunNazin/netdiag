@@ -36,11 +36,14 @@ export const ICONS = {
 };
 
 const DetailRow = ({ label, value }) => (
-  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
-    <dt className="text-xs font-medium text-slate-500 shrink-0 pr-2">
+  // Added dark:border-slate-700
+  <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
+    {/* Added dark:text-slate-400 */}
+    <dt className="text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0 pr-2">
       {label}
     </dt>
-    <dd className="text-xs text-slate-800 text-right break-words">
+    {/* Added dark:text-slate-200 */}
+    <dd className="text-xs text-slate-800 dark:text-slate-200 text-right break-words">
       {value || "N/A"}
     </dd>
   </div>
@@ -72,17 +75,20 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
   const LightbulbIcon = UI_ICONS.lightbulb;
 
   return (
-    <div className="py-2 border-b border-slate-100 last:border-b-0">
+    // Added dark:border-slate-700
+    <div className="py-2 border-b border-slate-100 dark:border-slate-700 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span>
             <LightbulbIcon
               className={
-                customer.online1 === 1 ? "text-yellow-400" : "text-slate-600"
+                customer.online1 === 1
+                  ? "text-yellow-400"
+                  : "text-slate-600 dark:text-slate-500" // Added dark:text-slate-500
               }
             />
           </span>
-          <span>
+          <span className="dark:text-slate-300">
             {customer.st2 === CUST_STATUS.OK
               ? UI_ICONS.unlock
               : customer.st2 === CUST_STATUS.EXPIRED
@@ -93,11 +99,15 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
               ? UI_ICONS.timesCircle
               : null}
           </span>
-          <span className="font-semibold">{customer.uname}</span>
+          {/* Added dark:text-slate-200 */}
+          <span className="font-semibold text-slate-800 dark:text-slate-200">
+            {customer.uname}
+          </span>
         </div>
         <div
           onMouseEnter={onExpand}
-          className="cursor-pointer p-1 text-slate-400"
+          // Added dark:text-slate-500 and dark:hover:text-blue-400
+          className="cursor-pointer p-1 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
         >
           {UI_ICONS.info_main}
         </div>
@@ -252,24 +262,34 @@ const CustomNode = ({ data, isConnectable, selected }) => {
   };
 
   const borderClass = useMemo(() => {
+    // 1. Define base styles for Light AND Dark mode
+    // Light: bg-white, border-slate-400
+    // Dark:  dark:bg-slate-900, dark:border-slate-600
+    const baseStyle = "border-2 bg-white dark:bg-slate-900";
+
     if (selected) {
-      return "border-2 border-blue-500 z-50 bg-blue-100";
+      // Dark: dark:bg-blue-900/40
+      return "border-2 border-blue-500 z-50 bg-blue-100 dark:bg-blue-900/40";
     }
 
     if (data.isHighlighted) {
-      return "border-2 border-[#ef4444] bg-red-100";
+      // Dark: dark:bg-red-900/40
+      return "border-2 border-[#ef4444] bg-red-100 dark:bg-red-900/40";
     }
 
     if (data.node_type === NODE_TYPES_ENUM.ONU) {
       if (data.status === 1) {
-        return "border-2 border-slate-400 border-r-4 border-r-green-500 bg-white";
+        // Dark: dark:border-slate-600 (base border) + green right border
+        return `${baseStyle} border-slate-400 dark:border-slate-600 border-r-4 border-r-green-500`;
       }
       if (data.status === 2) {
-        return "border-2 border-slate-400 border-r-4 border-r-[#d43c3c] bg-white";
+        // Dark: dark:border-slate-600 (base border) + red right border
+        return `${baseStyle} border-slate-400 dark:border-slate-600 border-r-4 border-r-[#d43c3c]`;
       }
     }
 
-    return "border-2 border-slate-400 bg-white";
+    // Default Node
+    return `${baseStyle} border-slate-400 dark:border-slate-600`;
   }, [data.isHighlighted, data.node_type, data.status, selected]);
 
   const handleDetailsClick = (e) => {
@@ -322,7 +342,8 @@ const CustomNode = ({ data, isConnectable, selected }) => {
   return (
     <div ref={nodeRef}>
       <div
-        className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-slate-800 ${borderClass} transition-all`}
+        // Added dark:text-slate-200
+        className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-slate-800 dark:text-slate-200 ${borderClass} transition-all`}
       >
         {id ? (
           data.node_type !== NODE_TYPES_ENUM.OLT && (
@@ -359,7 +380,8 @@ const CustomNode = ({ data, isConnectable, selected }) => {
             onClick={handleDetailsClick}
             onMouseEnter={showCustomerPopover}
             onMouseLeave={startHidePopoverTimer}
-            className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+            // Added dark:text-slate-500, dark:hover:bg-slate-700, dark:hover:text-slate-300
+            className="rounded-full p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             title="View Details"
           >
             {UI_ICONS.info_main}
@@ -378,7 +400,8 @@ const CustomNode = ({ data, isConnectable, selected }) => {
           {data.node_type === NODE_TYPES_ENUM.OLT && !id && (
             <button
               onClick={handleNavigateClick}
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+              // Added dark:hover:bg-slate-700 and dark:hover:text-slate-300
+              className="rounded-full p-1 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300"
               title="Go to OLT View"
             >
               {UI_ICONS.chevronRight_main}
@@ -421,7 +444,8 @@ const CustomNode = ({ data, isConnectable, selected }) => {
               top: tooltipPosition.top,
               left: tooltipPosition.left,
             }}
-            className={`fixed z-[9999] w-64 select-text rounded-md bg-white p-3 text-sm font-medium text-slate-800 shadow-md transition-all duration-300 transform
+            // Added dark:bg-slate-800, dark:text-slate-200
+            className={`fixed z-[9999] w-64 select-text rounded-md bg-white dark:bg-slate-800 p-3 text-sm font-medium text-slate-800 dark:text-slate-200 shadow-md transition-all duration-300 transform
               ${
                 popoverDirectionY === "up"
                   ? "-translate-y-[100%] mb-2"
@@ -437,14 +461,16 @@ const CustomNode = ({ data, isConnectable, selected }) => {
             ) : customerData && customerData.length > 0 ? (
               <div className="flex flex-col">
                 {customerData.length > 3 && (
-                  <div className="mb-2 border-b border-slate-100 pb-2">
+                  // Added dark:border-slate-700
+                  <div className="mb-2 border-b border-slate-100 dark:border-slate-700 pb-2">
                     <input
                       ref={inputRef}
                       type="text"
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 focus:border-blue-500 focus:outline-none"
+                      // Added dark:border-slate-600, dark:bg-slate-900, dark:text-slate-200
+                      className="w-full rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-2 py-1 text-xs text-slate-700 dark:text-slate-200 focus:border-blue-500 focus:outline-none"
                     />
                   </div>
                 )}

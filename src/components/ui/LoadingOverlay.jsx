@@ -6,7 +6,8 @@ const IconBtn = ({ children, color, padding = "p-1" }) => {
     blue: "bg-blue-500 text-white",
     green: "bg-green-500 text-white",
     red: "bg-red-500 text-white",
-    gray: "bg-slate-200 text-slate-700",
+    // Updated: Added dark mode classes for gray buttons
+    gray: "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200",
     blueTab: "bg-blue-500 text-white rounded-r-sm",
     orangeDot: "bg-orange-500",
     blueDot: "bg-blue-500",
@@ -402,17 +403,21 @@ const LoadingOverlay = ({ message }) => {
   }, []);
 
   return (
-    <div className="absolute inset-0 p-2 z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 gap-5">
-      <div className="w-12 h-12 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+    // Updated: Changed bg-black/50 to responsive white/dark-slate background
+    <div className="absolute inset-0 p-2 z-50 flex flex-col items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm transition-opacity duration-300 gap-5">
+      {/* Updated: Spinner colors for both themes */}
+      <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
 
       {message && (
-        <p className="text-lg md:text-xl font-medium text-white text-center">
+        // Updated: Text color
+        <p className="text-lg md:text-xl font-medium text-slate-700 dark:text-slate-200 text-center">
           {message}
         </p>
       )}
 
       {currentTip && (
-        <p className="text-lg md:text-2xl font-medium text-white text-center">
+        // Updated: Text color
+        <p className="text-lg md:text-2xl font-medium text-slate-700 dark:text-slate-200 text-center">
           Tip: {currentTip}
         </p>
       )}
