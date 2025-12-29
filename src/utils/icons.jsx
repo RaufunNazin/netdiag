@@ -39,7 +39,7 @@ export const UI_ICONS = {
 
   spinner: (
     <svg
-      className="animate-spin h-4 w-4 text-slate-700"
+      className="animate-spin h-4 w-4 text-neutral-700"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

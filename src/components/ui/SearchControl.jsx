@@ -174,17 +174,17 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
       }`}
     >
       <div
-        // Added dark:bg-slate-800/90, dark:border-slate-700, dark:bg-slate-800, dark:hover:bg-slate-700
-        className={`bg-white/90 dark:bg-slate-800/90 rounded-lg backdrop-blur-sm border border-slate-200 dark:border-slate-700 flex items-center overflow-hidden h-10 transition-colors duration-300 ${
+        // Added dark:bg-neutral-900/90, dark:border-neutral-800, dark:bg-neutral-900, dark:hover:bg-neutral-800
+        className={`bg-white/90 dark:bg-neutral-900/90 rounded-lg backdrop-blur-sm border border-neutral-200 dark:border-neutral-800 flex items-center overflow-hidden h-10 transition-colors duration-200 ${
           isExpanded
-            ? "bg-white dark:bg-slate-800"
-            : "hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
+            ? "bg-white dark:bg-neutral-900"
+            : "hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
         }`}
         onClick={!isExpanded ? handleExpand : undefined}
       >
         <div
-          // Added dark:text-slate-400
-          className={`flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0 transition-all duration-300 ease-in-out pr-1 ${
+          // Added dark:text-neutral-400
+          className={`flex items-center justify-center text-neutral-500 dark:text-neutral-400 shrink-0 transition-all duration-200 ease-in-out pr-1 ${
             isExpanded ? "w-0 opacity-0 overflow-hidden" : "w-10 opacity-100"
           }`}
         >
@@ -192,19 +192,19 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
         </div>
 
         <div
-          className={`flex flex-1 items-center pl-1 pr-2 transition-opacity duration-300 ${
+          className={`flex flex-1 items-center pl-1 pr-2 transition-opacity duration-200 ${
             isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          {/* Added dark:bg-slate-700 */}
-          <div className="flex bg-slate-100 dark:bg-slate-700 rounded-md p-0.5 mr-2 shrink-0">
+          {/* Added dark:bg-neutral-800 */}
+          <div className="flex bg-neutral-100 dark:bg-neutral-800 rounded-md p-0.5 mr-2 shrink-0">
             <button
               onClick={() => handleModeSwitch(MODE.DEVICE)}
-              // Added dark:bg-slate-600, dark:text-blue-400, dark:text-slate-400, dark:hover:text-slate-200
+              // Added dark:bg-neutral-600, dark:text-blue-400, dark:text-neutral-400, dark:hover:text-neutral-200
               className={`p-1 rounded-md transition-all duration-200 flex items-center justify-center ${
                 mode === MODE.DEVICE
-                  ? "bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400"
-                  : "text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  ? "bg-white dark:bg-neutral-600 text-blue-600 dark:text-blue-400"
+                  : "text-neutral-400 dark:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
               }`}
               title="Search Devices"
               tabIndex={isExpanded ? 0 : -1}
@@ -213,11 +213,11 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
             </button>
             <button
               onClick={() => handleModeSwitch(MODE.USER)}
-              // Added dark:bg-slate-600, dark:text-blue-400, dark:text-slate-400, dark:hover:text-slate-200
+              // Added dark:bg-neutral-600, dark:text-blue-400, dark:text-neutral-400, dark:hover:text-neutral-200
               className={`p-1 rounded-md transition-all duration-200 flex items-center justify-center ${
                 mode === MODE.USER
-                  ? "bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400"
-                  : "text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  ? "bg-white dark:bg-neutral-600 text-blue-600 dark:text-blue-400"
+                  : "text-neutral-400 dark:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
               }`}
               title="Search Users"
               tabIndex={isExpanded ? 0 : -1}
@@ -238,15 +238,15 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
             placeholder={
               mode === MODE.DEVICE ? "Search Devices..." : "Search Users..."
             }
-            // Added dark:text-slate-200, dark:placeholder:text-slate-500
-            className="w-full bg-transparent text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none min-w-0"
+            // Added dark:text-neutral-200, dark:placeholder:text-neutral-500
+            className="w-full bg-transparent text-sm text-neutral-700 dark:text-neutral-200 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none min-w-0"
             tabIndex={isExpanded ? 0 : -1}
           />
 
           <button
             onClick={handleCollapse}
-            // Added dark:text-slate-400, dark:hover:text-slate-200, dark:hover:bg-slate-700
-            className="ml-1 p-1 rounded-full text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0"
+            // Added dark:text-neutral-400, dark:hover:text-neutral-200, dark:hover:bg-neutral-800
+            className="ml-1 p-1 rounded-full text-neutral-400 dark:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
             title="Close Search [ESC]"
             tabIndex={isExpanded ? 0 : -1}
           >
@@ -256,20 +256,20 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
       </div>
 
       {isExpanded && (results.length > 0 || showRootList) && (
-        // Added dark:bg-slate-800/95, dark:border-slate-700
-        <div className="bg-white/95 dark:bg-slate-800/95 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+        // Added dark:bg-neutral-900/95, dark:border-neutral-800
+        <div className="bg-white/95 dark:bg-neutral-900/95 rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
           <ul className="py-1">
             {results.map((item, idx) => (
               <li
                 key={idx}
                 onClick={() => handleSelect(item)}
-                // Added dark:hover:bg-slate-700, dark:border-slate-700/50
-                className="px-3 py-2 hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0"
+                // Added dark:hover:bg-neutral-800, dark:border-neutral-800/50
+                className="px-3 py-2 hover:bg-blue-50 dark:hover:bg-neutral-800 cursor-pointer border-b border-neutral-50 dark:border-neutral-800/50 last:border-0"
               >
                 {mode === MODE.DEVICE ? (
                   <div className="flex items-center gap-2">
-                    {/* Added dark:text-slate-200 */}
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                    {/* Added dark:text-neutral-200 */}
+                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
                       {item.data.label}
                     </span>
                   </div>
@@ -277,22 +277,22 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
                   <div className="flex flex-col">
                     <div className="flex justify-between">
                       <div className="flex flex-col">
-                        {/* Added dark:text-slate-200 */}
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                        {/* Added dark:text-neutral-200 */}
+                        <span className="text-sm font-bold text-neutral-700 dark:text-neutral-200">
                           {item.uname || "Unknown username"}
                         </span>
-                        {/* Added dark:text-slate-400 */}
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                        {/* Added dark:text-neutral-400 */}
+                        <span className="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
                           ID: {item.cid || "N/A"}
                         </span>
                       </div>
-                      {/* Added dark:text-slate-300, dark:bg-slate-700 */}
-                      <span className="text-[10px] text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded h-fit">
+                      {/* Added dark:text-neutral-300, dark:bg-neutral-800 */}
+                      <span className="text-[10px] text-neutral-500 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded h-fit">
                         {item.onu_name}
                       </span>
                     </div>
-                    {/* Added dark:text-slate-500 */}
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
+                    {/* Added dark:text-neutral-500 */}
+                    <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono mt-0.5">
                       {item.mac}
                     </span>
                   </div>
@@ -302,18 +302,18 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
 
             {showRootList && (
               <>
-                {/* Added dark:text-slate-500, dark:bg-slate-700 */}
-                <li className="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-slate-700">
+                {/* Added dark:text-neutral-500, dark:bg-neutral-800 */}
+                <li className="px-3 py-1 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-800">
                   Roots
                 </li>
                 {diagramRoots.main && (
                   <li
                     onClick={() => handleSelect(diagramRoots.main)}
-                    // Added dark:hover:bg-slate-700
-                    className="px-3 py-2 hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer flex justify-between items-center"
+                    // Added dark:hover:bg-neutral-800
+                    className="px-3 py-2 hover:bg-blue-50 dark:hover:bg-neutral-800 cursor-pointer flex justify-between items-center"
                   >
-                    {/* Added dark:text-slate-200 */}
-                    <span className="text-sm text-slate-700 dark:text-slate-200">
+                    {/* Added dark:text-neutral-200 */}
+                    <span className="text-sm text-neutral-700 dark:text-neutral-200">
                       {diagramRoots.main.data.label}
                     </span>
                     {/* Added dark:bg-blue-900/30, dark:text-blue-400 */}
@@ -326,15 +326,15 @@ const SearchControl = ({ nodes, onNodeFound, diagramRoots, customerIndex }) => {
                   <li
                     key={node.id}
                     onClick={() => handleSelect(node)}
-                    // Added dark:hover:bg-slate-700
-                    className="px-3 py-2 hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer flex justify-between items-center"
+                    // Added dark:hover:bg-neutral-800
+                    className="px-3 py-2 hover:bg-blue-50 dark:hover:bg-neutral-800 cursor-pointer flex justify-between items-center"
                   >
-                    {/* Added dark:text-slate-200 */}
-                    <span className="text-sm text-slate-700 dark:text-slate-200">
+                    {/* Added dark:text-neutral-200 */}
+                    <span className="text-sm text-neutral-700 dark:text-neutral-200">
                       {node.data.label}
                     </span>
-                    {/* Added dark:bg-slate-700, dark:text-slate-300 */}
-                    <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 px-1.5 py-0.5 rounded-full">
+                    {/* Added dark:bg-neutral-800, dark:text-neutral-300 */}
+                    <span className="text-[10px] bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-300 px-1.5 py-0.5 rounded-full">
                       Sub
                     </span>
                   </li>

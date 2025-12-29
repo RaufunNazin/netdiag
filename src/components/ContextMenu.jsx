@@ -37,19 +37,19 @@ const ContextMenu = ({ id, top, left, onAction, node, ...props }) => {
   return (
     <div
       style={{ top, left }}
-      // Added dark:bg-slate-800, dark:border-slate-700
-      className="absolute z-50 bg-white dark:bg-slate-800 rounded-md shadow-md border border-slate-200 dark:border-slate-700 text-sm"
+      // Added dark:bg-neutral-900, dark:border-neutral-800
+      className="absolute z-50 bg-white dark:bg-neutral-900 rounded-md shadow-md border border-neutral-200 dark:border-neutral-800 text-sm"
     >
       <ul className="py-1">
         {menuItems.map(({ label, action }) => (
           <li
             key={action}
             onClick={() => onAction(action, { id, node })}
-            // Added dark:hover:bg-[#d43c3c]/20 (for delete), dark:hover:bg-slate-700, dark:text-slate-200
+            // Added dark:hover:bg-[#d43c3c]/20 (for delete), dark:hover:bg-neutral-800, dark:text-neutral-200
             className={`px-4 py-2 cursor-pointer transition-colors ${
               action === ACTIONS.DELETE_NODE || action === ACTIONS.DELETE_EDGE
                 ? "hover:bg-[#d43c3c]/10 dark:hover:bg-[#d43c3c]/20 text-[#d43c3c]"
-                : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200"
+                : "hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
             }`}
           >
             {label}

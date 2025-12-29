@@ -10,7 +10,8 @@ const DownloadImageFab = ({
     <button
       onClick={onClick}
       disabled={disabled || isDownloading}
-      className={`download-fab-btn relative z-20 p-3 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${className}`}
+      // Updated: Added dark:bg-blue-600 and dark:hover:bg-blue-700
+      className={`download-fab-btn relative z-20 p-3 rounded-full text-white bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${className}`}
       title="Export Diagram [CTRL+SHIFT+S]"
     >
       {isDownloading ? (

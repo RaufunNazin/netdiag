@@ -36,14 +36,14 @@ export const ICONS = {
 };
 
 const DetailRow = ({ label, value }) => (
-  // Added dark:border-slate-700
-  <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
-    {/* Added dark:text-slate-400 */}
-    <dt className="text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0 pr-2">
+  // Added dark:border-neutral-800
+  <div className="flex justify-between border-t border-neutral-200 dark:border-neutral-800 pt-2 mt-2">
+    {/* Added dark:text-neutral-400 */}
+    <dt className="text-xs font-medium text-neutral-500 dark:text-neutral-400 shrink-0 pr-2">
       {label}
     </dt>
-    {/* Added dark:text-slate-200 */}
-    <dd className="text-xs text-slate-800 dark:text-slate-200 text-right break-words">
+    {/* Added dark:text-neutral-200 */}
+    <dd className="text-xs text-neutral-800 dark:text-neutral-200 text-right break-words">
       {value || "N/A"}
     </dd>
   </div>
@@ -75,8 +75,8 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
   const LightbulbIcon = UI_ICONS.lightbulb;
 
   return (
-    // Added dark:border-slate-700
-    <div className="py-2 border-b border-slate-100 dark:border-slate-700 last:border-b-0">
+    // Added dark:border-neutral-800
+    <div className="py-2 border-b border-neutral-100 dark:border-neutral-800 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span>
@@ -84,11 +84,11 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
               className={
                 customer.online1 === 1
                   ? "text-yellow-400"
-                  : "text-slate-600 dark:text-slate-500" // Added dark:text-slate-500
+                  : "text-neutral-600 dark:text-neutral-500" // Added dark:text-neutral-500
               }
             />
           </span>
-          <span className="dark:text-slate-300">
+          <span className="dark:text-neutral-300">
             {customer.st2 === CUST_STATUS.OK
               ? UI_ICONS.unlock
               : customer.st2 === CUST_STATUS.EXPIRED
@@ -99,22 +99,22 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
               ? UI_ICONS.timesCircle
               : null}
           </span>
-          {/* Added dark:text-slate-200 */}
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
+          {/* Added dark:text-neutral-200 */}
+          <span className="font-semibold text-neutral-800 dark:text-neutral-200">
             {customer.uname}
           </span>
         </div>
         <div
           onMouseEnter={onExpand}
-          // Added dark:text-slate-500 and dark:hover:text-blue-400
-          className="cursor-pointer p-1 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+          // Added dark:text-neutral-500 and dark:hover:text-blue-400
+          className="cursor-pointer p-1 text-neutral-400 dark:text-neutral-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
         >
           {UI_ICONS.info_main}
         </div>
       </div>
 
       <div
-        className={`grid transition-all duration-300 ease-in-out ${
+        className={`grid transition-all duration-200 ease-in-out ${
           isExpanded
             ? "grid-rows-[1fr] opacity-100 mt-2"
             : "grid-rows-[0fr] opacity-0"
@@ -263,9 +263,9 @@ const CustomNode = ({ data, isConnectable, selected }) => {
 
   const borderClass = useMemo(() => {
     // 1. Define base styles for Light AND Dark mode
-    // Light: bg-white, border-slate-400
-    // Dark:  dark:bg-slate-900, dark:border-slate-600
-    const baseStyle = "border-2 bg-white dark:bg-slate-900";
+    // Light: bg-white, border-neutral-400
+    // Dark:  dark:bg-neutral-950, dark:border-neutral-700
+    const baseStyle = "border-2 bg-white dark:bg-neutral-950";
 
     if (selected) {
       // Dark: dark:bg-blue-900/40
@@ -279,17 +279,17 @@ const CustomNode = ({ data, isConnectable, selected }) => {
 
     if (data.node_type === NODE_TYPES_ENUM.ONU) {
       if (data.status === 1) {
-        // Dark: dark:border-slate-600 (base border) + green right border
-        return `${baseStyle} border-slate-400 dark:border-slate-600 border-r-4 border-r-green-500`;
+        // Dark: dark:border-neutral-700 (base border) + green right border
+        return `${baseStyle} border-neutral-400 dark:border-neutral-700 border-r-4 border-r-green-500`;
       }
       if (data.status === 2) {
-        // Dark: dark:border-slate-600 (base border) + red right border
-        return `${baseStyle} border-slate-400 dark:border-slate-600 border-r-4 border-r-[#d43c3c]`;
+        // Dark: dark:border-neutral-700 (base border) + red right border
+        return `${baseStyle} border-neutral-400 dark:border-neutral-700 border-r-4 border-r-[#d43c3c]`;
       }
     }
 
     // Default Node
-    return `${baseStyle} border-slate-400 dark:border-slate-600`;
+    return `${baseStyle} border-neutral-400 dark:border-neutral-700`;
   }, [data.isHighlighted, data.node_type, data.status, selected]);
 
   const handleDetailsClick = (e) => {
@@ -342,8 +342,8 @@ const CustomNode = ({ data, isConnectable, selected }) => {
   return (
     <div ref={nodeRef}>
       <div
-        // Added dark:text-slate-200
-        className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-slate-800 dark:text-slate-200 ${borderClass} transition-all`}
+        // Added dark:text-neutral-200
+        className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-neutral-800 dark:text-neutral-200 ${borderClass} transition-all`}
       >
         {id ? (
           data.node_type !== NODE_TYPES_ENUM.OLT && (
@@ -380,8 +380,8 @@ const CustomNode = ({ data, isConnectable, selected }) => {
             onClick={handleDetailsClick}
             onMouseEnter={showCustomerPopover}
             onMouseLeave={startHidePopoverTimer}
-            // Added dark:text-slate-500, dark:hover:bg-slate-700, dark:hover:text-slate-300
-            className="rounded-full p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+            // Added dark:text-neutral-500, dark:hover:bg-neutral-800, dark:hover:text-neutral-300
+            className="rounded-full p-1 text-neutral-400 dark:text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
             title="View Details"
           >
             {UI_ICONS.info_main}
@@ -390,7 +390,7 @@ const CustomNode = ({ data, isConnectable, selected }) => {
           {data.node_type === NODE_TYPES_ENUM.ONU && isMobile && (
             <button
               onClick={handleShowCustomers}
-              className="rounded-full p-1 text-slate-400"
+              className="rounded-full p-1 text-neutral-400"
               title="View Customers"
             >
               {UI_ICONS.user}
@@ -400,8 +400,8 @@ const CustomNode = ({ data, isConnectable, selected }) => {
           {data.node_type === NODE_TYPES_ENUM.OLT && !id && (
             <button
               onClick={handleNavigateClick}
-              // Added dark:hover:bg-slate-700 and dark:hover:text-slate-300
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300"
+              // Added dark:hover:bg-neutral-800 and dark:hover:text-neutral-300
+              className="rounded-full p-1 text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300"
               title="Go to OLT View"
             >
               {UI_ICONS.chevronRight_main}
@@ -444,8 +444,8 @@ const CustomNode = ({ data, isConnectable, selected }) => {
               top: tooltipPosition.top,
               left: tooltipPosition.left,
             }}
-            // Added dark:bg-slate-800, dark:text-slate-200
-            className={`fixed z-[9999] w-64 select-text rounded-md bg-white dark:bg-slate-800 p-3 text-sm font-medium text-slate-800 dark:text-slate-200 shadow-md transition-all duration-300 transform
+            // Added dark:bg-neutral-900, dark:text-neutral-200
+            className={`fixed z-[9999] w-64 select-text rounded-md bg-white dark:bg-neutral-900 p-3 text-sm font-medium text-neutral-800 dark:text-neutral-200 shadow-md transition-all duration-200 transform
               ${
                 popoverDirectionY === "up"
                   ? "-translate-y-[100%] mb-2"
@@ -461,16 +461,16 @@ const CustomNode = ({ data, isConnectable, selected }) => {
             ) : customerData && customerData.length > 0 ? (
               <div className="flex flex-col">
                 {customerData.length > 3 && (
-                  // Added dark:border-slate-700
-                  <div className="mb-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                  // Added dark:border-neutral-800
+                  <div className="mb-2 border-b border-neutral-100 dark:border-neutral-800 pb-2">
                     <input
                       ref={inputRef}
                       type="text"
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      // Added dark:border-slate-600, dark:bg-slate-900, dark:text-slate-200
-                      className="w-full rounded border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-2 py-1 text-xs text-slate-700 dark:text-slate-200 focus:border-blue-500 focus:outline-none"
+                      // Added dark:border-neutral-700, dark:bg-neutral-950, dark:text-neutral-200
+                      className="w-full rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-2 py-1 text-xs text-neutral-700 dark:text-neutral-200 focus:border-blue-500 focus:outline-none"
                     />
                   </div>
                 )}
@@ -488,7 +488,7 @@ const CustomNode = ({ data, isConnectable, selected }) => {
 
                     <div className="pt-2 flex justify-center items-center gap-1 text-xs">
                       {!showAll && remainingCount > 0 && (
-                        <span className="text-slate-500">
+                        <span className="text-neutral-500">
                           +{remainingCount} more
                         </span>
                       )}
@@ -504,14 +504,14 @@ const CustomNode = ({ data, isConnectable, selected }) => {
                     </div>
                   </>
                 ) : (
-                  <div className="py-2 text-center text-xs text-slate-500 italic">
+                  <div className="py-2 text-center text-xs text-neutral-500 italic">
                     No matching customers found
                   </div>
                 )}
               </div>
             ) : (
               <div className="flex items-center justify-center gap-2">
-                <span className="text-slate-500">{UI_ICONS.clear}</span>
+                <span className="text-neutral-500">{UI_ICONS.clear}</span>
                 <span>No customer found</span>
               </div>
             )}

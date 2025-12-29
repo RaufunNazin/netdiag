@@ -19,8 +19,13 @@ import CustomNode from "../CustomNode";
 import { tracePath } from "../../utils/graphUtils";
 import { UI_ICONS } from "../../utils/icons";
 import AsyncDeviceSelect from "../ui/AsyncDeviceSelect";
+
 const NODE_WIDTH = 250;
 const NODE_HEIGHT = 80;
+
+// Edge colors matching your diagram settings
+const EDGE_COLOR_LIGHT = "#1e293b"; // neutral 800
+const EDGE_COLOR_DARK = "#94a3b8"; // neutral 400
 
 const getLayoutedElements = (nodes, edges) => {
   const dagreGraph = new dagre.graphlib.Graph();
@@ -60,6 +65,9 @@ const TraceDiagramContent = ({ initialNodes, initialEdges }) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { fitView } = useReactFlow();
 
+  // Detect dark mode for React Flow's internal color mode
+  const isDarkMode = document.documentElement.classList.contains("dark");
+
   useEffect(() => {
     setNodes(initialNodes);
     setEdges(initialEdges);
@@ -69,8 +77,12 @@ const TraceDiagramContent = ({ initialNodes, initialEdges }) => {
   const onDownload = useCallback(() => {
     if (!reactFlowWrapper.current) return;
 
+    // We check dark mode at download time to set the background color correctly in the PNG
+    const isDark = document.documentElement.classList.contains("dark");
+    const bgColor = isDark ? "#0f172a" : "#ffffff"; // neutral 900 vs White
+
     toPng(reactFlowWrapper.current, {
-      backgroundColor: "#fff",
+      backgroundColor: bgColor,
       filter: (node) => {
         const classList = node.classList;
         if (!classList) return true;
@@ -92,7 +104,11 @@ const TraceDiagramContent = ({ initialNodes, initialEdges }) => {
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
 
   return (
-    <div className="w-full h-full relative bg-slate-50" ref={reactFlowWrapper}>
+    // Added dark:bg-neutral-950
+    <div
+      className="w-full h-full relative bg-neutral-50 dark:bg-neutral-950 transition-colors"
+      ref={reactFlowWrapper}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -102,13 +118,15 @@ const TraceDiagramContent = ({ initialNodes, initialEdges }) => {
         fitView
         nodesDraggable={true}
         proOptions={{ hideAttribution: true }}
+        colorMode={isDarkMode ? "dark" : "light"}
       >
         <Background variant="dots" gap={12} size={1} />
         <Controls />
         <Panel position="top-right">
           <button
             onClick={onDownload}
-            className="download-btn bg-blue-600 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-blue-700 flex items-center gap-2 text-sm"
+            // Added dark:bg-blue-700 dark:hover:bg-blue-600
+            className="download-btn bg-blue-600 dark:bg-blue-700 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-blue-700 dark:hover:bg-blue-600 flex items-center gap-2 text-sm transition-colors"
           >
             {UI_ICONS.download} Download PNG
           </button>
@@ -143,6 +161,10 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
     setIsLoading(true);
     setTraceData(null);
 
+    // Determine current theme to generate edges with correct visibility
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    const defaultEdgeColor = isDarkMode ? EDGE_COLOR_DARK : EDGE_COLOR_LIGHT;
+
     try {
       const data = await tracePath(source.id, target.id, mode === "neighbor");
 
@@ -166,14 +188,24 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
         position: { x: 0, y: 0 },
       }));
 
-      const rawEdges = data.edges.map((edge) => ({
-        id: `e-${edge.id}`,
-        source: String(edge.source_id),
-        target: String(edge.target_id),
-        label: edge.cable_desc,
-        style: { stroke: edge.cable_color || "#1e293b", strokeWidth: 3 },
-        markerEnd: { type: MarkerType.ArrowClosed },
-      }));
+      const rawEdges = data.edges.map((edge) => {
+        // Fix Color Visibility Logic:
+        // If the API returns the dark neutral color (#1e293b) but we are in Dark Mode,
+        // swap it to light neutral so it doesn't disappear into the background.
+        let strokeColor = edge.cable_color || defaultEdgeColor;
+        if (isDarkMode && strokeColor === "#1e293b") {
+          strokeColor = EDGE_COLOR_DARK;
+        }
+
+        return {
+          id: `e-${edge.id}`,
+          source: String(edge.source_id),
+          target: String(edge.target_id),
+          label: edge.cable_desc,
+          style: { stroke: strokeColor, strokeWidth: 3 },
+          markerEnd: { type: MarkerType.ArrowClosed },
+        };
+      });
 
       const layouted = getLayoutedElements(rawNodes, rawEdges);
       setTraceData(layouted);
@@ -185,16 +217,20 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-6xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
-        <div className="p-4 border-b border-slate-200 bg-white flex flex-col gap-4 z-50 shadow-sm">
+    <div className="fixed inset-0 bg-neutral-900/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
+      {/* Added dark:bg-neutral-900, dark:border-neutral-800 */}
+      <div className="bg-white dark:bg-neutral-900 w-full max-w-6xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-neutral-200 dark:border-neutral-800 transition-colors">
+        {/* Header Section: Added dark:border-neutral-800, dark:bg-neutral-900 */}
+        <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex flex-col gap-4 z-50 shadow-sm transition-colors">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2">
+            {/* Added dark:text-neutral-50 */}
+            <h2 className="text-lg font-bold text-neutral-700 dark:text-neutral-50 flex items-center gap-2">
               Trace Network Path
             </h2>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+              // Added dark:text-neutral-400, dark:hover:text-neutral-200, dark:hover:bg-neutral-800
+              className="p-2 text-neutral-400 hover:text-neutral-600 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
             >
               {UI_ICONS.cross}
             </button>
@@ -210,7 +246,10 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
                   selectedItem={source}
                 />
               </div>
-              <span className="text-slate-300 hidden sm:block">→</span>
+              {/* Added dark:text-neutral-500 */}
+              <span className="text-neutral-300 dark:text-neutral-500 hidden sm:block">
+                →
+              </span>
               <div className="w-full sm:w-64">
                 <AsyncDeviceSelect
                   label="Target"
@@ -222,13 +261,15 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
             </div>
 
             <div className="flex items-center gap-3 ml-auto">
-              <div className="flex bg-slate-100 p-1 rounded-lg">
+              {/* Added dark:bg-neutral-800 */}
+              <div className="flex bg-neutral-100 dark:bg-neutral-800 p-1 rounded-lg">
                 <button
                   onClick={() => setMode("direct")}
+                  // Added logic for dark mode toggle states
                   className={`px-3 py-2 text-xs font-medium rounded-md transition-all ${
                     mode === "direct"
-                      ? "bg-white text-slate-800 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "bg-white dark:bg-neutral-600 text-neutral-800 dark:text-white shadow-sm"
+                      : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
                   }`}
                 >
                   Direct Path
@@ -237,8 +278,8 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
                   onClick={() => setMode("neighbor")}
                   className={`px-3 py-2 text-xs font-medium rounded-md transition-all ${
                     mode === "neighbor"
-                      ? "bg-white text-slate-800 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "bg-white dark:bg-neutral-600 text-neutral-800 dark:text-white shadow-sm"
+                      : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
                   }`}
                 >
                   With Neighbors
@@ -256,7 +297,8 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
           </div>
         </div>
 
-        <div className="flex-grow bg-slate-50 relative overflow-hidden">
+        {/* Diagram Container: Added dark:bg-neutral-950 */}
+        <div className="flex-grow bg-neutral-50 dark:bg-neutral-950 relative overflow-hidden transition-colors">
           {traceData ? (
             <ReactFlowProvider>
               <TraceDiagramContent
@@ -265,7 +307,8 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
               />
             </ReactFlowProvider>
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
+            // Empty State: Added dark:text-neutral-500, dark:bg-neutral-950/50
+            <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500 bg-neutral-50/50 dark:bg-neutral-950/50">
               <div className="scale-[2] mb-4 opacity-20">{UI_ICONS.route}</div>
               <p className="font-medium">
                 Select a Source and Target to visualize the connection.

@@ -6,11 +6,14 @@ import { UI_ICONS } from "../../utils/icons";
 const INITIAL_DISPLAY_LIMIT = 5;
 
 const DetailRow = ({ label, value }) => (
-  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
-    <dt className="text-sm font-medium text-slate-500 shrink-0 pr-2">
+  // Added dark:border-neutral-800
+  <div className="flex justify-between border-t border-neutral-200 dark:border-neutral-800 pt-2 mt-2">
+    {/* Added dark:text-neutral-400 */}
+    <dt className="text-sm font-medium text-neutral-500 dark:text-neutral-400 shrink-0 pr-2">
       {label}
     </dt>
-    <dd className="text-sm text-slate-800 text-right break-words">
+    {/* Added dark:text-neutral-200 */}
+    <dd className="text-sm text-neutral-800 dark:text-neutral-200 text-right break-words">
       {value || "N/A"}
     </dd>
   </div>
@@ -39,17 +42,22 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
   const LightbulbIcon = UI_ICONS.lightbulb;
 
   return (
-    <div className="py-3 border-b border-slate-200 last:border-b-0">
+    // Added dark:border-neutral-800
+    <div className="py-3 border-b border-neutral-200 dark:border-neutral-800 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span>
+            {/* Added dark:text-neutral-500 */}
             <LightbulbIcon
               className={`w-5 h-5 ${
-                customer.online1 === 1 ? "text-yellow-400" : "text-slate-600"
+                customer.online1 === 1
+                  ? "text-yellow-400"
+                  : "text-neutral-600 dark:text-neutral-500"
               }`}
             />
           </span>
-          <span className="w-5 h-5">
+          {/* Added dark:text-neutral-300 */}
+          <span className="w-5 h-5 dark:text-neutral-300">
             {customer.st2 === CUST_STATUS.OK
               ? UI_ICONS.unlock
               : customer.st2 === CUST_STATUS.EXPIRED
@@ -60,13 +68,15 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
               ? UI_ICONS.timesCircle
               : null}
           </span>
-          <span className="font-semibold text-base text-slate-800">
+          {/* Added dark:text-neutral-50 */}
+          <span className="font-semibold text-base text-neutral-800 dark:text-neutral-50">
             {customer.uname}
           </span>
         </div>
         <button
           onClick={onExpand}
-          className="p-1 text-slate-400 hover:text-slate-700 transition-transform duration-200"
+          // Added dark:text-neutral-500, dark:hover:text-neutral-300
+          className="p-1 text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-transform duration-200"
         >
           <span
             className={`inline-block transform transition-transform duration-200 ${
@@ -79,7 +89,7 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
       </div>
 
       <div
-        className={`grid transition-all duration-300 ease-in-out ${
+        className={`grid transition-all duration-200 ease-in-out ${
           isExpanded
             ? "grid-rows-[1fr] opacity-100 mt-3"
             : "grid-rows-[0fr] opacity-0"
@@ -173,12 +183,14 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
   return (
     <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div
-        className="flex w-full max-w-lg flex-col bg-white p-4 shadow-md 
+        // Added dark:bg-neutral-900
+        className="flex w-full max-w-lg flex-col bg-white dark:bg-neutral-900 p-4 shadow-md 
                    max-h-[90vh]
                    rounded-lg 
-                   md:p-8"
+                   md:p-8 transition-colors"
       >
-        <h3 className="mb-4 text-lg md:text-2xl font-bold text-slate-800">
+        {/* Added dark:text-neutral-50 */}
+        <h3 className="mb-4 text-lg md:text-2xl font-bold text-neutral-800 dark:text-neutral-50">
           Customers on {nodeData.label || nodeData.name}
         </h3>
 
@@ -189,16 +201,22 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
               placeholder="Search by ID, MAC, Owner, Status..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              // Added dark:border-neutral-700, dark:bg-neutral-950, dark:text-neutral-200
+              className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
         )}
 
-        <div className="flex-grow overflow-y-auto pr-4 -mr-4">
+        <div className="flex-grow overflow-y-auto pr-4 -mr-4 custom-scrollbar">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 h-32">
-              {UI_ICONS.spinner}
-              <span className="text-slate-600">Loading customers...</span>
+              {/* Added dark:text-neutral-400 */}
+              <span className="text-neutral-400 dark:text-neutral-500">
+                {UI_ICONS.spinner}
+              </span>
+              <span className="text-neutral-600 dark:text-neutral-400">
+                Loading customers...
+              </span>
             </div>
           ) : customerData && customerData.length > 0 ? (
             <div className="flex flex-col">
@@ -218,21 +236,25 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
                   />
                 ))
               ) : (
-                <div className="flex items-center justify-center gap-2 h-20 text-slate-500 text-sm italic">
+                // Added dark:text-neutral-400
+                <div className="flex items-center justify-center gap-2 h-20 text-neutral-500 dark:text-neutral-400 text-sm italic">
                   No matching customers found
                 </div>
               )}
 
               {filteredCustomers.length > INITIAL_DISPLAY_LIMIT && (
-                <div className="pt-4 flex flex-col justify-center items-center gap-2 border-t border-slate-100 mt-2">
+                // Added dark:border-neutral-800
+                <div className="pt-4 flex flex-col justify-center items-center gap-2 border-t border-neutral-100 dark:border-neutral-800 mt-2">
                   {!showAll && remainingCount > 0 && (
-                    <span className="text-sm text-slate-500">
+                    // Added dark:text-neutral-400
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
                       +{remainingCount} more customers
                     </span>
                   )}
                   <button
                     onClick={() => setShowAll(!showAll)}
-                    className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                    // Added dark:text-blue-400, dark:hover:text-blue-300
+                    className="text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
                   >
                     {showAll ? "Show Less" : "Show All Customers"}
                   </button>
@@ -241,8 +263,13 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
             </div>
           ) : (
             <div className="flex items-center justify-center gap-2 h-32">
-              <span className="text-slate-500">{UI_ICONS.clear}</span>
-              <span className="text-slate-600">No customers found</span>
+              {/* Added dark:text-neutral-500, dark:text-neutral-400 */}
+              <span className="text-neutral-500 dark:text-neutral-500">
+                {UI_ICONS.clear}
+              </span>
+              <span className="text-neutral-600 dark:text-neutral-400">
+                No customers found
+              </span>
             </div>
           )}
         </div>

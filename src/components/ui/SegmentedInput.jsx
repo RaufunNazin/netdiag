@@ -82,8 +82,8 @@ const SegmentedInput = ({
             maxLength={maxLength}
           />
           {index < count - 1 && (
-            // Added dark:text-slate-500
-            <span className="text-slate-400 dark:text-slate-500 font-bold">
+            // Added dark:text-neutral-500
+            <span className="text-neutral-400 dark:text-neutral-500 font-bold">
               {separator}
             </span>
           )}

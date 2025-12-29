@@ -4,13 +4,16 @@ const EditFab = ({ isEditing, onClick }) => {
   return (
     <button
       onClick={onClick}
+      // Updated: Added dark mode color variants for both states
       className={`edit-fab-btn z-10 p-3 rounded-full text-white transition-all duration-200 flex items-center justify-center
         ${
           isEditing
-            ? "bg-green-500 hover:bg-green-600"
-            : "bg-orange-400 hover:bg-orange-500"
+            ? "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
+            : "bg-orange-400 hover:bg-orange-500 dark:bg-orange-600 dark:hover:bg-orange-700"
         }`}
-      title={isEditing ? "Save and Lock Layout [CTRL + S]/[E]" : "Enable Editing [E]"}
+      title={
+        isEditing ? "Save and Lock Layout [CTRL + S]/[E]" : "Enable Editing [E]"
+      }
     >
       <div
         className={`w-4 h-4 flex items-center justify-center ${

@@ -2,18 +2,18 @@ import React, { useEffect, useState } from "react";
 import { UI_ICONS } from "../../utils/icons";
 
 const ShortcutRow = ({ keys, description }) => (
-  // Added dark:border-slate-700
-  <div className="flex justify-between items-center py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0">
-    {/* Added dark:text-slate-300 */}
-    <span className="text-sm text-slate-600 dark:text-slate-300">
+  // Added dark:border-neutral-800
+  <div className="flex justify-between items-center py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+    {/* Added dark:text-neutral-300 */}
+    <span className="text-sm text-neutral-600 dark:text-neutral-300">
       {description}
     </span>
     <div className="flex gap-1">
       {keys.map((k, i) => (
         <kbd
           key={i}
-          // Added dark:bg-slate-700, dark:border-slate-600, dark:text-slate-200
-          className="min-w-[20px] text-center px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-200"
+          // Added dark:bg-neutral-800, dark:border-neutral-700, dark:text-neutral-200
+          className="min-w-[20px] text-center px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-[10px] font-mono font-bold text-neutral-600 dark:text-neutral-200"
         >
           {k}
         </kbd>
@@ -55,7 +55,7 @@ const HelpBox = ({ isEmpty }) => {
 
   // Common class for info buttons in dark mode
   const infoBtnClass =
-    "p-0.5 text-slate-400 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600";
+    "p-0.5 text-neutral-400 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 rounded-full border border-neutral-200 dark:border-neutral-700";
 
   const guideContent = isEmpty
     ? [
@@ -174,22 +174,22 @@ const HelpBox = ({ isEmpty }) => {
   return (
     <div className="absolute bottom-4 right-2 md:right-4 z-10">
       <div
-        // Added dark:border-slate-700 and dark:bg-slate-800/95
-        className={`w-80 md:w-96 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 p-0 shadow-xl backdrop-blur-sm z-20 overflow-hidden transition-all duration-300 origin-bottom-right ${
+        // Added dark:border-neutral-800 and dark:bg-neutral-900/95
+        className={`w-80 md:w-96 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 p-0 shadow-xl backdrop-blur-sm z-20 overflow-hidden transition-all duration-200 origin-bottom-right ${
           isOpen
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4 pointer-events-none hidden"
         }`}
       >
-        {/* Added dark:border-slate-700 and dark:bg-slate-900 */}
-        <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+        {/* Added dark:border-neutral-800 and dark:bg-neutral-950 */}
+        <div className="flex border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950">
           <button
             onClick={() => setActiveTab("guide")}
             // Updated active/inactive states for dark mode
             className={`flex-1 py-3 text-sm font-bold transition-colors ${
               activeTab === "guide"
-                ? "text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 border-b-2 border-blue-500"
-                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                ? "text-blue-600 dark:text-blue-400 bg-white dark:bg-neutral-900 border-b-2 border-blue-500"
+                : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             }`}
           >
             Visual Guide
@@ -199,8 +199,8 @@ const HelpBox = ({ isEmpty }) => {
             // Updated active/inactive states for dark mode
             className={`flex-1 py-3 text-sm font-bold transition-colors ${
               activeTab === "shortcuts"
-                ? "text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-800 border-b-2 border-blue-500"
-                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                ? "text-blue-600 dark:text-blue-400 bg-white dark:bg-neutral-900 border-b-2 border-blue-500"
+                : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             }`}
           >
             Keyboard Shortcuts
@@ -208,12 +208,12 @@ const HelpBox = ({ isEmpty }) => {
         </div>
         <div className="p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
           {activeTab === "guide" ? (
-            // Added dark:text-slate-300
-            <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+            // Added dark:text-neutral-300
+            <ul className="space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
               {guideContent.map((point, index) => (
                 <li key={index} className="flex items-start leading-snug">
-                  {/* Added dark:bg-slate-500 */}
-                  <span className="mr-2 mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400 dark:bg-slate-500" />
+                  {/* Added dark:bg-neutral-500 */}
+                  <span className="mr-2 mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400 dark:bg-neutral-500" />
                   <span>{point}</span>
                 </li>
               ))}
@@ -221,8 +221,8 @@ const HelpBox = ({ isEmpty }) => {
           ) : (
             <div className="space-y-4">
               <div>
-                {/* Added dark:text-slate-500 */}
-                <h4 className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-2">
+                {/* Added dark:text-neutral-500 */}
+                <h4 className="text-xs font-bold uppercase text-neutral-400 dark:text-neutral-500 mb-2">
                   Global
                 </h4>
                 <ShortcutRow
@@ -238,10 +238,14 @@ const HelpBox = ({ isEmpty }) => {
                   keys={["Ctrl", "Shift", "S"]}
                   description="Export Diagram"
                 />
+                <ShortcutRow
+                  keys={["M"]}
+                  description="Toggle Dark/Light Mode"
+                />
               </div>
 
               <div>
-                <h4 className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-2">
+                <h4 className="text-xs font-bold uppercase text-neutral-400 dark:text-neutral-500 mb-2">
                   Editing
                 </h4>
                 <ShortcutRow keys={["E"]} description="Toggle Edit Mode" />
@@ -258,7 +262,7 @@ const HelpBox = ({ isEmpty }) => {
               </div>
 
               <div>
-                <h4 className="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-2">
+                <h4 className="text-xs font-bold uppercase text-neutral-400 dark:text-neutral-500 mb-2">
                   Tools
                 </h4>
                 <ShortcutRow keys={["T"]} description="Trace Route" />
@@ -272,14 +276,14 @@ const HelpBox = ({ isEmpty }) => {
           )}
         </div>
 
-        {/* Added dark:bg-slate-900, dark:border-slate-700, dark:text-slate-500 */}
-        <div className="p-2 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 text-[10px] text-slate-400 dark:text-slate-500 text-center">
+        {/* Added dark:bg-neutral-950, dark:border-neutral-800, dark:text-neutral-500 */}
+        <div className="p-2 bg-neutral-50 dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 text-[10px] text-neutral-400 dark:text-neutral-500 text-center">
           Built using{" "}
           <a
             href="https://github.com/xyflow/xyflow"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-slate-500 dark:hover:text-slate-400"
+            className="underline hover:text-neutral-500 dark:hover:text-neutral-400"
           >
             xyflow
           </a>{" "}
@@ -290,11 +294,11 @@ const HelpBox = ({ isEmpty }) => {
       <div className="flex justify-end mt-3">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          // Added dark:text-blue-400, dark:bg-slate-700/800, dark:border-slate-600/700
-          className={`p-2 rounded-full text-blue-500 dark:text-blue-400 transition-all duration-300 ${
+          // Added dark:text-blue-400, dark:bg-neutral-800/800, dark:border-neutral-700/700
+          className={`p-2 rounded-full text-blue-500 dark:text-blue-400 transition-all duration-200 ${
             isOpen
-              ? "bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rotate-180"
-              : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rotate-0"
+              ? "bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rotate-180"
+              : "bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rotate-0"
           }`}
           title={isOpen ? "Close Help [H/ESC]" : "Open Help [H]"}
         >

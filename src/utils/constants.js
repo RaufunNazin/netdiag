@@ -21,14 +21,14 @@ const CORE_COLORS_DATA = [
   { name: "Orange", hex: "#f97316", text: "text-white" },
   { name: "Green", hex: "#22c55e", text: "text-white" },
   { name: "Brown", hex: "#a16207", text: "text-white" },
-  { name: "Slate", hex: "#64748b", text: "text-white" },
-  { name: "White", hex: "#f8fafc", text: "text-slate-800" },
+  { name: "neutral", hex: "#64748b", text: "text-white" },
+  { name: "White", hex: "#f8fafc", text: "text-neutral-800" },
   { name: "Red", hex: "#ef4444", text: "text-white" },
   { name: "Black", hex: "#1e293b", text: "text-white" },
-  { name: "Yellow", hex: "#facc15", text: "text-slate-800" },
+  { name: "Yellow", hex: "#facc15", text: "text-neutral-800" },
   { name: "Violet", hex: "#8b5cf6", text: "text-white" },
   { name: "Rose", hex: "#f43f5e", text: "text-white" },
-  { name: "Aqua", hex: "#22d3ee", text: "text-slate-800" },
+  { name: "Aqua", hex: "#22d3ee", text: "text-neutral-800" },
 ];
 const SPLIT_RATIOS = ["", "2", "4", "8", "16", "32", "64"];
 

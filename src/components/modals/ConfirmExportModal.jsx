@@ -1,26 +1,33 @@
 const ConfirmExportModal = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
   return (
-    <div className="absolute inset-0 bg-black/50 z-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-96 space-y-4">
-        <h3 className="text-xl font-bold text-blue-600">
+    <div className="absolute inset-0 bg-black/50 z-50 flex justify-center items-center backdrop-blur-sm">
+      {/* Added dark:bg-neutral-900 */}
+      <div className="bg-white dark:bg-neutral-900 p-6 rounded-lg shadow-xl w-96 space-y-4 transition-colors">
+        {/* Added dark:text-blue-400 */}
+        <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">
           Confirm Diagram Export
         </h3>
-        <p>
+        {/* Added dark:text-neutral-300 */}
+        <p className="text-neutral-600 dark:text-neutral-300">
           Exporting a full, high-resolution image of the diagram can take 30-40
           seconds or more.
         </p>
-        <p className="font-medium">Are you sure you want to start?</p>
+        {/* Added dark:text-neutral-200 */}
+        <p className="font-medium text-neutral-800 dark:text-neutral-200">
+          Are you sure you want to start?
+        </p>
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-200 rounded-md hover:bg-slate-300"
+            // Added dark:bg-neutral-800, dark:text-neutral-200, dark:hover:bg-neutral-700
+            className="px-4 py-2 bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-md hover:bg-neutral-300 dark:hover:bg-neutral-700 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             Start
           </button>

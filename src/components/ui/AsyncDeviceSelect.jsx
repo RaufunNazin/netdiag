@@ -74,13 +74,13 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
             >
               {label}
             </span>
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
+            <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-200 truncate">
               {selectedItem.name}
             </span>
           </div>
           <button
             onClick={clearSelection}
-            className="text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 p-1 transition-colors"
+            className="text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 p-1 transition-colors"
           >
             ✕
           </button>
@@ -93,11 +93,11 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query.length >= 2 && setIsOpen(true)}
             placeholder={placeholder || "Type to search..."}
-            className="w-full p-2.5 pl-9 text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500"
+            className="w-full p-2.5 pl-9 text-sm bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 border border-neutral-300 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-neutral-400 dark:placeholder-neutral-500"
           />
-          <div className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500">
+          <div className="absolute left-3 top-2.5 text-neutral-400 dark:text-neutral-500">
             {isLoading ? (
-              <div className="animate-spin h-4 w-4 border-2 border-slate-400 dark:border-slate-500 border-t-transparent rounded-full" />
+              <div className="animate-spin h-4 w-4 border-2 border-neutral-400 dark:border-neutral-500 border-t-transparent rounded-full" />
             ) : (
               UI_ICONS.search
             )}
@@ -106,17 +106,17 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
       )}
 
       {isOpen && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl max-h-60 overflow-y-auto">
           {results.map((node) => (
             <div
               key={node.id}
               onClick={() => handleSelect(node)}
-              className="p-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer border-b border-slate-50 dark:border-slate-700/50 last:border-0 flex items-center justify-between group transition-colors"
+              className="p-2 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 cursor-pointer border-b border-neutral-50 dark:border-neutral-800/50 last:border-0 flex items-center justify-between group transition-colors"
             >
-              <span className="text-sm text-slate-700 dark:text-slate-200 font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400">
+              <span className="text-sm text-neutral-700 dark:text-neutral-200 font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400">
                 {node.name}
               </span>
-              <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 px-2 py-0.5 rounded-full">
                 {node.node_type}
               </span>
             </div>
@@ -125,7 +125,7 @@ const AsyncDeviceSelect = ({ label, placeholder, onSelect, selectedItem }) => {
       )}
 
       {isOpen && results.length === 0 && query.length >= 2 && !isLoading && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-3 text-center text-xs text-slate-500 dark:text-slate-400">
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-xl p-3 text-center text-xs text-neutral-500 dark:text-neutral-400">
           No devices found.
         </div>
       )}

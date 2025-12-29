@@ -55,27 +55,39 @@ const EditableField = ({
 
           <button
             onClick={handleSaveClick}
-            className="btn-primary-sm text-blue-500"
+            // Added dark:text-blue-400
+            className="btn-primary-sm text-blue-500 dark:text-blue-400"
             title="Save"
           >
             {UI_ICONS.check}
           </button>
           <button
             onClick={handleCancelClick}
-            className="btn-secondary-sm text-[#ef4444]"
+            // Added dark:text-red-400
+            className="btn-secondary-sm text-[#ef4444] dark:text-red-400"
             title="Cancel"
           >
             {UI_ICONS.times}
           </button>
         </div>
       ) : (
-        <div className="flex items-center justify-between input-style bg-slate-50 min-h-[42px]">
-          <span className="text-slate-800">
-            {value || <span className="text-slate-400">Not set</span>}
+        <div
+          // Added dark:bg-neutral-950, dark:border-neutral-700 (assuming input-style has border)
+          className="flex items-center justify-between input-style bg-neutral-50 dark:bg-neutral-950 min-h-[42px]"
+        >
+          {/* Added dark:text-neutral-200 */}
+          <span className="text-neutral-800 dark:text-neutral-200">
+            {value || (
+              // Added dark:text-neutral-500
+              <span className="text-neutral-400 dark:text-neutral-500">
+                Not set
+              </span>
+            )}
           </span>
           <button
             onClick={() => setIsEditing(true)}
-            className="text-slate-400 hover:text-blue-600"
+            // Added dark:text-neutral-500, dark:hover:text-blue-400
+            className="text-neutral-400 dark:text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400"
             title="Edit"
           >
             {UI_ICONS.pencil || "Edit"}
@@ -144,20 +156,24 @@ const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 bg-slate-900/70 z-[100] flex justify-center items-center p-4">
-      <div className="bg-white p-4 md:p-8 rounded-lg shadow-md w-full max-w-2xl max-h-[95vh] flex flex-col">
+    <div className="absolute inset-0 bg-neutral-900/70 z-[100] flex justify-center items-center p-4 backdrop-blur-sm">
+      {/* Added dark:bg-neutral-900 */}
+      <div className="bg-white dark:bg-neutral-900 p-4 md:p-8 rounded-lg shadow-md w-full max-w-2xl max-h-[95vh] flex flex-col transition-colors">
         {isLoading && (
-          <div className="absolute inset-0 bg-white/80 flex justify-center items-center z-20 rounded-lg">
-            <div className="w-12 h-12 border-3 border-black border-t-transparent rounded-full animate-spin"></div>
+          // Added dark:bg-neutral-900/80
+          <div className="absolute inset-0 bg-white/80 dark:bg-neutral-900/80 flex justify-center items-center z-20 rounded-lg backdrop-blur-[1px]">
+            {/* Updated Spinner border colors */}
+            <div className="w-12 h-12 border-3 border-neutral-200 dark:border-neutral-800 border-t-blue-500 rounded-full animate-spin"></div>
           </div>
         )}
-        <h3 className="text-lg md:text-2xl font-bold text-slate-800 pb-4 mb-4">
+        {/* Added dark:text-neutral-50 */}
+        <h3 className="text-lg md:text-2xl font-bold text-neutral-800 dark:text-neutral-50 pb-4 mb-4">
           Edit Cable Details
         </h3>
 
         {formData && (
           <>
-            <div className="pr-6 -mr-6 flex-grow">
+            <div className="pr-6 -mr-6 flex-grow custom-scrollbar overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                 <div>
                   <EditableField
@@ -214,7 +230,8 @@ const EditEdgeModal = ({ edgeId, isOpen, onClose, onUpdate }) => {
               </div>
             </div>
 
-            <div className="flex justify-end items-center border-t border-slate-200 pt-6 mt-8">
+            {/* Added dark:border-neutral-800 */}
+            <div className="flex justify-end items-center border-t border-neutral-200 dark:border-neutral-800 pt-6 mt-8">
               <button
                 onClick={onClose}
                 className="btn-primary"

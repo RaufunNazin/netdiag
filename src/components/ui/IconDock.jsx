@@ -30,10 +30,10 @@ const IconDock = ({ children }) => {
 
   return (
     <div
-      // Added dark:border-slate-700/70 and dark:bg-slate-800/80
+      // Added dark:border-neutral-800/70 and dark:bg-neutral-900/80
       className="fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 
-                 items-center rounded-full border border-slate-200/70 dark:border-slate-700/70 
-                 bg-white/80 dark:bg-slate-800/80 p-2 shadow-none backdrop-blur-sm"
+                 items-center rounded-full border border-neutral-200/70 dark:border-neutral-800/70 
+                 bg-white/80 dark:bg-neutral-900/80 p-2 shadow-none backdrop-blur-sm"
     >
       <div
         className={`flex items-center gap-2 overflow-hidden transition-all 
@@ -45,9 +45,9 @@ const IconDock = ({ children }) => {
 
       <button
         onClick={toggleDock}
-        // Added dark:text-slate-300
+        // Added dark:text-neutral-300
         className={`flex h-10 w-10 shrink-0 items-center justify-center 
-                   rounded-full bg-transparent text-slate-600 dark:text-slate-300 transition-all 
+                   rounded-full bg-transparent text-neutral-600 dark:text-neutral-300 transition-all 
                    duration-500 ease-in-out ${isOpen ? "ml-2" : "ml-0"}`}
         title={isOpen ? "Hide Bottom Dock [B]" : "Show Bottom Dock [B]"}
       >

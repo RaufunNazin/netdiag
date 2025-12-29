@@ -4,30 +4,42 @@ const WelcomeModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+    // Updated: Background overlay
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 dark:bg-neutral-950/80 backdrop-blur-sm p-4">
+      {/* Updated: Modal container background */}
+      <div className="w-full max-w-lg rounded-xl bg-white dark:bg-neutral-900 p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 transition-colors">
+        {/* Updated: Header border */}
+        <div className="mb-6 flex items-center gap-3 border-b border-neutral-100 dark:border-neutral-800 pb-4">
+          {/* Updated: Icon background */}
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
             {UI_ICONS.info_main}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-800">
+            {/* Updated: Title text */}
+            <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-50">
               Welcome to Network Diagram
             </h2>
-            <p className="text-sm text-slate-500">
+            {/* Updated: Subtitle text */}
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
               Follow these steps to create your diagram.
             </p>
           </div>
         </div>
 
         <div className="space-y-4">
+          {/* Step 1 */}
           <div className="flex items-start gap-3">
-            <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+            {/* Updated: Step Number Circle */}
+            <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400">
               <span className="text-xs font-bold">1</span>
             </div>
             <div>
-              <p className="font-semibold text-slate-700">Add Devices</p>
-              <p className="text-sm text-slate-600">
+              {/* Updated: Step Title */}
+              <p className="font-semibold text-neutral-700 dark:text-neutral-200">
+                Add Devices
+              </p>
+              {/* Updated: Step Description */}
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">
                 Click the{" "}
                 <span className="inline-flex p-1 bg-green-500 rounded-full text-white scale-95">
                   {UI_ICONS.add}
@@ -37,13 +49,16 @@ const WelcomeModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* Step 2 */}
           <div className="flex items-start gap-3">
-            <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+            <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
               <span className="text-xs font-bold">2</span>
             </div>
             <div>
-              <p className="font-semibold text-slate-700">Connect & Edit</p>
-              <p className="text-sm text-slate-600">
+              <p className="font-semibold text-neutral-700 dark:text-neutral-200">
+                Connect & Edit
+              </p>
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">
                 Toggle <strong>Edit Mode</strong>{" "}
                 <span className="inline-flex p-1 bg-blue-500 rounded-full text-white">
                   {UI_ICONS.edit}
@@ -57,13 +72,16 @@ const WelcomeModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* Step 3 */}
           <div className="flex items-start gap-3">
-            <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+            <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
               <span className="text-xs font-bold">3</span>
             </div>
             <div>
-              <p className="font-semibold text-slate-700">Set Root & Layout</p>
-              <p className="text-sm text-slate-600">
+              <p className="font-semibold text-neutral-700 dark:text-neutral-200">
+                Set Root & Layout
+              </p>
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">
                 Use the <strong>Hierarchy</strong> button{" "}
                 <span className="inline-flex p-1 bg-blue-500 rounded-full text-white scale-95">
                   {UI_ICONS.root}
@@ -78,7 +96,8 @@ const WelcomeModal = ({ isOpen, onClose }) => {
         <div className="mt-8 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            // Updated: Button hover states for dark mode
+            className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Got it, Let's Start
           </button>

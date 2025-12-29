@@ -54,6 +54,7 @@ import IconDock from "../components/ui/IconDock.jsx";
 import HelpBox from "../components/ui/HelpBox.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import DownloadImageFab from "../components/ui/DownloadImageFab.jsx";
+import ThemeToggleFab from "../components/ui/ThemeToggleFab.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import VerticalIconDock from "../components/ui/VerticalIconDock.jsx";
 import ChangelogModal from "../components/modals/ChangelogModal.jsx";
@@ -104,8 +105,8 @@ const GRID_Y_SPACING = 80;
 const PADDING_BETWEEN_GRIDS = 50;
 const NODE_WIDTH = 250;
 const NODE_HEIGHT = 60;
-const EDGE_COLOR_LIGHT = "#1e293b"; // Slate 800
-const EDGE_COLOR_DARK = "#94a3b8"; // Slate 400
+const API_DEFAULT_COLOR = "#1e293b"; // neutral 800 (The dark color that blends in)
+const EDGE_COLOR_DARK_MODE = "#cbd5e1"; // neutral 300 (Neutral light grey, visible on dark)
 
 const NetworkDiagram = () => {
   const { id } = useParams();
@@ -681,16 +682,21 @@ const NetworkDiagram = () => {
             : String(item.id);
 
           if (targetId) {
-            const defaultColor =
-              colorMode === "dark" ? EDGE_COLOR_DARK : EDGE_COLOR_LIGHT;
+            let strokeColor = item.cable_color || API_DEFAULT_COLOR;
+
+            // If the color is the specific dark neutral (API default) AND we are in Dark Mode,
+            // swap it to the light neutral color so it doesn't blend in.
+            if (colorMode === "dark" && strokeColor === API_DEFAULT_COLOR) {
+              strokeColor = EDGE_COLOR_DARK_MODE;
+            }
             initialEdges.push({
               id: `e-${item.edge_id}`,
               source: String(item.parent_id),
               target: targetId,
               markerEnd: { type: MarkerType.ArrowClosed },
               style: {
-                // UPDATE: Use the dynamic default color
-                stroke: item.cable_color || defaultColor,
+                // UPDATE: Use the calculated strokeColor
+                stroke: strokeColor,
                 strokeWidth: 3,
               },
 
@@ -1899,7 +1905,6 @@ const NetworkDiagram = () => {
     localStorage.setItem("showEdgeLabels", JSON.stringify(showEdgeLabels));
   }, [showEdgeLabels]);
 
-  // UPDATE: Unified Effect for Theme Switching and Cable Colors
   useEffect(() => {
     const root = document.documentElement;
     localStorage.setItem("colorMode", colorMode);
@@ -1913,20 +1918,26 @@ const NetworkDiagram = () => {
     // Update existing edges when theme changes
     setEdges((eds) =>
       eds.map((edge) => {
-        // If the edge currently has the LIGHT default, and we are going DARK -> switch to DARK default
-        if (colorMode === "dark" && edge.style?.stroke === EDGE_COLOR_LIGHT) {
+        const currentColor = edge.style?.stroke;
+
+        // If switching to DARK mode:
+        // Change "API Default" (Dark neutral) -> "Visible" (Light neutral)
+        if (colorMode === "dark" && currentColor === API_DEFAULT_COLOR) {
           return {
             ...edge,
-            style: { ...edge.style, stroke: EDGE_COLOR_DARK },
+            style: { ...edge.style, stroke: EDGE_COLOR_DARK_MODE },
           };
         }
-        // If the edge currently has the DARK default, and we are going LIGHT -> switch to LIGHT default
-        if (colorMode === "light" && edge.style?.stroke === EDGE_COLOR_DARK) {
+
+        // If switching to LIGHT mode:
+        // Change "Visible" (Light neutral) -> "API Default" (Dark neutral)
+        if (colorMode === "light" && currentColor === EDGE_COLOR_DARK_MODE) {
           return {
             ...edge,
-            style: { ...edge.style, stroke: EDGE_COLOR_LIGHT },
+            style: { ...edge.style, stroke: API_DEFAULT_COLOR },
           };
         }
+
         return edge;
       })
     );
@@ -1936,6 +1947,7 @@ const NetworkDiagram = () => {
     <div
       style={{ width: "100vw", height: "100vh" }}
       ref={reactFlowWrapper}
+      className="w-screen h-screen bg-slate-50 dark:bg-neutral-950 transition-colors duration-200 ease-in-out"
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
@@ -1962,8 +1974,14 @@ const NetworkDiagram = () => {
         nodeTypes={nodeTypes}
         onMoveEnd={onMoveEnd}
         colorMode={colorMode}
+        style={{ backgroundColor: "transparent" }}
       >
-        <Background variant="dots" gap={12} size={1} />
+        <Background 
+            variant="dots" 
+            gap={12} 
+            size={1} 
+            bgColor="transparent" 
+        />
         {contextMenu && (
           <ContextMenu {...contextMenu} onAction={handleAction} />
         )}
@@ -1977,7 +1995,7 @@ const NetworkDiagram = () => {
       {!isDrawerOpen && (
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md  hover:bg-blue-600 transition-all duration-200 text-white diagram-ui-overlay"
+          className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-all duration-200 text-white diagram-ui-overlay"
           title="Open Inventory [I]"
         >
           {UI_ICONS.chevronRight_main}
@@ -1999,7 +2017,7 @@ const NetworkDiagram = () => {
       )}
 
       {window.location.pathname !== "/" && (
-        <div className="absolute top-4 left-0 p-2 z-10 text-slate-700 diagram-ui-overlay">
+        <div className="absolute top-4 left-0 p-2 z-10 text-neutral-700 dark:text-neutral-200 diagram-ui-overlay">
           <button
             className=""
             title={"Go Back"}
@@ -2034,49 +2052,11 @@ const NetworkDiagram = () => {
               disabled={loading || isEditMode}
               className="fab-button"
             />
-            <button
-              onClick={() =>
-                setColorMode((prev) => (prev === "dark" ? "light" : "dark"))
-              }
-              className="fab-button bg-white dark:bg-slate-700 text-slate-700 dark:text-yellow-400 p-2 rounded-full transition-all duration-200 flex items-center justify-center w-10 h-10 shadow-md hover:rotate-45"
-              title={`Switch to ${
-                colorMode === "dark" ? "Light" : "Dark"
-              } Mode`}
-            >
-              {colorMode === "dark" ? (
-                // Sun Icon
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-                  />
-                </svg>
-              ) : (
-                // Moon Icon
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
-                  />
-                </svg>
-              )}
-            </button>
+            <ThemeToggleFab
+              colorMode={colorMode}
+              onToggle={setColorMode}
+              className="fab-button"
+            />
             <DownloadImageFab
               onClick={handleExportClick}
               disabled={loading || isEmpty}
