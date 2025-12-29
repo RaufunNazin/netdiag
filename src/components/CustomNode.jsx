@@ -280,11 +280,11 @@ const CustomNode = ({ data, isConnectable, selected }) => {
     if (data.node_type === NODE_TYPES_ENUM.ONU) {
       if (data.status === 1) {
         // Dark: dark:border-neutral-700 (base border) + green right border
-        return `${baseStyle} border-neutral-400 dark:border-neutral-700 border-r-4 border-r-green-500`;
+        return `${baseStyle} border-neutral-400 dark:border-neutral-700 border-r-4 border-r-green-500 dark:border-r-green-600`;
       }
       if (data.status === 2) {
         // Dark: dark:border-neutral-700 (base border) + red right border
-        return `${baseStyle} border-neutral-400 dark:border-neutral-700 border-r-4 border-r-[#d43c3c]`;
+        return `${baseStyle} border-neutral-400 dark:border-neutral-700 border-r-4 border-r-[#d43c3c] dark:border-r-red-600`;
       }
     }
 

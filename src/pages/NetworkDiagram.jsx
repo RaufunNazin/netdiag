@@ -1976,12 +1976,7 @@ const NetworkDiagram = () => {
         colorMode={colorMode}
         style={{ backgroundColor: "transparent" }}
       >
-        <Background 
-            variant="dots" 
-            gap={12} 
-            size={1} 
-            bgColor="transparent" 
-        />
+        <Background variant="dots" gap={20} size={1} bgColor="transparent" />
         {contextMenu && (
           <ContextMenu {...contextMenu} onAction={handleAction} />
         )}

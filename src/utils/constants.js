@@ -21,7 +21,7 @@ const CORE_COLORS_DATA = [
   { name: "Orange", hex: "#f97316", text: "text-white" },
   { name: "Green", hex: "#22c55e", text: "text-white" },
   { name: "Brown", hex: "#a16207", text: "text-white" },
-  { name: "neutral", hex: "#64748b", text: "text-white" },
+  { name: "Slate", hex: "#64748b", text: "text-white" },
   { name: "White", hex: "#f8fafc", text: "text-neutral-800" },
   { name: "Red", hex: "#ef4444", text: "text-white" },
   { name: "Black", hex: "#1e293b", text: "text-white" },
