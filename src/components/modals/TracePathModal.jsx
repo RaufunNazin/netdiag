@@ -59,7 +59,13 @@ const getLayoutedElements = (nodes, edges) => {
   return { nodes: layoutedNodes, edges };
 };
 
-const TraceDiagramContent = ({ initialNodes, initialEdges }) => {
+const TraceDiagramContent = ({
+  initialNodes,
+  initialEdges,
+  sourceName,
+  targetName,
+  mode,
+}) => {
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -94,12 +100,28 @@ const TraceDiagramContent = ({ initialNodes, initialEdges }) => {
         );
       },
     }).then((dataUrl) => {
+      // Helper to sanitize names for filenames
+      const sanitize = (name) =>
+        (name || "unknown").replace(/[^a-z0-9]/gi, "_").toLowerCase();
+
+      const sName = sanitize(sourceName);
+      const tName = sanitize(targetName);
+      const modeStr = mode === "neighbor" ? "neighbor" : "direct";
+
+      const pad = (num) => String(num).padStart(2, "0");
+      const now = new Date();
+      const timeString = `${pad(now.getHours())}.${pad(now.getMinutes())}.${pad(
+        now.getSeconds()
+      )}-${now.getFullYear()}_${pad(now.getMonth() + 1)}_${pad(now.getDate())}`;
+
+      const filename = `trace_${sName}_to_${tName}_${modeStr}-${timeString}.png`;
+
       const a = document.createElement("a");
-      a.download = `trace-path-${Date.now()}.png`;
+      a.download = filename;
       a.href = dataUrl;
       a.click();
     });
-  }, []);
+  }, [sourceName, targetName, mode]); // Updated dependencies
 
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
 
@@ -304,6 +326,9 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
               <TraceDiagramContent
                 initialNodes={traceData.nodes}
                 initialEdges={traceData.edges}
+                sourceName={source?.name}
+                targetName={target?.name}
+                mode={mode}
               />
             </ReactFlowProvider>
           ) : (
