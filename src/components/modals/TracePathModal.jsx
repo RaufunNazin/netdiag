@@ -9,6 +9,7 @@ import {
   ReactFlowProvider,
   Panel,
   Controls,
+  getNodesBounds,
 } from "@xyflow/react";
 import dagre from "dagre";
 import { toPng } from "html-to-image";
@@ -81,24 +82,45 @@ const TraceDiagramContent = ({
   }, [initialNodes, initialEdges, fitView, setNodes, setEdges]);
 
   const onDownload = useCallback(() => {
-    if (!reactFlowWrapper.current) return;
+    if (!reactFlowWrapper.current || nodes.length === 0) return;
+
+    // --- CHANGE START: Target the specific viewport element ---
+    const elementToCapture = reactFlowWrapper.current.querySelector(
+      ".react-flow__viewport"
+    );
+
+    if (!elementToCapture) {
+      toast.error("Diagram viewport not found.");
+      return;
+    }
+    // --- CHANGE END ---
+
+    // Calculate boundaries to capture the whole diagram
+    const nodesBounds = getNodesBounds(nodes);
+    const padding = 50;
+    const scaleFactor = 2; // High resolution
+
+    const imageWidth = (nodesBounds.width + padding * 2) * scaleFactor;
+    const imageHeight = (nodesBounds.height + padding * 2) * scaleFactor;
+    const translateX = -nodesBounds.x + padding;
+    const translateY = -nodesBounds.y + padding;
 
     // We check dark mode at download time to set the background color correctly in the PNG
     const isDark = document.documentElement.classList.contains("dark");
-    const bgColor = isDark ? "#0f172a" : "#ffffff"; // neutral 900 vs White
+    const bgColor = isDark ? "#171717" : "#ffffff"; // neutral 900 vs White
 
-    toPng(reactFlowWrapper.current, {
+    // --- CHANGE: Pass 'elementToCapture' instead of 'reactFlowWrapper.current' ---
+    toPng(elementToCapture, {
       backgroundColor: bgColor,
-      filter: (node) => {
-        const classList = node.classList;
-        if (!classList) return true;
-
-        return (
-          !classList.contains("react-flow__controls") &&
-          !classList.contains("react-flow__panel") &&
-          !classList.contains("download-btn")
-        );
+      width: imageWidth,
+      height: imageHeight,
+      style: {
+        width: imageWidth,
+        height: imageHeight,
+        transform: `scale(${scaleFactor}) translate(${translateX}px, ${translateY}px)`,
       },
+      // We don't need the filter for controls anymore because the viewport
+      // doesn't contain the panels/controls, only nodes/edges.
     }).then((dataUrl) => {
       // Helper to sanitize names for filenames
       const sanitize = (name) =>
@@ -121,12 +143,11 @@ const TraceDiagramContent = ({
       a.href = dataUrl;
       a.click();
     });
-  }, [sourceName, targetName, mode]); // Updated dependencies
+  }, [sourceName, targetName, mode, nodes]);
 
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
 
   return (
-    // Added dark:bg-neutral-950
     <div
       className="w-full h-full relative bg-neutral-50 dark:bg-neutral-950 transition-colors"
       ref={reactFlowWrapper}
@@ -147,7 +168,6 @@ const TraceDiagramContent = ({
         <Panel position="top-right">
           <button
             onClick={onDownload}
-            // Added dark:bg-blue-700 dark:hover:bg-blue-600
             className="download-btn bg-blue-600 dark:bg-blue-700 text-white px-3 py-1.5 rounded-md shadow-md hover:bg-blue-700 dark:hover:bg-blue-600 flex items-center gap-2 text-sm transition-colors"
           >
             {UI_ICONS.download} Download PNG
