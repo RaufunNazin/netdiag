@@ -1783,6 +1783,9 @@ const NetworkDiagram = () => {
 
       if (event.key === "Escape") {
         setEditModal({ isOpen: false, node: null });
+        setResetConfirmModal({ isOpen: false, scope: null, nodeId: null });
+        setDeleteModal({ isOpen: false, id: null, type: "" });
+        setEditEdgeModal({ isOpen: false, edgeId: null });
         setAddModal((prev) => ({ ...prev, isOpen: false }));
         setDetailModal({ isOpen: false, node: null });
         setIsTraceModalOpen(false);
