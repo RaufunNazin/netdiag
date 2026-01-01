@@ -6,4 +6,4 @@ export default defineConfig({
   build: {
     assetsInlineLimit: 10000,
   },
-});
+}); 
