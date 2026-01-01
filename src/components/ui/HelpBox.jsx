@@ -68,8 +68,11 @@ const HelpBox = ({ isEmpty }) => {
         </span>,
       ]
     : [
-        <span key="search">
-          The <b>Search bar</b> (top right) locates any device.
+        <span key="search" className="flex items-center gap-2">
+          <button className="h-6 w-6 rounded-md text-neutral-500 dark:text-neutral-400 bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-800 p-1 flex items-center justify-center">
+            {UI_ICONS.search_mini}
+          </button>{" "}
+          <b>Searches</b> for any device or user.
         </span>,
 
         <span key="root" className="flex items-center gap-2">
