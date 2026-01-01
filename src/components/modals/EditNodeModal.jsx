@@ -16,17 +16,14 @@ import { ICONS } from "../../components/CustomNode.jsx";
 
 const MiniNodeDisplay = ({ nodeData, getNodeIcon }) => {
   if (!nodeData) {
-    // Added dark:text-neutral-500 (stays same usually, but good for consistency)
     return (
       <span className="font-normal text-neutral-500 ml-2">(Unknown Node)</span>
     );
   }
   const iconKey = getNodeIcon(nodeData.node_type);
   return (
-    // Added dark:bg-neutral-900, dark:border-neutral-700
     <div className="inline-flex items-center bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded py-1 px-3 ml-2">
       <div className="w-5 h-5">{ICONS[iconKey] || ICONS["default"]}</div>
-      {/* Added dark:text-neutral-200 */}
       <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 ml-1.5">
         {nodeData.label}
       </span>
@@ -51,7 +48,6 @@ const CableDetailForm = ({
   };
 
   return (
-    // Added dark:bg-neutral-950 to both conditional branches
     <div
       className={`md:col-span-2 p-4 rounded-lg shadow-sm ${
         direction === "Incoming"
@@ -59,7 +55,6 @@ const CableDetailForm = ({
           : "bg-white dark:bg-neutral-950 border-l-4 border-l-red-400"
       }`}
     >
-      {/* Added dark:text-neutral-200 */}
       <h5 className="text-base font-bold text-neutral-700 dark:text-neutral-200 mb-4 flex items-center">
         <span>
           {direction} cable {direction === "Incoming" ? "from" : "to"}
@@ -307,16 +302,12 @@ const EditNodeModal = ({
 
   return (
     <div className="absolute inset-0 bg-neutral-900/70 z-[100] flex justify-center items-center p-4">
-      {/* Added dark:bg-neutral-900 */}
       <div className="bg-white dark:bg-neutral-900 p-4 md:p-8 rounded-lg shadow-md w-full max-w-4xl max-h-[95vh] flex flex-col transition-colors">
         {isLoading && (
-          // Added dark:bg-neutral-900/80
           <div className="absolute inset-0 bg-white/80 dark:bg-neutral-900/80 flex justify-center items-center z-20 rounded-lg backdrop-blur-[1px]">
-            {/* Added dark:border-neutral-800 */}
             <div className="w-12 h-12 border-3 border-neutral-200 dark:border-neutral-800 border-t-blue-500 rounded-full animate-spin"></div>
           </div>
         )}
-        {/* Added dark:text-neutral-50 */}
         <h3 className="text-lg md:text-2xl font-bold text-neutral-800 dark:text-neutral-50 pb-4 mb-4">
           Edit Device Details
         </h3>
@@ -325,7 +316,6 @@ const EditNodeModal = ({
           <>
             <div className="overflow-y-auto pr-6 -mr-6 flex-grow custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="md:col-span-2 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-2">
                   General Information
                 </h4>
@@ -358,7 +348,6 @@ const EditNodeModal = ({
                   />
                 </div>
 
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="md:col-span-2 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-6">
                   Device Details
                 </h4>
@@ -449,7 +438,6 @@ const EditNodeModal = ({
 
                 {deviceData.node_type === NODE_TYPES_ENUM.SPLITTER && (
                   <>
-                    {/* Added dark:text-neutral-200 */}
                     <h4 className="md:col-span-2 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-6">
                       Splitter Details
                     </h4>
@@ -506,7 +494,6 @@ const EditNodeModal = ({
                   <>
                     <button
                       type="button"
-                      // Added dark:text-neutral-200, dark:bg-neutral-800, dark:hover:bg-neutral-700
                       className="md:col-span-2 text-neutral-700 dark:text-neutral-200 mt-6 flex items-center text-left justify-between w-full p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200"
                       onClick={() => setIsCableSectionExpanded((prev) => !prev)}
                     >
@@ -521,7 +508,6 @@ const EditNodeModal = ({
                         Cable Details
                       </div>
 
-                      {/* Added dark:text-neutral-400 */}
                       <span className="text-neutral-500 dark:text-neutral-400">
                         Click to toggle
                       </span>
@@ -530,7 +516,6 @@ const EditNodeModal = ({
                       <>
                         {incomingEdges.length === 0 &&
                           outgoingEdges.length === 0 && (
-                            // Added dark:text-neutral-400
                             <p className="md:col-span-2 text-neutral-500 dark:text-neutral-400 italic">
                               No cables are connected to this device.
                             </p>
@@ -581,7 +566,6 @@ const EditNodeModal = ({
                     )}
                   </>
                 )}
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="md:col-span-2 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-6">
                   Other Information
                 </h4>
@@ -631,7 +615,6 @@ const EditNodeModal = ({
               </div>
             </div>
 
-            {/* Added dark:border-neutral-800 */}
             <div className="flex justify-end space-x-3 border-t border-neutral-200 dark:border-neutral-800 pt-6 mt-8">
               <button
                 onClick={onClose}

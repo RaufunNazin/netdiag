@@ -11,7 +11,6 @@ const ToggleEdgeLabelsFab = ({
     <button
       onClick={onClick}
       disabled={disabled}
-      // Updated: Added dark mode conditional classes
       className={`toggle-fab-btn p-3 rounded-full text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
         isLabelsVisible
           ? "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
@@ -23,7 +22,6 @@ const ToggleEdgeLabelsFab = ({
     >
       <div className="w-4 h-4 flex items-center justify-center icon-tag">
         {React.cloneElement(UI_ICONS.tag_main, {
-          // Updated: Icon color logic for dark mode
           className: `w-4 h-4 ${
             isLabelsVisible
               ? "text-white"

@@ -130,15 +130,12 @@ const AddNodeModal = ({
 
   return (
     <div className="absolute inset-0 bg-neutral-900/70 z-[100] flex justify-center items-center p-4">
-      {/* Added dark:bg-neutral-900 */}
       <div className="bg-white dark:bg-neutral-900 p-4 md:p-8 rounded-lg shadow-md w-full max-w-4xl max-h-[95vh] flex flex-col transition-colors">
-        {/* Added dark:text-neutral-50 */}
         <h3 className="text-lg md:text-2xl font-bold text-neutral-800 dark:text-neutral-50 pb-4 mb-4">
           {isInsertion ? "Insert New Device" : "Add New Node"}
         </h3>
         <div className="overflow-y-auto pr-6 -mr-6 flex-grow custom-scrollbar">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            {/* Added dark:text-neutral-200 */}
             <h4 className="md:col-span-2 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-2">
               Basic Info
             </h4>
@@ -187,7 +184,6 @@ const AddNodeModal = ({
             </div>
             {
               <>
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="md:col-span-2 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-6">
                   Device Detail
                 </h4>
@@ -278,7 +274,6 @@ const AddNodeModal = ({
             }
             {formData.node_type === NODE_TYPES_ENUM.SPLITTER && (
               <>
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="md:col-span-2 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-6">
                   Splitter Detail
                 </h4>
@@ -328,7 +323,6 @@ const AddNodeModal = ({
             )}
             {formData.node_type && isInsertion && (
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="md:col-span-2 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-6">
                   Cable Detail
                 </h4>
@@ -401,7 +395,6 @@ const AddNodeModal = ({
             )}
             {
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="md:col-span-3 text-lg font-bold text-neutral-700 dark:text-neutral-200 mt-6">
                   Other Info
                 </h4>
@@ -447,7 +440,6 @@ const AddNodeModal = ({
           </div>
         </div>
 
-        {/* Added dark:border-neutral-800 */}
         <div className="flex justify-end space-x-3 border-t border-neutral-200 dark:border-neutral-800 pt-6 mt-8">
           <button onClick={clearStorageAndClose} className="btn-secondary">
             Close

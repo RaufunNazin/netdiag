@@ -43,7 +43,6 @@ const DrawerNode = ({ node }) => {
 
   return (
     <div
-      // Added dark:bg-neutral-900/80, dark:border-neutral-700
       className="p-3 m-2 rounded-md flex items-center space-x-2 
                  bg-white/80 dark:bg-neutral-900/80 border border-neutral-300 dark:border-neutral-700 cursor-move"
       onDragStart={(event) => onDragStart(event, nodeToDrag)}
@@ -55,7 +54,6 @@ const DrawerNode = ({ node }) => {
         width="20"
         height="20"
       />
-      {/* Added dark:text-neutral-200 */}
       <span className="text-sm font-semibold dark:text-neutral-200">
         {node.data.label.length > 18
           ? `${node.data.label.slice(0, 18)}...`
@@ -74,20 +72,16 @@ const OrphanDrawer = ({ isOpen, onClose, nodes }) => {
         onClick={onClose}
       />
       <div
-        // Added dark:bg-neutral-950/95
         className={`fixed top-0 left-0 h-[calc(100%-16px)] w-64 m-2 ml-0 rounded-lg bg-white/80 dark:bg-neutral-950/95 backdrop-blur-sm shadow-xl
                    z-40 transition-transform duration-200 ease-in-out
                    ${isOpen ? "transform-none ml-2" : "-translate-x-full"}`}
       >
-        {/* Added dark:border-neutral-800 */}
         <div className="flex justify-between items-center p-3 bg-transparent rounded-t-lg border-b border-neutral-300 dark:border-neutral-800">
-          {/* Added dark:text-neutral-200 */}
           <h3 className="font-bold text-lg text-neutral-700 dark:text-neutral-200">
             Inventory
           </h3>
           <button
             onClick={onClose}
-            // Added dark:text-neutral-400, dark:hover:text-neutral-200
             className="p-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
             title="Close Inventory [ESC]"
           >
@@ -98,7 +92,6 @@ const OrphanDrawer = ({ isOpen, onClose, nodes }) => {
           {nodes.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center gap-2">
               <img src={boxIcon} alt="Empty Inventory" className="w-10 h-10" />
-              {/* Added dark:text-neutral-400 */}
               <p className="text-center text-neutral-500 dark:text-neutral-400">
                 Your inventory is empty.
               </p>

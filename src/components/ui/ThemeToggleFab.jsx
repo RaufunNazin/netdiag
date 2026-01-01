@@ -7,7 +7,6 @@ const ThemeToggleFab = ({ colorMode, onToggle, className = "" }) => {
     setIsDark(colorMode === "dark");
   }, [colorMode]);
 
-  // Handle 'M' key press
   useEffect(() => {
     const handleKeyDown = (event) => {
       const activeTag = document.activeElement.tagName;
@@ -39,7 +38,6 @@ const ThemeToggleFab = ({ colorMode, onToggle, className = "" }) => {
       title={`Switch to ${isDark ? "Light" : "Dark"} Mode [M]`}
     >
       <div className="relative w-4 h-4 overflow-hidden">
-        {/* Sun Icon - Visible when Dark (to switch to light) */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -57,7 +55,6 @@ const ThemeToggleFab = ({ colorMode, onToggle, className = "" }) => {
           />
         </svg>
 
-        {/* Moon Icon - Visible when Light (to switch to dark) */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

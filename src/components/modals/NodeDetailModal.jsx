@@ -8,11 +8,9 @@ const DetailItem = ({ label, value, className = "" }) => {
   if (value === null || value === undefined || value === "") return null;
   return (
     <div className={className}>
-      {/* Added dark:text-neutral-400 */}
       <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">
         {label}
       </p>
-      {/* Added dark:text-neutral-200 */}
       <p className="text-base text-neutral-800 dark:text-neutral-200 break-words">
         {String(value)}
       </p>
@@ -29,14 +27,12 @@ const LocationMap = ({ lat, lon }) => {
 
   return (
     <div className="md:col-span-3">
-      {/* Added dark:text-neutral-400 */}
       <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-2">
         Location Map
       </p>
       <iframe
         width="100%"
         height="250"
-        // Added dark:border-neutral-700
         className="rounded-lg border border-neutral-300 dark:border-neutral-700"
         src={embedUrl}
         title="Device Location"
@@ -48,7 +44,6 @@ const LocationMap = ({ lat, lon }) => {
 
 const MiniNodeDisplay = ({ nodeData, getNodeIcon }) => {
   if (!nodeData) {
-    // Added dark:text-neutral-500
     return (
       <span className="font-normal text-neutral-500 dark:text-neutral-500 ml-2">
         (Unknown Node)
@@ -57,10 +52,8 @@ const MiniNodeDisplay = ({ nodeData, getNodeIcon }) => {
   }
   const iconKey = getNodeIcon(nodeData.node_type);
   return (
-    // Added dark:bg-neutral-900, dark:border-neutral-700
     <div className="inline-flex items-center bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded py-1 px-3 ml-2">
       <div className="w-5 h-5">{ICONS[iconKey] || ICONS["default"]}</div>
-      {/* Added dark:text-neutral-200 */}
       <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 ml-1.5">
         {nodeData.label}
       </span>
@@ -79,7 +72,6 @@ const CableDetailDisplay = ({
   )?.name;
 
   return (
-    // Added dark:bg-neutral-950 to both conditions
     <div
       className={`md:col-span-3 p-4 rounded-lg shadow-sm ${
         direction === "Incoming"
@@ -87,7 +79,6 @@ const CableDetailDisplay = ({
           : "bg-white dark:bg-neutral-950 border-l-4 border-l-red-400"
       }`}
     >
-      {/* Added dark:text-neutral-200 */}
       <h5 className="text-base font-bold text-neutral-700 dark:text-neutral-200 mb-4 flex items-center">
         <span>
           {direction} cable {direction === "Incoming" ? "from" : "to"}
@@ -159,16 +150,13 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
 
   return (
     <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      {/* Added dark:bg-neutral-900 */}
       <div className="flex w-full max-w-3xl flex-col rounded-lg bg-white dark:bg-neutral-900 p-4 md:p-8 shadow-md max-h-[90vh] transition-colors">
-        {/* Added dark:text-neutral-50 */}
         <h3 className="mb-6 text-lg md:text-2xl font-bold text-neutral-800 dark:text-neutral-50">
           Device Details: {device.name}
         </h3>
 
         <div className="flex-grow overflow-y-auto pr-4 -mr-4 custom-scrollbar">
           <div className="grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-3">
-            {/* Added dark:text-neutral-200 */}
             <h4 className="col-span-2 md:col-span-3 text-lg font-bold text-neutral-700 dark:text-neutral-200">
               Basic Info
             </h4>
@@ -178,7 +166,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
 
             {hasDeviceSpecifics && (
               <>
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-neutral-700 dark:text-neutral-200">
                   Device Specifics
                 </h4>
@@ -193,7 +180,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
 
             {hasSplitterDetails && (
               <>
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-neutral-700 dark:text-neutral-200">
                   Splitter Details
                 </h4>
@@ -206,7 +192,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
               <>
                 <button
                   type="button"
-                  // Added dark:text-neutral-200, dark:bg-neutral-800, dark:hover:bg-neutral-700
                   className="md:col-span-3 text-neutral-700 dark:text-neutral-200 mt-6 flex items-center text-left justify-between w-full p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all duration-200"
                   onClick={() => setIsCableSectionExpanded((prev) => !prev)}
                 >
@@ -221,7 +206,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
                     Cable Details
                   </div>
 
-                  {/* Added dark:text-neutral-400 */}
                   <span className="text-neutral-500 dark:text-neutral-400">
                     Click to toggle
                   </span>
@@ -264,7 +248,6 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
 
             {(hasLocationInfo || device.remarks) && (
               <>
-                {/* Added dark:text-neutral-200 */}
                 <h4 className="col-span-2 md:col-span-3 mt-6 text-lg font-bold text-neutral-700 dark:text-neutral-200">
                   Location & Remarks
                 </h4>

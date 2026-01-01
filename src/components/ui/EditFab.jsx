@@ -4,7 +4,6 @@ const EditFab = ({ isEditing, onClick }) => {
   return (
     <button
       onClick={onClick}
-      // Updated: Added dark mode color variants for both states
       className={`edit-fab-btn z-10 p-3 rounded-full text-white transition-all duration-200 flex items-center justify-center
         ${
           isEditing

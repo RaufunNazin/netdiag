@@ -30,7 +30,6 @@ const IconDock = ({ children }) => {
 
   return (
     <div
-      // Added dark:border-neutral-800/70 and dark:bg-neutral-900/80
       className="fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 
                  items-center rounded-full border border-neutral-200/70 dark:border-neutral-800/70 
                  bg-white/80 dark:bg-neutral-900/80 p-2 shadow-none backdrop-blur-sm"
@@ -45,7 +44,6 @@ const IconDock = ({ children }) => {
 
       <button
         onClick={toggleDock}
-        // Added dark:text-neutral-300
         className={`flex h-10 w-10 shrink-0 items-center justify-center 
                    rounded-full bg-transparent text-neutral-600 dark:text-neutral-300 transition-all 
                    duration-500 ease-in-out ${isOpen ? "ml-2" : "ml-0"}`}

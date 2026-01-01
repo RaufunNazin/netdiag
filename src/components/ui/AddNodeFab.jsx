@@ -4,7 +4,6 @@ const AddNodeFab = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      // Updated: Added dark:bg-green-600 and dark:hover:bg-green-700
       className="add-fab-btn z-10 p-3 rounded-full text-white transition-all duration-200 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 flex items-center justify-center"
       title="Add New Device [N]"
     >

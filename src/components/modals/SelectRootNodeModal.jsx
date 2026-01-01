@@ -36,16 +36,13 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      {/* Added dark:bg-neutral-900 */}
       <div className="flex w-96 flex-col rounded-lg bg-white dark:bg-neutral-900 p-4 shadow-xl transition-colors">
-        {/* Added dark:text-neutral-50 */}
         <h3 className="mb-2 text-lg font-bold text-neutral-800 dark:text-neutral-50">
           Select a Root Node
         </h3>
         <input
           type="text"
           placeholder="Search for a device..."
-          // Added dark:border-neutral-700, dark:bg-neutral-950, dark:text-neutral-200
           className="w-full p-2 border border-neutral-300 dark:border-neutral-700 rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-200"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -57,14 +54,12 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
               <li
                 key={node.id}
                 onClick={() => handleSelect(node.id)}
-                // Added dark:text-neutral-200, dark:hover:bg-neutral-800
                 className="cursor-pointer rounded-md px-3 py-2 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
                 {node.name}
               </li>
             ))
           ) : (
-            // Added dark:text-neutral-400
             <li className="px-3 py-2 text-neutral-500 dark:text-neutral-400">
               No devices found.
             </li>
@@ -72,7 +67,6 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
         </ul>
         <button
           onClick={onClose}
-          // Added dark:bg-neutral-800, dark:text-neutral-200, dark:hover:bg-neutral-700
           className="mt-4 w-full px-4 py-2 bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-md hover:bg-neutral-300 dark:hover:bg-neutral-700 transition-colors"
         >
           Cancel

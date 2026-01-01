@@ -105,8 +105,8 @@ const GRID_Y_SPACING = 80;
 const PADDING_BETWEEN_GRIDS = 50;
 const NODE_WIDTH = 250;
 const NODE_HEIGHT = 60;
-const API_DEFAULT_COLOR = "#1e293b"; // neutral 800 (The dark color that blends in)
-const EDGE_COLOR_DARK_MODE = "#cbd5e1"; // neutral 300 (Neutral light grey, visible on dark)
+const API_DEFAULT_COLOR = "#1e293b";
+const EDGE_COLOR_DARK_MODE = "#cbd5e1";
 
 const NetworkDiagram = () => {
   const { id } = useParams();
@@ -684,8 +684,6 @@ const NetworkDiagram = () => {
           if (targetId) {
             let strokeColor = item.cable_color || API_DEFAULT_COLOR;
 
-            // If the color is the specific dark neutral (API default) AND we are in Dark Mode,
-            // swap it to the light neutral color so it doesn't blend in.
             if (colorMode === "dark" && strokeColor === API_DEFAULT_COLOR) {
               strokeColor = EDGE_COLOR_DARK_MODE;
             }
@@ -695,7 +693,6 @@ const NetworkDiagram = () => {
               target: targetId,
               markerEnd: { type: MarkerType.ArrowClosed },
               style: {
-                // UPDATE: Use the calculated strokeColor
                 stroke: strokeColor,
                 strokeWidth: 3,
               },
@@ -1918,13 +1915,10 @@ const NetworkDiagram = () => {
       root.classList.remove("dark");
     }
 
-    // Update existing edges when theme changes
     setEdges((eds) =>
       eds.map((edge) => {
         const currentColor = edge.style?.stroke;
 
-        // If switching to DARK mode:
-        // Change "API Default" (Dark neutral) -> "Visible" (Light neutral)
         if (colorMode === "dark" && currentColor === API_DEFAULT_COLOR) {
           return {
             ...edge,
@@ -1932,8 +1926,6 @@ const NetworkDiagram = () => {
           };
         }
 
-        // If switching to LIGHT mode:
-        // Change "Visible" (Light neutral) -> "API Default" (Dark neutral)
         if (colorMode === "light" && currentColor === EDGE_COLOR_DARK_MODE) {
           return {
             ...edge,

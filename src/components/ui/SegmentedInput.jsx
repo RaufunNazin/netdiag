@@ -77,12 +77,10 @@ const SegmentedInput = ({
             onChange={(e) => handleChange(e, index)}
             onKeyDown={(e) => handleKeyDown(e, index)}
             onPaste={(e) => handlePaste(e, index)}
-            // Note: .input-style in index.css handles the dark mode colors for background/border/text automatically
             className="input-style w-full text-center p-2"
             maxLength={maxLength}
           />
           {index < count - 1 && (
-            // Added dark:text-neutral-500
             <span className="text-neutral-400 dark:text-neutral-500 font-bold">
               {separator}
             </span>

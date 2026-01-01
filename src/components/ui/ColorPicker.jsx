@@ -35,19 +35,16 @@ const ColorPicker = ({ selectedColor, onChange }) => {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          // Added dark:bg-neutral-900, dark:border-neutral-700, dark:text-neutral-200
           className="input-style flex items-center justify-between text-left w-full bg-white dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-200"
         >
           <span className="flex items-center">
             <span
-              // Added dark:border-neutral-700
               className="w-5 h-5 rounded-full mr-3 border border-neutral-200 dark:border-neutral-700"
               style={{
                 backgroundColor: selectedColorObj?.hex || "#FFFFFF",
               }}
             />
             {selectedColorObj?.name || (
-              // Added dark:text-neutral-500
               <span className="text-neutral-400 dark:text-neutral-500">
                 Select Color
               </span>
@@ -56,7 +53,6 @@ const ColorPicker = ({ selectedColor, onChange }) => {
 
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            // Added dark:text-neutral-400
             className={`h-4 w-4 text-neutral-500 dark:text-neutral-400 ml-2 transition-transform duration-200 ${
               isOpen ? "rotate-180" : ""
             }`}
@@ -77,7 +73,6 @@ const ColorPicker = ({ selectedColor, onChange }) => {
           <button
             type="button"
             onClick={handleClear}
-            // Added dark:text-neutral-500 and dark:hover:text-red-400
             className="absolute right-8 text-lg text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 transition-colors"
             title="Clear color"
           >
@@ -94,7 +89,6 @@ const ColorPicker = ({ selectedColor, onChange }) => {
               type="button"
               onClick={() => handleColorSelect(color.hex)}
               aria-label={color.name}
-              // Added dark:hover:border-neutral-500
               className={`py-2 rounded-md text-sm text-center font-semibold hover:opacity-80 transition-opacity border border-transparent hover:border-neutral-300 dark:hover:border-neutral-500 ${color.text}`}
               style={{ backgroundColor: color.hex }}
             >

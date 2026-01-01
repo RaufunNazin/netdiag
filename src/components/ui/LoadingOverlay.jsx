@@ -6,7 +6,6 @@ const IconBtn = ({ children, color, padding = "p-1" }) => {
     blue: "bg-blue-500 text-white",
     green: "bg-green-500 text-white",
     red: "bg-red-500 text-white",
-    // Updated: Added dark mode classes for gray buttons
     gray: "bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200",
     blueTab: "bg-blue-500 text-white rounded-r-sm",
     orangeDot: "bg-orange-500",
@@ -403,20 +402,16 @@ const LoadingOverlay = ({ message }) => {
   }, []);
 
   return (
-    // Updated: Changed bg-black/50 to responsive white/dark-neutral background
     <div className="absolute inset-0 p-2 z-50 flex flex-col items-center justify-center bg-white/90 dark:bg-neutral-950/90 backdrop-blur-sm transition-opacity duration-200 gap-5">
-      {/* Updated: Spinner colors for both themes */}
       <div className="w-12 h-12 border-4 border-neutral-200 dark:border-neutral-800 border-t-blue-500 rounded-full animate-spin"></div>
 
       {message && (
-        // Updated: Text color
         <p className="text-lg md:text-xl font-medium text-neutral-700 dark:text-neutral-200 text-center">
           {message}
         </p>
       )}
 
       {currentTip && (
-        // Updated: Text color
         <p className="text-lg md:text-2xl font-medium text-neutral-700 dark:text-neutral-200 text-center">
           Tip: {currentTip}
         </p>

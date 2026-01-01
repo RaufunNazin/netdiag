@@ -6,7 +6,6 @@ const UndoFab = ({ onClick, disabled }) => {
       <button
         onClick={onClick}
         disabled={disabled}
-        // Updated: Added dark mode logic for both active and disabled states
         className={`undo-fab-btn p-2.5 rounded-full text-white transition-all duration-200 ease-in-out focus:outline-none flex items-center justify-center ${
           disabled
             ? "cursor-not-allowed bg-neutral-400 hover:bg-neutral-400 dark:bg-neutral-700 dark:hover:bg-neutral-700"

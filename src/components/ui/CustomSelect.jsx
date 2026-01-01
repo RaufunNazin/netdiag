@@ -40,7 +40,6 @@ const CustomSelect = ({
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          // Added dark:bg-neutral-900/50 (disabled) and dark:bg-neutral-900 (enabled)
           className={`input-style flex items-center justify-between text-left w-full ${
             disabled
               ? "opacity-50 cursor-not-allowed bg-neutral-100 dark:bg-neutral-900/50"
@@ -48,7 +47,6 @@ const CustomSelect = ({
           }`}
         >
           <span
-            // Added dark:text-neutral-500 (placeholder) and dark:text-neutral-200 (value)
             className={`block truncate mr-6 ${
               !value
                 ? "text-neutral-400 dark:text-neutral-500"
@@ -60,7 +58,6 @@ const CustomSelect = ({
 
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            // Added dark:text-neutral-400
             className={`h-4 w-4 text-neutral-500 dark:text-neutral-400 ml-2 transition-transform duration-200 ${
               isOpen ? "rotate-180" : ""
             }`}
@@ -81,7 +78,6 @@ const CustomSelect = ({
           <button
             type="button"
             onClick={handleClear}
-            // Added dark:text-neutral-500 and dark:hover:text-red-400
             className="absolute right-8 text-neutral-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 transition-colors z-10"
             title="Clear selection"
           >
@@ -102,10 +98,8 @@ const CustomSelect = ({
       </div>
 
       {isOpen && (
-        // Added dark:bg-neutral-900 and dark:border-neutral-800
         <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 p-1 text-base shadow-lg focus:outline-none sm:text-sm">
           {options.length === 0 ? (
-            // Added dark:text-neutral-400
             <div className="relative cursor-default select-none py-2 px-4 text-neutral-500 dark:text-neutral-400 italic">
               No options
             </div>
@@ -130,7 +124,6 @@ const CustomSelect = ({
                 <div
                   key={index}
                   onClick={() => handleSelect(optionValue)}
-                  // Added dark:hover:bg-neutral-800, dark:text-blue-400, dark:bg-blue-900/20, dark:text-neutral-200
                   className={`relative cursor-pointer select-none rounded py-2 pl-3 pr-9 hover:bg-blue-50 dark:hover:bg-neutral-800 transition-colors ${
                     isSelected
                       ? "font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
@@ -140,7 +133,6 @@ const CustomSelect = ({
                   <span className="block truncate">{optionLabel}</span>
 
                   {isSelected && (
-                    // Added dark:text-blue-400
                     <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600 dark:text-blue-400">
                       <svg
                         className="h-4 w-4"

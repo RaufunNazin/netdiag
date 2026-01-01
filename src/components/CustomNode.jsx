@@ -36,13 +36,10 @@ export const ICONS = {
 };
 
 const DetailRow = ({ label, value }) => (
-  // Added dark:border-neutral-800
   <div className="flex justify-between border-t border-neutral-200 dark:border-neutral-800 pt-2 mt-2">
-    {/* Added dark:text-neutral-400 */}
     <dt className="text-xs font-medium text-neutral-500 dark:text-neutral-400 shrink-0 pr-2">
       {label}
     </dt>
-    {/* Added dark:text-neutral-200 */}
     <dd className="text-xs text-neutral-800 dark:text-neutral-200 text-right break-words">
       {value || "N/A"}
     </dd>
@@ -75,7 +72,6 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
   const LightbulbIcon = UI_ICONS.lightbulb;
 
   return (
-    // Added dark:border-neutral-800
     <div className="py-2 border-b border-neutral-100 dark:border-neutral-800 last:border-b-0">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -84,7 +80,7 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
               className={
                 customer.online1 === 1
                   ? "text-yellow-400"
-                  : "text-neutral-600 dark:text-neutral-500" // Added dark:text-neutral-500
+                  : "text-neutral-600 dark:text-neutral-500"
               }
             />
           </span>
@@ -99,14 +95,12 @@ const CustomerRow = ({ customer, isExpanded, onExpand }) => {
               ? UI_ICONS.timesCircle
               : null}
           </span>
-          {/* Added dark:text-neutral-200 */}
           <span className="font-semibold text-neutral-800 dark:text-neutral-200">
             {customer.uname}
           </span>
         </div>
         <div
           onMouseEnter={onExpand}
-          // Added dark:text-neutral-500 and dark:hover:text-blue-400
           className="cursor-pointer p-1 text-neutral-400 dark:text-neutral-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
         >
           {UI_ICONS.info_main}
@@ -262,33 +256,25 @@ const CustomNode = ({ data, isConnectable, selected }) => {
   };
 
   const borderClass = useMemo(() => {
-    // 1. Define base styles for Light AND Dark mode
-    // Light: bg-white, border-neutral-400
-    // Dark:  dark:bg-neutral-950, dark:border-neutral-700
     const baseStyle = "border-2 bg-white dark:bg-neutral-950";
 
     if (selected) {
-      // Dark: dark:bg-blue-900/40
       return "border-2 border-blue-500 z-50 bg-blue-100 dark:bg-blue-900/40";
     }
 
     if (data.isHighlighted) {
-      // Dark: dark:bg-red-900/40
       return "border-2 border-[#ef4444] bg-red-100 dark:bg-red-900/40";
     }
 
     if (data.node_type === NODE_TYPES_ENUM.ONU) {
       if (data.status === 1) {
-        // Dark: dark:border-neutral-700 (base border) + green right border
         return `${baseStyle} border-neutral-400 dark:border-neutral-700 border-r-4 border-r-green-500 dark:border-r-green-600`;
       }
       if (data.status === 2) {
-        // Dark: dark:border-neutral-700 (base border) + red right border
         return `${baseStyle} border-neutral-400 dark:border-neutral-700 border-r-4 border-r-[#d43c3c] dark:border-r-red-600`;
       }
     }
 
-    // Default Node
     return `${baseStyle} border-neutral-400 dark:border-neutral-700`;
   }, [data.isHighlighted, data.node_type, data.status, selected]);
 
@@ -342,7 +328,6 @@ const CustomNode = ({ data, isConnectable, selected }) => {
   return (
     <div ref={nodeRef}>
       <div
-        // Added dark:text-neutral-200
         className={`p-3 rounded-lg shadow-md flex items-center space-x-3 text-neutral-800 dark:text-neutral-200 ${borderClass} transition-all`}
       >
         {id ? (
@@ -380,7 +365,6 @@ const CustomNode = ({ data, isConnectable, selected }) => {
             onClick={handleDetailsClick}
             onMouseEnter={showCustomerPopover}
             onMouseLeave={startHidePopoverTimer}
-            // Added dark:text-neutral-500, dark:hover:bg-neutral-800, dark:hover:text-neutral-300
             className="rounded-full p-1 text-neutral-400 dark:text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
             title="View Details"
           >
@@ -400,7 +384,6 @@ const CustomNode = ({ data, isConnectable, selected }) => {
           {data.node_type === NODE_TYPES_ENUM.OLT && !id && (
             <button
               onClick={handleNavigateClick}
-              // Added dark:hover:bg-neutral-800 and dark:hover:text-neutral-300
               className="rounded-full p-1 text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300"
               title="Go to OLT View"
             >
@@ -444,7 +427,6 @@ const CustomNode = ({ data, isConnectable, selected }) => {
               top: tooltipPosition.top,
               left: tooltipPosition.left,
             }}
-            // Added dark:bg-neutral-900, dark:text-neutral-200
             className={`fixed z-[9999] w-64 select-text rounded-md bg-white dark:bg-neutral-900 p-3 text-sm font-medium text-neutral-800 dark:text-neutral-200 shadow-md transition-all duration-200 transform
               ${
                 popoverDirectionY === "up"
@@ -461,7 +443,6 @@ const CustomNode = ({ data, isConnectable, selected }) => {
             ) : customerData && customerData.length > 0 ? (
               <div className="flex flex-col">
                 {customerData.length > 3 && (
-                  // Added dark:border-neutral-800
                   <div className="mb-2 border-b border-neutral-100 dark:border-neutral-800 pb-2">
                     <input
                       ref={inputRef}
@@ -469,7 +450,6 @@ const CustomNode = ({ data, isConnectable, selected }) => {
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      // Added dark:border-neutral-700, dark:bg-neutral-950, dark:text-neutral-200
                       className="w-full rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-2 py-1 text-xs text-neutral-700 dark:text-neutral-200 focus:border-blue-500 focus:outline-none"
                     />
                   </div>

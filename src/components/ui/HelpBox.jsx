@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { UI_ICONS } from "../../utils/icons";
 
 const ShortcutRow = ({ keys, description }) => (
-  // Added dark:border-neutral-800
   <div className="flex justify-between items-center py-1.5 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
-    {/* Added dark:text-neutral-300 */}
     <span className="text-sm text-neutral-600 dark:text-neutral-300">
       {description}
     </span>
@@ -12,7 +10,6 @@ const ShortcutRow = ({ keys, description }) => (
       {keys.map((k, i) => (
         <kbd
           key={i}
-          // Added dark:bg-neutral-800, dark:border-neutral-700, dark:text-neutral-200
           className="min-w-[20px] text-center px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-[10px] font-mono font-bold text-neutral-600 dark:text-neutral-200"
         >
           {k}
@@ -53,7 +50,6 @@ const HelpBox = ({ isEmpty }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
-  // Common class for info buttons in dark mode
   const infoBtnClass =
     "p-0.5 text-neutral-400 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 rounded-full border border-neutral-200 dark:border-neutral-700";
 
@@ -177,18 +173,15 @@ const HelpBox = ({ isEmpty }) => {
   return (
     <div className="absolute bottom-4 right-2 md:right-4 z-10">
       <div
-        // Added dark:border-neutral-800 and dark:bg-neutral-900/95
         className={`w-80 md:w-96 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 p-0 shadow-xl backdrop-blur-sm z-20 overflow-hidden transition-all duration-200 origin-bottom-right ${
           isOpen
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4 pointer-events-none hidden"
         }`}
       >
-        {/* Added dark:border-neutral-800 and dark:bg-neutral-950 */}
         <div className="flex border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950">
           <button
             onClick={() => setActiveTab("guide")}
-            // Updated active/inactive states for dark mode
             className={`flex-1 py-3 text-sm font-bold transition-colors ${
               activeTab === "guide"
                 ? "text-blue-600 dark:text-blue-400 bg-white dark:bg-neutral-900 border-b-2 border-blue-500"
@@ -199,7 +192,6 @@ const HelpBox = ({ isEmpty }) => {
           </button>
           <button
             onClick={() => setActiveTab("shortcuts")}
-            // Updated active/inactive states for dark mode
             className={`flex-1 py-3 text-sm font-bold transition-colors ${
               activeTab === "shortcuts"
                 ? "text-blue-600 dark:text-blue-400 bg-white dark:bg-neutral-900 border-b-2 border-blue-500"
@@ -211,11 +203,9 @@ const HelpBox = ({ isEmpty }) => {
         </div>
         <div className="p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
           {activeTab === "guide" ? (
-            // Added dark:text-neutral-300
             <ul className="space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
               {guideContent.map((point, index) => (
                 <li key={index} className="flex items-start leading-snug">
-                  {/* Added dark:bg-neutral-500 */}
                   <span className="mr-2 mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-400 dark:bg-neutral-500" />
                   <span>{point}</span>
                 </li>
@@ -224,7 +214,6 @@ const HelpBox = ({ isEmpty }) => {
           ) : (
             <div className="space-y-4">
               <div>
-                {/* Added dark:text-neutral-500 */}
                 <h4 className="text-xs font-bold uppercase text-neutral-400 dark:text-neutral-500 mb-2">
                   Global
                 </h4>
@@ -279,7 +268,6 @@ const HelpBox = ({ isEmpty }) => {
           )}
         </div>
 
-        {/* Added dark:bg-neutral-950, dark:border-neutral-800, dark:text-neutral-500 */}
         <div className="p-2 bg-neutral-50 dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 text-[10px] text-neutral-400 dark:text-neutral-500 text-center">
           Built using{" "}
           <a
@@ -297,7 +285,6 @@ const HelpBox = ({ isEmpty }) => {
       <div className="flex justify-end mt-3">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          // Added dark:text-blue-400, dark:bg-neutral-800/800, dark:border-neutral-700/700
           className={`p-2 rounded-full text-blue-500 dark:text-blue-400 transition-all duration-200 ${
             isOpen
               ? "bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rotate-180"

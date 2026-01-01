@@ -48,7 +48,6 @@ const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
         ref={buttonRef}
         onClick={handleToggle}
         disabled={disabled}
-        // Updated: Added dark:bg-red-600 and dark:hover:bg-red-700
         className={`reset-fab-btn p-3 rounded-full text-white bg-[#ef4444] hover:bg-[#d43c3c] dark:bg-red-600 dark:hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${className}`}
         title="Reset Positions [R]"
       >
@@ -64,19 +63,16 @@ const ResetPositionsFab = ({ onReset, disabled, className = "" }) => {
               top: menuPosition.top,
               left: menuPosition.left,
             }}
-            // Updated: Added dark:bg-neutral-900 and dark:border-neutral-800
             className="fixed z-[9999] w-48 bg-white dark:bg-neutral-900 rounded-md shadow-xl border border-neutral-100 dark:border-neutral-800 py-1 animate-in fade-in zoom-in-95 duration-200 origin-top-left transition-colors"
           >
             <ul className="list-none p-0 m-0">
               <li
-                // Updated: Added dark:text-red-400 and dark:hover:bg-red-500/10
                 className="px-4 py-2 text-sm text-[#d43c3c] dark:text-red-400 hover:bg-[#d43c3c]/10 dark:hover:bg-red-500/10 cursor-pointer transition-colors"
                 onClick={() => handleResetClick("all")}
               >
                 Reset All Positions
               </li>
               <li
-                // Updated: Added dark:text-red-400 and dark:hover:bg-red-500/10
                 className="px-4 py-2 text-sm text-[#d43c3c] dark:text-red-400 hover:bg-[#d43c3c]/10 dark:hover:bg-red-500/10 cursor-pointer transition-colors"
                 onClick={() => handleResetClick("manual")}
               >
