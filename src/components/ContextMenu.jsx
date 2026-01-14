@@ -1,6 +1,6 @@
 import { ACTIONS, LABELS, MISC } from "../utils/enums";
 
-const ContextMenu = ({ id, top, left, onAction, node, ...props }) => {
+const ContextMenu = ({ id, top, left, onAction, node, edges, ...props }) => {
   const { type } = props;
 
   const getMenuItems = () => {
@@ -13,7 +13,14 @@ const ContextMenu = ({ id, top, left, onAction, node, ...props }) => {
           { label: LABELS.DELETE_DEVICE, action: ACTIONS.DELETE_NODE },
         ];
 
-        if (node?.data?.parent_id === null || node?.data?.parent_id === 0) {
+        const hasIncomingEdge = edges?.some((edge) => edge.target === id);
+
+        const isOrphan =
+          node?.data?.parent_id === null ||
+          node?.data?.parent_id === 0 ||
+          !hasIncomingEdge;
+
+        if (isOrphan) {
           nodeItems.splice(3, 0, {
             label: LABELS.SEND_TO_INVENTORY,
             action: ACTIONS.SEND_TO_INVENTORY,

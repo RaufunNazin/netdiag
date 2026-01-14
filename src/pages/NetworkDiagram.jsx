@@ -1973,7 +1973,7 @@ const NetworkDiagram = () => {
       >
         <Background variant="dots" gap={20} size={1} bgColor="transparent" />
         {contextMenu && (
-          <ContextMenu {...contextMenu} onAction={handleAction} />
+          <ContextMenu {...contextMenu} onAction={handleAction} edges={edges} />
         )}
       </ReactFlow>
       <UserStatus
