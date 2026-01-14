@@ -72,70 +72,70 @@ const HelpBox = ({ isEmpty }) => {
         </span>,
 
         <span key="root" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white flex items-center justify-center">
             {UI_ICONS.root}
           </button>{" "}
           Selects a new <b>root device</b> for the view.
         </span>,
 
         <span key="add" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-green-500 p-1 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-full bg-green-500 p-1 text-white flex items-center justify-center">
             {UI_ICONS.add}
           </button>{" "}
           <b>Adds</b> a new device to the diagram.
         </span>,
 
         <span key="edit" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-orange-400 p-1.5 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-full bg-orange-400 p-1.5 text-white flex items-center justify-center">
             {React.cloneElement(UI_ICONS.edit, { className: "w-3 h-3" })}
           </button>{" "}
           Enters <b>Edit Mode</b> (Move, Connect, Delete).
         </span>,
 
         <span key="undo" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-[#ef4444] p-1 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-full bg-[#ef4444] p-1 text-white flex items-center justify-center">
             {UI_ICONS.undo}
           </button>{" "}
           <b>Undoes</b> the last action.
         </span>,
 
         <span key="fit" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white flex items-center justify-center">
             {UI_ICONS.expand}
           </button>{" "}
           <b>Centers</b> the view on screen.
         </span>,
 
         <span key="reset" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-[#ef4444] p-1 text-white  flex items-center justify-center rotate-90">
+          <button className="h-6 w-6 rounded-full bg-[#ef4444] p-1 text-white flex items-center justify-center rotate-90">
             {UI_ICONS.reset}
           </button>{" "}
           <b>Resets</b> node layout positions.
         </span>,
 
         <span key="export" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white flex items-center justify-center">
             {UI_ICONS.download}
           </button>{" "}
           <b>Exports</b> the diagram as a PNG.
         </span>,
 
         <span key="labels" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white flex items-center justify-center">
             {UI_ICONS.tag}
           </button>{" "}
           <b>Toggles</b> cable descriptions.
         </span>,
 
         <span key="trace" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-full bg-blue-500 p-1 text-white flex items-center justify-center">
             {UI_ICONS.route}
           </button>{" "}
           <b>Traces</b> the path between two devices.
         </span>,
 
         <span key="inventory" className="flex items-center gap-2">
-          <button className="h-6 w-6 rounded-r-sm bg-blue-500 p-1 text-white  flex items-center justify-center">
+          <button className="h-6 w-6 rounded-r-md bg-neutral-900/80 dark:bg-white/80 p-1 text-white dark:text-neutral-600 flex items-center justify-center">
             {UI_ICONS.chevronRight_main}
           </button>{" "}
           Accesses the <b>Inventory</b> drawer.
@@ -285,10 +285,10 @@ const HelpBox = ({ isEmpty }) => {
       <div className="flex justify-end mt-3">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`p-2 rounded-full text-blue-500 dark:text-blue-400 transition-all duration-200 ${
+          className={`p-2 rounded-full text-neutral-600 dark:text-neutral-300 transition-all duration-200 ${
             isOpen
-              ? "bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rotate-180"
-              : "bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rotate-0"
+              ? "border border-neutral-200/70 dark:border-neutral-800/70 bg-white/80 dark:bg-neutral-900/80 rotate-180"
+              : "border border-neutral-200/70 dark:border-neutral-800/70 bg-white/80 dark:bg-neutral-900/80 rotate-0"
           }`}
           title={isOpen ? "Close Help [H/ESC]" : "Open Help [H]"}
         >

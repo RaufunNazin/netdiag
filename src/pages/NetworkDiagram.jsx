@@ -1985,7 +1985,7 @@ const NetworkDiagram = () => {
       {!isDrawerOpen && (
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="fixed top-16 left-0 z-10 px-2 py-8 bg-blue-500 rounded-r-md hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-all duration-200 text-white diagram-ui-overlay"
+          className="fixed top-16 left-0 z-10 px-2 py-8 bg-neutral-900/80 hover:bg-neutral-800/80 rounded-r-md hover:bg-blue-600 dark:bg-white/80 dark:hover:bg-neutral-200/80 transition-all duration-200 text-white dark:text-neutral-600 diagram-ui-overlay"
           title="Open Inventory [I]"
         >
           {UI_ICONS.chevronRight_main}
