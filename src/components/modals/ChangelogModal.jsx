@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { APP_CHANGELOGS } from "../../utils/changelogData";
 import { UI_ICONS } from "../../utils/icons";
 
@@ -19,12 +19,23 @@ const ChangelogModal = () => {
     }
   }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (currentLog) {
       localStorage.setItem(STORAGE_KEY, currentLog.version);
     }
     setIsOpen(false);
-  };
+  }, [currentLog]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, currentLog, handleClose]); // Dependencies
 
   if (!isOpen || !currentLog) return null;
 

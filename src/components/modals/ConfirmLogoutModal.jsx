@@ -1,4 +1,16 @@
+import { useEffect } from "react";
+
 const ConfirmLogoutModal = ({ isOpen, onClose, onConfirm, userName }) => {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        e.preventDefault();
+        onConfirm();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onConfirm]);
   if (!isOpen) return null;
 
   return (

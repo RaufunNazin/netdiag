@@ -183,9 +183,7 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
-  const handleTrace = async () => {
+  const handleTrace = useCallback(async () => {
     if (!source || !target) {
       toast.error("Please select both Source and Target devices.");
       return;
@@ -242,7 +240,23 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [source, target, mode, getNodeIcon]);
+  
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        e.preventDefault();
+        // Only trigger trace if source and target are valid and not currently loading
+        if (source && target && !isLoading) {
+          handleTrace();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, source, target, isLoading, handleTrace]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-neutral-900/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">

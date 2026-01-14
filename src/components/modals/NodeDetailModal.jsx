@@ -123,6 +123,20 @@ const NodeDetailModal = ({ isOpen, onClose, node, nodes, getNodeIcon }) => {
     }
   }, [isOpen, node, onClose]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        // Prevent closing if typing in a textarea or input (e.g., if you add editable fields later)
+        if (["TEXTAREA", "INPUT"].includes(e.target.tagName)) return;
+        
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   if (isLoading || !details) {

@@ -1,6 +1,17 @@
+import { useEffect } from "react";
 import { UI_ICONS } from "../../utils/icons";
 
 const WelcomeModal = ({ isOpen, onClose }) => {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
   if (!isOpen) return null;
 
   return (

@@ -6,6 +6,7 @@ const CustomSelect = ({
   options,
   placeholder = "Select...",
   disabled = false,
+  onKeyDown,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -40,6 +41,7 @@ const CustomSelect = ({
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
+          onKeyDown={onKeyDown}
           className={`input-style flex items-center justify-between text-left w-full ${
             disabled
               ? "opacity-50 cursor-not-allowed bg-neutral-100 dark:bg-neutral-900/50"

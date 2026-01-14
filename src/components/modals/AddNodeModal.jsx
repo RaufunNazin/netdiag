@@ -82,6 +82,19 @@ const AddNodeModal = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      // Prevent submission if the user is typing in a textarea (allows new lines)
+      if (e.target.tagName === "TEXTAREA") return;
+
+      // Prevent submission if the 'Add' button is disabled (validation check)
+      if (!formData.name || !formData.node_type) return;
+
+      e.preventDefault();
+      handleSave();
+    }
+  };
+
   const handleSave = () => {
     if (formData.node_type && formData.name.trim()) {
       let finalObject = { ...formData, parent_id: parentNode?.id };
@@ -130,7 +143,10 @@ const AddNodeModal = ({
 
   return (
     <div className="absolute inset-0 bg-neutral-900/70 z-[100] flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-neutral-900 p-4 md:p-8 rounded-lg shadow-md w-full max-w-4xl max-h-[95vh] flex flex-col transition-colors">
+      <div
+        onKeyDown={handleKeyDown}
+        className="bg-white dark:bg-neutral-900 p-4 md:p-8 rounded-lg shadow-md w-full max-w-4xl max-h-[95vh] flex flex-col transition-colors"
+      >
         <h3 className="text-lg md:text-2xl font-bold text-neutral-800 dark:text-neutral-50 pb-4 mb-4">
           {isInsertion ? "Insert New Device" : "Add New Node"}
         </h3>

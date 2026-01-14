@@ -18,6 +18,13 @@ const EditableField = ({
   const [isEditing, setIsEditing] = useState(false);
   const [currentValue, setCurrentValue] = useState(value);
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSaveClick();
+    }
+  };
+
   useEffect(() => {
     setCurrentValue(value);
   }, [value]);
@@ -43,12 +50,14 @@ const EditableField = ({
               options={options}
               onChange={(e) => setCurrentValue(e.target.value)}
               placeholder={`Select ${label}`}
+              onKeyDown={handleKeyDown}
             />
           ) : (
             <input
               type={type}
               value={currentValue || ""}
               onChange={(e) => setCurrentValue(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="input-style flex-grow"
             />
           )}
@@ -69,9 +78,7 @@ const EditableField = ({
           </button>
         </div>
       ) : (
-        <div
-          className="flex items-center justify-between input-style bg-neutral-50 dark:bg-neutral-950 min-h-[42px]"
-        >
+        <div className="flex items-center justify-between input-style bg-neutral-50 dark:bg-neutral-950 min-h-[42px]">
           <span className="text-neutral-800 dark:text-neutral-200">
             {value || (
               <span className="text-neutral-400 dark:text-neutral-500">

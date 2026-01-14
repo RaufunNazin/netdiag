@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import {
   LINK_TYPES,
@@ -199,7 +199,7 @@ const EditNodeModal = ({
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!originalState) return;
     setIsLoading(true);
 
@@ -296,7 +296,24 @@ const EditNodeModal = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [originalState, deviceData, incomingEdges, outgoingEdges, onClose, node.id, onSave]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        // Prevent triggering save if the user is typing in the Remarks textarea
+        if (e.target.tagName === "TEXTAREA") return;
+
+        e.preventDefault();
+        // Only save if not currently loading
+        if (!isLoading) {
+          handleSave();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, isLoading, handleSave]);
 
   if (!isOpen) return null;
 

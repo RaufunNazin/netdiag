@@ -1,4 +1,16 @@
+import { useEffect } from "react";
+
 const ConfirmExportModal = ({ isOpen, onClose, onConfirm }) => {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        e.preventDefault();
+        onConfirm();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onConfirm]);
   if (!isOpen) return null;
   return (
     <div className="absolute inset-0 bg-black/50 z-50 flex justify-center items-center backdrop-blur-sm">

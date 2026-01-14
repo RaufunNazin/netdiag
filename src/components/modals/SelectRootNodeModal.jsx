@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { fetchRootCandidates } from "../../utils/graphUtils";
 
 const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
@@ -19,16 +19,33 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        e.preventDefault();
+        // If there are filtered nodes, select the first one
+        if (filteredNodes.length > 0) {
+          handleSelect(filteredNodes[0].id);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, filteredNodes, handleSelect]);
+
   const filteredNodes = searchTerm
     ? nodes.filter((node) =>
         node.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : nodes;
 
-  const handleSelect = (nodeId) => {
-    onSelect(nodeId);
-    onClose();
-  };
+  const handleSelect = useCallback(
+    (nodeId) => {
+      onSelect(nodeId);
+      onClose();
+    },
+    [onSelect, onClose]
+  );
 
   if (!isOpen) {
     return null;
