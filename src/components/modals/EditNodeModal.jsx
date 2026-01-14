@@ -296,7 +296,7 @@ const EditNodeModal = ({
     } finally {
       setIsLoading(false);
     }
-  }, [originalState, deviceData, incomingEdges, outgoingEdges, onClose, node.id, onSave]);
+  }, [originalState, deviceData, incomingEdges, outgoingEdges, onClose, node?.id, onSave]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {

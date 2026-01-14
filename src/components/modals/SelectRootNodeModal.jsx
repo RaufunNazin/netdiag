@@ -19,20 +19,6 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (isOpen && e.key === "Enter") {
-        e.preventDefault();
-        // If there are filtered nodes, select the first one
-        if (filteredNodes.length > 0) {
-          handleSelect(filteredNodes[0].id);
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, filteredNodes, handleSelect]);
-
   const filteredNodes = searchTerm
     ? nodes.filter((node) =>
         node.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -46,6 +32,19 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
     },
     [onSelect, onClose]
   );
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isOpen && e.key === "Enter") {
+        e.preventDefault();
+        // If there are filtered nodes, select the first one
+        if (filteredNodes.length > 0) {
+          handleSelect(filteredNodes[0].id);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, filteredNodes, handleSelect]);
 
   if (!isOpen) {
     return null;
