@@ -173,7 +173,6 @@ const CustomerDetailModal = ({ isOpen, onClose, nodeData }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (isOpen && e.key === "Enter") {
-        // Prevent closing if the user is typing in the search input
         if (e.target.tagName === "INPUT") return;
 
         e.preventDefault();

@@ -36,7 +36,6 @@ const SelectRootNodeModal = ({ isOpen, onClose, onSelect }) => {
     const handleKeyDown = (e) => {
       if (isOpen && e.key === "Enter") {
         e.preventDefault();
-        // If there are filtered nodes, select the first one
         if (filteredNodes.length > 0) {
           handleSelect(filteredNodes[0].id);
         }

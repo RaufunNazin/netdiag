@@ -84,10 +84,8 @@ const AddNodeModal = ({
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      // Prevent submission if the user is typing in a textarea (allows new lines)
       if (e.target.tagName === "TEXTAREA") return;
 
-      // Prevent submission if the 'Add' button is disabled (validation check)
       if (!formData.name || !formData.node_type) return;
 
       e.preventDefault();

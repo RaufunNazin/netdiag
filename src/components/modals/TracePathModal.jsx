@@ -241,12 +241,11 @@ const TracePathModal = ({ isOpen, onClose, getNodeIcon }) => {
       setIsLoading(false);
     }
   }, [source, target, mode, getNodeIcon]);
-  
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (isOpen && e.key === "Enter") {
         e.preventDefault();
-        // Only trigger trace if source and target are valid and not currently loading
         if (source && target && !isLoading) {
           handleTrace();
         }

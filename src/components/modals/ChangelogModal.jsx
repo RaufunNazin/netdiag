@@ -35,7 +35,7 @@ const ChangelogModal = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentLog, handleClose]); // Dependencies
+  }, [isOpen, currentLog, handleClose]);
 
   if (!isOpen || !currentLog) return null;
 

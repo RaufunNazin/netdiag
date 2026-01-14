@@ -301,11 +301,9 @@ const EditNodeModal = ({
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (isOpen && e.key === "Enter") {
-        // Prevent triggering save if the user is typing in the Remarks textarea
         if (e.target.tagName === "TEXTAREA") return;
 
         e.preventDefault();
-        // Only save if not currently loading
         if (!isLoading) {
           handleSave();
         }
