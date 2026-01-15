@@ -33,3 +33,17 @@ const CORE_COLORS_DATA = [
 const SPLIT_RATIOS = ["", "2", "4", "8", "16", "32", "64"];
 
 export { LINK_TYPES, NODE_TYPES, DEVICE_TYPES, CORE_COLORS_DATA, SPLIT_RATIOS };
+
+export const nodeColors = {
+  AP:        "#93c5fd", // soft sky blue
+  Bamboo:    "#a7f3d0", // soft mint green
+  mSwitch:   "#c4b5fd", // soft violet
+  OLT:       "#fca5a5", // soft red
+  ONU:       "#6ee7b7", // soft emerald
+  PON:       "#fde68a", // soft amber
+  Router:    "#fdba74", // soft orange
+  Splitter:  "#bfdbfe", // soft blue
+  TJ:        "#e9d5ff", // soft lavender
+  uSwitch:   "#ddd6fe", // soft indigo
+  Other:     "#e5e7eb", // neutral gray
+};

@@ -17,7 +17,7 @@ import {
   Background,
   MarkerType,
   getNodesBounds,
-  Panel,
+  MiniMap,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
@@ -58,6 +58,7 @@ import ThemeToggleFab from "../components/ui/ThemeToggleFab.jsx";
 import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import VerticalIconDock from "../components/ui/VerticalIconDock.jsx";
 import ChangelogModal from "../components/modals/ChangelogModal.jsx";
+import { nodeColors } from "../utils/constants.js";
 const WelcomeModal = lazy(() =>
   import("../components/modals/WelcomeModal.jsx")
 );
@@ -1970,8 +1971,16 @@ const NetworkDiagram = () => {
         onMoveEnd={onMoveEnd}
         colorMode={colorMode}
         style={{ backgroundColor: "transparent" }}
+        minZoom={0.05}
+        maxZoom={8}
       >
         <Background variant="dots" gap={20} size={1} bgColor="transparent" />
+        <MiniMap
+          position="bottom-right"
+          zoomable
+          pannable
+          nodeColor={(node) => nodeColors[node.data.node_type] ?? "#e5e7eb"}
+        />
         {contextMenu && (
           <ContextMenu {...contextMenu} onAction={handleAction} edges={edges} />
         )}
