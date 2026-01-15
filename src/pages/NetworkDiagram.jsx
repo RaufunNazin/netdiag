@@ -1818,7 +1818,7 @@ const NetworkDiagram = () => {
         case "r":
           setResetConfirmModal({
             isOpen: true,
-            scope: null,
+            scope: "all",
             nodeId: null,
             nodeName: "",
           });
@@ -1975,12 +1975,17 @@ const NetworkDiagram = () => {
         maxZoom={8}
       >
         <Background variant="dots" gap={20} size={1} bgColor="transparent" />
-        <MiniMap
-          position="bottom-right"
-          zoomable
-          pannable
-          nodeColor={(node) => nodeColors[node.data.node_type] ?? "#e5e7eb"}
-        />
+        <div className="relative">
+          <MiniMap
+            position="top-left"
+            zoomable
+            pannable
+            nodeColor={(node) => nodeColors[node.data.node_type] ?? "#e5e7eb"}
+            className="pl-6"
+            bgColor="transparent"
+          />
+        </div>
+
         {contextMenu && (
           <ContextMenu {...contextMenu} onAction={handleAction} edges={edges} />
         )}
@@ -1994,7 +1999,7 @@ const NetworkDiagram = () => {
       {!isDrawerOpen && (
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="fixed top-16 left-0 z-10 px-2 py-8 bg-neutral-900/80 hover:bg-neutral-800/80 rounded-r-md hover:bg-blue-600 dark:bg-white/80 dark:hover:bg-neutral-200/80 transition-all duration-200 text-white dark:text-neutral-600 diagram-ui-overlay"
+          className="fixed top-[84px] left-0 z-10 px-2 py-8 bg-neutral-900/80 hover:bg-neutral-800/80 rounded-r-md hover:bg-blue-600 dark:bg-white/80 dark:hover:bg-neutral-200/80 transition-all duration-200 text-white dark:text-neutral-600 diagram-ui-overlay"
           title="Open Inventory [I]"
         >
           {UI_ICONS.chevronRight_main}
