@@ -59,45 +59,49 @@ import LoadingOverlay from "../components/ui/LoadingOverlay.jsx";
 import VerticalIconDock from "../components/ui/VerticalIconDock.jsx";
 import ChangelogModal from "../components/modals/ChangelogModal.jsx";
 import { nodeColors } from "../utils/constants.js";
-const WelcomeModal = lazy(() =>
-  import("../components/modals/WelcomeModal.jsx")
+import FloatingEdge from "../components/ui/FloatingEdge.jsx";
+import FloatingConnectionLine from "../components/ui/FloatingConnectionLine.jsx";
+
+// Lazy imports...
+const WelcomeModal = lazy(
+  () => import("../components/modals/WelcomeModal.jsx"),
 );
-const CustomerDetailModal = lazy(() =>
-  import("../components/modals/CustomerDetailModal.jsx")
+const CustomerDetailModal = lazy(
+  () => import("../components/modals/CustomerDetailModal.jsx"),
 );
-const NodeDetailModal = lazy(() =>
-  import("../components/modals/NodeDetailModal.jsx")
+const NodeDetailModal = lazy(
+  () => import("../components/modals/NodeDetailModal.jsx"),
 );
-const ConfirmExportModal = lazy(() =>
-  import("../components/modals/ConfirmExportModal.jsx")
+const ConfirmExportModal = lazy(
+  () => import("../components/modals/ConfirmExportModal.jsx"),
 );
-const AddNodeModal = lazy(() =>
-  import("../components/modals/AddNodeModal.jsx")
+const AddNodeModal = lazy(
+  () => import("../components/modals/AddNodeModal.jsx"),
 );
-const EditNodeModal = lazy(() =>
-  import("../components/modals/EditNodeModal.jsx")
+const EditNodeModal = lazy(
+  () => import("../components/modals/EditNodeModal.jsx"),
 );
-const ConfirmResetModal = lazy(() =>
-  import("../components/modals/ConfirmResetModal.jsx")
+const ConfirmResetModal = lazy(
+  () => import("../components/modals/ConfirmResetModal.jsx"),
 );
-const ConfirmDeleteModal = lazy(() =>
-  import("../components/modals/ConfirmDeleteModal.jsx")
+const ConfirmDeleteModal = lazy(
+  () => import("../components/modals/ConfirmDeleteModal.jsx"),
 );
-const SelectRootNodeModal = lazy(() =>
-  import("../components/modals/SelectRootNodeModal.jsx")
+const SelectRootNodeModal = lazy(
+  () => import("../components/modals/SelectRootNodeModal.jsx"),
 );
-const ConfirmSaveModal = lazy(() =>
-  import("../components/modals/ConfirmSaveModal.jsx")
+const ConfirmSaveModal = lazy(
+  () => import("../components/modals/ConfirmSaveModal.jsx"),
 );
-const EditEdgeModal = lazy(() =>
-  import("../components/modals/EditEdgeModal.jsx")
+const EditEdgeModal = lazy(
+  () => import("../components/modals/EditEdgeModal.jsx"),
 );
-const TracePathModal = lazy(() =>
-  import("../components/modals/TracePathModal.jsx")
+const TracePathModal = lazy(
+  () => import("../components/modals/TracePathModal.jsx"),
 );
 const OrphanDrawer = lazy(() => import("../components/ui/OrphanDrawer.jsx"));
-const ConfirmLogoutModal = lazy(() =>
-  import("../components/modals/ConfirmLogoutModal.jsx")
+const ConfirmLogoutModal = lazy(
+  () => import("../components/modals/ConfirmLogoutModal.jsx"),
 );
 
 const NODES_PER_COLUMN = 8;
@@ -109,6 +113,11 @@ const NODE_HEIGHT = 60;
 const API_DEFAULT_COLOR = "#1e293b";
 const EDGE_COLOR_DARK_MODE = "#cbd5e1";
 
+// --- 2. DEFINE EDGE TYPES ---
+const edgeTypes = {
+  floating: FloatingEdge,
+};
+
 const NetworkDiagram = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -116,7 +125,9 @@ const NetworkDiagram = () => {
   const reactFlowInstance = useReactFlow();
   const initialNodesRef = useRef([]);
   const { customerIndex } = useCustomerSearchIndex();
+
   const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
+
   const [colorMode, setColorMode] = useState(() => {
     return localStorage.getItem("colorMode") || "dark";
   });
@@ -158,14 +169,11 @@ const NetworkDiagram = () => {
     nodeName: "",
   });
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-
   const [isEditMode, setIsEditMode] = useState(false);
-
   const [rootId, setRootId] = useState(() => (id ? parseInt(id, 10) : null));
   const [dynamicRootId, setDynamicRootId] = useState(() =>
-    id ? null : localStorage.getItem(MISC.DYNAMIC_ROOT_ID)
+    id ? null : localStorage.getItem(MISC.DYNAMIC_ROOT_ID),
   );
-
   const [loading, setLoading] = useState(() => {
     const initialRoot = id ? parseInt(id, 10) : null;
     if (initialRoot !== null) {
@@ -174,7 +182,6 @@ const NetworkDiagram = () => {
     const initialDynamic = localStorage.getItem(MISC.DYNAMIC_ROOT_ID);
     return !!initialDynamic;
   });
-
   const [isEmpty, setIsEmpty] = useState(false);
   const [diagramRoots, setDiagramRoots] = useState({ main: null, sub: [] });
   const [customerModalNode, setCustomerModalNode] = useState(null);
@@ -185,7 +192,6 @@ const NetworkDiagram = () => {
   const [deletedEdges, setDeletedEdges] = useState([]);
   const [insertionEdge, setInsertionEdge] = useState(null);
   const [isSaveConfirmModalOpen, setIsSaveConfirmModalOpen] = useState(false);
-
   const [redirectInfo, setRedirectInfo] = useState({
     shouldRedirect: false,
     message: "",
@@ -251,13 +257,11 @@ const NetworkDiagram = () => {
 
       while (queue.length > 0) {
         const currentId = queue.shift();
-
         const incomingEdges = edges.filter((e) => e.target === currentId);
 
         incomingEdges.forEach((edge) => {
           pathEdgeIds.add(edge.id);
           const parentId = edge.source;
-
           if (!visited.has(parentId)) {
             visited.add(parentId);
             pathNodeIds.add(parentId);
@@ -265,15 +269,13 @@ const NetworkDiagram = () => {
           }
         });
       }
-
       setHighlightedPath({ nodes: pathNodeIds, edges: pathEdgeIds });
-
       toast.info("Path highlighted. Click anywhere on the diagram to clear.", {
         autoClose: 3000,
         toastId: "highlight-toast",
       });
     },
-    [edges]
+    [edges],
   );
 
   useEffect(() => {
@@ -308,7 +310,6 @@ const NetworkDiagram = () => {
         eds.map((edge) => {
           if (edge.id === `e-${edgeId}`) {
             const newEdge = { ...edge };
-
             if (fieldName === "cable_desc") {
               newEdge.label = newValue;
             } else if (fieldName === "cable_color") {
@@ -321,19 +322,17 @@ const NetworkDiagram = () => {
             return newEdge;
           }
           return edge;
-        })
+        }),
       );
     },
-    [setEdges]
+    [setEdges],
   );
 
   const handleUndo = useCallback(() => {
     if (history.length === 0) return;
-
     setHistory((prevHistory) => {
       const newHistory = [...prevHistory];
       const lastState = newHistory.pop();
-
       if (lastState) {
         setNodes(lastState.nodes);
         setEdges(lastState.edges);
@@ -355,18 +354,14 @@ const NetworkDiagram = () => {
       toast.error("Diagram element not found.");
       return;
     }
-
     const elementToCapture = reactFlowWrapper.current.querySelector(
-      ".react-flow__viewport"
+      ".react-flow__viewport",
     );
-
     if (!elementToCapture) {
       toast.error("Diagram viewport not found.");
       return;
     }
-
     setIsDownloading(true);
-
     setTimeout(() => {
       const nodesToCapture = reactFlowInstance.getNodes();
       if (nodesToCapture.length === 0) {
@@ -375,15 +370,11 @@ const NetworkDiagram = () => {
         toast.dismiss("export-toast");
         return;
       }
-
       const nodesBounds = getNodesBounds(nodesToCapture);
-
       const padding = 100;
       const scaleFactor = 2;
-
       const imageWidth = (nodesBounds.width + padding * 2) * scaleFactor;
       const imageHeight = (nodesBounds.height + padding * 2) * scaleFactor;
-
       const translateX = -nodesBounds.x + padding;
       const translateY = -nodesBounds.y + padding;
 
@@ -400,7 +391,6 @@ const NetworkDiagram = () => {
       };
 
       let filename = "";
-
       if (rootId) {
         const oltNode = nodes.find((n) => n.id === String(rootId));
         const oltName = oltNode?.data?.label || "olt";
@@ -445,15 +435,17 @@ const NetworkDiagram = () => {
         });
     }, 100);
   }, [reactFlowInstance, reactFlowWrapper, rootId, nodes]);
+
   const handleExportClick = () => {
     if (isDownloading) return;
     setIsExportModalOpen(true);
   };
+
   const handleNavigateClick = useCallback(
     (nodeId) => {
       navigate(`/${nodeId}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const handleAddNodeClick = () => {
@@ -462,11 +454,8 @@ const NetworkDiagram = () => {
       x: viewportBounds.width / 2,
       y: viewportBounds.height / 2,
     };
-
     const position = reactFlowInstance.screenToFlowPosition(targetPosition);
-
     const finalPosition = findAvailablePosition(position, nodes);
-
     setAddModal({
       isOpen: true,
       position: finalPosition,
@@ -495,11 +484,9 @@ const NetworkDiagram = () => {
       }
       return false;
     };
-
     if (!isOccupied(desiredPosition)) {
       return desiredPosition;
     }
-
     const nudge = 100;
     for (let i = 1; i < 20; i++) {
       const candidates = [
@@ -508,14 +495,12 @@ const NetworkDiagram = () => {
         { x: desiredPosition.x, y: desiredPosition.y + i * nudge },
         { x: desiredPosition.x, y: desiredPosition.y - i * nudge },
       ];
-
       for (const candidate of candidates) {
         if (!isOccupied(candidate)) {
           return candidate;
         }
       }
     }
-
     return desiredPosition;
   };
 
@@ -526,7 +511,7 @@ const NetworkDiagram = () => {
     const originalNodes = initialNodesRef.current;
     const currentNodes = reactFlowInstance.getNodes();
     const originalNodeMap = new Map(
-      originalNodes.map((node) => [node.id, node])
+      originalNodes.map((node) => [node.id, node]),
     );
 
     const movedNodes = currentNodes.filter((currentNode) => {
@@ -540,17 +525,14 @@ const NetworkDiagram = () => {
 
     try {
       const deleteEdgeFns = deletedEdges.map(
-        (edgeId) => () => deleteEdge(edgeId, true)
+        (edgeId) => () => deleteEdge(edgeId, true),
       );
-
       const deleteNodeFns = deletedNodes.map(
-        (nodeId) => () => deleteNode(nodeId, true)
+        (nodeId) => () => deleteNode(nodeId, true),
       );
-
       const createConnectionFns = newConnections.map((connParams) => () => {
         return createEdge(connParams, true);
       });
-
       const savePositionFns = movedNodes.map((node) => () => {
         return saveNodePosition(
           node.id,
@@ -559,34 +541,17 @@ const NetworkDiagram = () => {
             position_y: node.position.y,
             position_mode: 1,
           },
-          true
+          true,
         );
       });
 
       console.log("Saving changes sequentially...");
-
-      console.log(`Deleting ${deleteEdgeFns.length} edges...`);
-      for (const fn of deleteEdgeFns) {
-        await fn();
-      }
-
-      console.log(`Deleting ${deleteNodeFns.length} nodes...`);
-      for (const fn of deleteNodeFns) {
-        await fn();
-      }
-
-      console.log(`Saving ${savePositionFns.length} node positions...`);
-      for (const fn of savePositionFns) {
-        await fn();
-      }
-
-      console.log(`Creating ${createConnectionFns.length} new connections...`);
-      for (const fn of createConnectionFns) {
-        await fn();
-      }
+      for (const fn of deleteEdgeFns) await fn();
+      for (const fn of deleteNodeFns) await fn();
+      for (const fn of savePositionFns) await fn();
+      for (const fn of createConnectionFns) await fn();
 
       toast.success("All changes saved successfully!");
-
       setNewConnections([]);
       setDeletedNodes([]);
       setDeletedEdges([]);
@@ -597,7 +562,7 @@ const NetworkDiagram = () => {
       console.error("Failed to save changes sequentially:", error);
       toast.error(
         error.response?.data?.detail ||
-          "A failure occurred during save. Some changes may not have been saved. Please reload."
+          "A failure occurred during save. Some changes may not have been saved. Please reload.",
       );
     }
   }, [
@@ -619,14 +584,12 @@ const NetworkDiagram = () => {
     setIsEmpty(false);
     try {
       const apiData = await fetchData(rootId);
-
       const isGeneralView = rootId === null;
 
       if (!isGeneralView && apiData.length > 0) {
         const rootNodeFromData = apiData.find(
-          (item) => String(item.id) === String(rootId)
+          (item) => String(item.id) === String(rootId),
         );
-
         if (rootNodeFromData && rootNodeFromData.node_type !== "OLT") {
           setRedirectInfo({
             shouldRedirect: true,
@@ -646,12 +609,10 @@ const NetworkDiagram = () => {
 
       const uniqueNodesMap = new Map();
       const nameSwIdToNodeIdMap = new Map();
-
       const deviceIdentityMap = new Map();
 
       apiData.forEach((item) => {
         const identityKey = `${item.name}-${item.sw_id ?? -1}`;
-
         if (!deviceIdentityMap.has(identityKey)) {
           deviceIdentityMap.set(identityKey, item);
         } else {
@@ -684,7 +645,6 @@ const NetworkDiagram = () => {
 
           if (targetId) {
             let strokeColor = item.cable_color || API_DEFAULT_COLOR;
-
             if (colorMode === "dark" && strokeColor === API_DEFAULT_COLOR) {
               strokeColor = EDGE_COLOR_DARK_MODE;
             }
@@ -692,12 +652,13 @@ const NetworkDiagram = () => {
               id: `e-${item.edge_id}`,
               source: String(item.parent_id),
               target: targetId,
+              // --- 3. APPLY FLOATING TYPE TO EXISTING EDGES ---
+              type: "floating",
               markerEnd: { type: MarkerType.ArrowClosed },
               style: {
                 stroke: strokeColor,
                 strokeWidth: 3,
               },
-
               label: item.cable_desc,
               labelStyle: { fontSize: "10px", fill: "#333", fontWeight: 600 },
               labelBgStyle: {
@@ -711,7 +672,6 @@ const NetworkDiagram = () => {
       });
 
       const parentNodeIds = new Set(initialEdges.map((edge) => edge.source));
-
       const initialNodes = Array.from(uniqueNodesMap.values()).map((item) => {
         const nodeId =
           item.node_type === NODE_TYPES_ENUM.ONU && item.name && item.sw_id
@@ -747,17 +707,16 @@ const NetworkDiagram = () => {
             }
           });
         }
-
         initialNodes.sort(compareNodesByLabel);
         const nodeMap = new Map(initialNodes.map((n) => [n.id, n]));
         let rootNode = null;
         if (!isGeneralView) {
           rootNode = initialNodes.find(
-            (n) => String(n.data.id) === String(rootId)
+            (n) => String(n.data.id) === String(rootId),
           );
         } else if (dynamicRootId) {
           rootNode = initialNodes.find(
-            (n) => String(n.id) === String(dynamicRootId)
+            (n) => String(n.id) === String(dynamicRootId),
           );
         }
 
@@ -768,7 +727,6 @@ const NetworkDiagram = () => {
           if (rootNode && node.id === rootNode.id) {
             return;
           }
-
           if (node.data.parent_id !== null && node.data.parent_id !== 0) {
             const parent = nodeMap.get(String(node.data.parent_id));
             if (parent) {
@@ -776,7 +734,6 @@ const NetworkDiagram = () => {
             }
           }
         });
-
         initialNodes.forEach((node) => {
           node.level = -1;
         });
@@ -786,16 +743,13 @@ const NetworkDiagram = () => {
             n.id !== (rootNode ? rootNode.id : null) &&
             n.data.position_mode !== 1 &&
             (n.data.parent_id === null || n.data.parent_id === 0) &&
-            parentNodeIds.has(n.id)
+            parentNodeIds.has(n.id),
         );
-
         setDiagramRoots({ main: rootNode, sub: orphanRoots });
-
         const allRoots = [rootNode, ...orphanRoots].filter(Boolean);
 
         allRoots.forEach((root) => {
           if (root.level !== -1) return;
-
           root.level = 0;
           const queue = [root];
           let head = 0;
@@ -817,29 +771,25 @@ const NetworkDiagram = () => {
             (n.data.parent_id === null || n.data.parent_id === 0) &&
             n.id !== (rootNode ? rootNode.id : null) &&
             n.data.position_mode !== 1 &&
-            parentNodeIds.has(n.id)
+            parentNodeIds.has(n.id),
         );
-
         const allRootsForLayout = [rootNode, ...autoLayoutOrphanRoots].filter(
-          Boolean
+          Boolean,
         );
-
         const manuallyPositionedOrphanCount = initialNodes.filter(
-          (n) => n.level === -1 && n.data.position_mode === 1
+          (n) => n.level === -1 && n.data.position_mode === 1,
         ).length;
 
         initialNodes.forEach((node) => {
           if (node.data.position_mode === 1) {
             return;
           }
-
           if (node.level !== -1) {
             node.position = { x: node.level * GRID_X_SPACING, y: 0 };
           } else {
             const autoOrphanIndex = initialNodes
               .filter((n) => n.level === -1 && n.data.position_mode !== 1)
               .indexOf(node);
-
             node.position = {
               x: 0,
               y:
@@ -851,21 +801,19 @@ const NetworkDiagram = () => {
 
         const gridNodeType = NODE_TYPES_ENUM.ONU;
         const nodeHeight = 60;
-
         const getGridChildren = (parentId) => {
           return initialNodes.filter(
             (n) =>
               String(n.data.parent_id) === parentId &&
-              n.data.node_type === gridNodeType
+              n.data.node_type === gridNodeType,
           );
         };
-
         const getBranchChildren = (parentId) => {
           return initialNodes
             .filter(
               (n) =>
                 String(n.data.parent_id) === parentId &&
-                n.data.node_type !== gridNodeType
+                n.data.node_type !== gridNodeType,
             )
             .map((n) => nodeMap.get(n.id))
             .filter(Boolean);
@@ -873,16 +821,13 @@ const NetworkDiagram = () => {
 
         function offsetBranch(node, offsetY) {
           if (!node || !node.position) return;
-
           if (node.data.position_mode !== 1) {
             node.position.y += offsetY;
           }
-
           const allChildren = [
             ...getBranchChildren(node.id),
             ...getGridChildren(node.id),
           ];
-
           allChildren.forEach((childRef) => {
             const childNode = nodeMap.get(childRef.id);
             if (childNode) {
@@ -893,20 +838,15 @@ const NetworkDiagram = () => {
 
         function layoutBranch(node) {
           if (!node) return 0;
-
           const branchChildren = getBranchChildren(node.id);
           const gridChildren = getGridChildren(node.id);
-
           branchChildren.sort(compareNodesByLabel);
           gridChildren.sort(compareNodesByLabel);
-
           let currentY = 0;
-
           if (branchChildren.length > 0) {
             const branchHeights = branchChildren.map((child) =>
-              layoutBranch(child)
+              layoutBranch(child),
             );
-
             branchChildren.forEach((child, index) => {
               const childHeight = branchHeights[index];
               offsetBranch(child, currentY);
@@ -916,12 +856,10 @@ const NetworkDiagram = () => {
               }
             });
           }
-
           if (gridChildren.length > 0) {
             if (branchChildren.length > 0) {
               currentY += PADDING_BETWEEN_GRIDS;
             }
-
             const startX = node.position.x + GRID_X_SPACING;
             gridChildren.forEach((childNode, index) => {
               const nodeToUpdate = nodeMap.get(childNode.id);
@@ -932,15 +870,12 @@ const NetworkDiagram = () => {
                 nodeToUpdate.position.x = startX + column * GRID_X_SPACING;
               }
             });
-
             const numRows = Math.min(gridChildren.length, NODES_PER_COLUMN);
             const gridHeight =
               (numRows > 0 ? numRows - 1 : 0) * GRID_Y_SPACING + nodeHeight;
             currentY += gridHeight;
           }
-
           const totalHeight = Math.max(currentY, nodeHeight);
-
           if (node.data.position_mode !== 1) {
             if (totalHeight === nodeHeight) {
               node.position.y = 0;
@@ -948,26 +883,22 @@ const NetworkDiagram = () => {
               node.position.y = (totalHeight - nodeHeight) / 2;
             }
           }
-
           return totalHeight;
         }
 
         function getMinY(node, nodeMap, getBranchChildren, getGridChildren) {
           if (!node || !node.position) return Infinity;
-
           let minY = node.position.y;
-
           const allChildren = [
             ...getBranchChildren(node.id),
             ...getGridChildren(node.id),
           ];
-
           allChildren.forEach((childRef) => {
             const childNode = nodeMap.get(childRef.id);
             if (childNode) {
               minY = Math.min(
                 minY,
-                getMinY(childNode, nodeMap, getBranchChildren, getGridChildren)
+                getMinY(childNode, nodeMap, getBranchChildren, getGridChildren),
               );
             }
           });
@@ -976,21 +907,17 @@ const NetworkDiagram = () => {
 
         const orphanTreeNodes = new Set();
         let currentGlobalY = 0;
-
         allRootsForLayout.forEach((root) => {
           const treeHeight = layoutBranch(root);
-
           const minY = getMinY(
             root,
             nodeMap,
             getBranchChildren,
-            getGridChildren
+            getGridChildren,
           );
           const yOffset = currentGlobalY - minY;
           offsetBranch(root, yOffset);
-
           currentGlobalY += treeHeight + PADDING_BETWEEN_GRIDS;
-
           const queue = [root];
           orphanTreeNodes.add(root.id);
           let head = 0;
@@ -1009,7 +936,6 @@ const NetworkDiagram = () => {
 
         const diagramNodes = [];
         const orphanDrawerNodes = [];
-
         initialNodes.forEach((node) => {
           if (
             node.level !== -1 ||
@@ -1025,7 +951,7 @@ const NetworkDiagram = () => {
         const diagramOrphanRoots = diagramNodes.filter(
           (n) =>
             (n.data.parent_id === null || n.data.parent_id === 0) &&
-            n.id !== (rootNode ? rootNode.id : null)
+            n.id !== (rootNode ? rootNode.id : null),
         );
         setDiagramRoots({ main: rootNode, sub: diagramOrphanRoots });
 
@@ -1034,18 +960,15 @@ const NetworkDiagram = () => {
             (n.data.position_mode === null ||
               n.data.position_mode === undefined) &&
             n.level !== -1;
-
           const isRootNodeInOltView =
             !isGeneralView && String(n.data.id) === String(rootId);
-
           return shouldSave && !isRootNodeInOltView;
         });
 
         if (nodesToSave.length > 0) {
           console.log(
-            `Auto-saving calculated positions for ${nodesToSave.length} nodes...`
+            `Auto-saving calculated positions for ${nodesToSave.length} nodes...`,
           );
-
           const autoSavePromises = nodesToSave.map((node) => {
             return saveNodePosition(
               node.id,
@@ -1054,10 +977,9 @@ const NetworkDiagram = () => {
                 position_y: node.position.y,
                 position_mode: 0,
               },
-              true
+              true,
             );
           });
-
           Promise.all(autoSavePromises)
             .then(() => console.log("Auto-save complete."))
             .catch((err) => console.error("Auto-save failed:", err));
@@ -1077,7 +999,6 @@ const NetworkDiagram = () => {
                 rootId: savedRootId,
                 dynamicRootId: savedDynamicRootId,
               } = JSON.parse(savedData);
-
               if (
                 savedRootId === rootId &&
                 savedDynamicRootId === dynamicRootId
@@ -1109,21 +1030,18 @@ const NetworkDiagram = () => {
       try {
         const currentNodes = reactFlowInstance.getNodes();
         const currentEdges = reactFlowInstance.getEdges();
-
         const nodesBeingReset = currentNodes.filter((n) => {
           if (nodeId) return n.id === nodeId;
           if (scope === "manual") return n.data.position_mode === 1;
           return true;
         });
-
         const unconnectedNodes = nodesBeingReset.filter((n) => {
           const isRoot =
             String(n.id) === String(rootId) ||
             String(n.id) === String(dynamicRootId);
           if (isRoot) return false;
-
           const hasConnections = currentEdges.some(
-            (e) => e.source === n.id || e.target === n.id
+            (e) => e.source === n.id || e.target === n.id,
           );
           return !hasConnections;
         });
@@ -1133,19 +1051,16 @@ const NetworkDiagram = () => {
           scope: nodeId ? null : scope,
           node_id: nodeId ? parseInt(nodeId, 10) : null,
         };
-
         await resetPositions(payload);
         await loadInitialData();
-
         if (unconnectedNodes.length > 0) {
           const names = unconnectedNodes
             .slice(0, 3)
             .map((n) => n.data.label)
             .join(", ");
           const suffix = unconnectedNodes.length > 3 ? "..." : "";
-
           toast.info(
-            `${names}${suffix} sent to inventory (no cables attached).`
+            `${names}${suffix} sent to inventory (no cables attached).`,
           );
         }
       } catch (error) {
@@ -1153,7 +1068,7 @@ const NetworkDiagram = () => {
         setLoading(false);
       }
     },
-    [rootId, dynamicRootId, reactFlowInstance]
+    [rootId, dynamicRootId, reactFlowInstance],
   );
 
   const handleConfirmReset = useCallback(async () => {
@@ -1197,15 +1112,16 @@ const NetworkDiagram = () => {
         id: `reactflow__edge-${params.source}${params.sourceHandle || ""}-${
           params.target
         }${params.targetHandle || ""}`,
+        // --- 4. APPLY FLOATING TYPE TO NEW CONNECTIONS ---
+        type: "floating",
         markerEnd: { type: MarkerType.ArrowClosed },
       };
       setEdges((eds) => addEdge(newEdge, eds));
-
       if (isEditMode) {
         setNewConnections((prev) => [...prev, params]);
       }
     },
-    [isEditMode, pushStateToHistory, setEdges, setNewConnections]
+    [isEditMode, pushStateToHistory, setEdges, setNewConnections],
   );
 
   const handleFabClick = useCallback(async () => {
@@ -1213,9 +1129,8 @@ const NetworkDiagram = () => {
       const originalNodes = initialNodesRef.current;
       const currentNodes = reactFlowInstance.getNodes();
       const originalNodeMap = new Map(
-        originalNodes.map((node) => [node.id, node])
+        originalNodes.map((node) => [node.id, node]),
       );
-
       const movedNodes = currentNodes.filter((currentNode) => {
         const originalNode = originalNodeMap.get(currentNode.id);
         return (
@@ -1224,13 +1139,11 @@ const NetworkDiagram = () => {
             currentNode.position.y !== originalNode.position.y)
         );
       });
-
       const hasChanges =
         movedNodes.length > 0 ||
         newConnections.length > 0 ||
         deletedNodes.length > 0 ||
         deletedEdges.length > 0;
-
       if (hasChanges) {
         setIsSaveConfirmModalOpen(true);
       } else {
@@ -1258,6 +1171,8 @@ const NetworkDiagram = () => {
 
   const isValidConnection = useCallback((connection) => {
     if (connection.source === connection.target) return false;
+    // Note: With floating edges, specific handles might matter less,
+    // but we can keep this restriction if needed.
     return (
       connection.sourceHandle === MISC.RIGHT &&
       connection.targetHandle === MISC.LEFT
@@ -1302,16 +1217,15 @@ const NetworkDiagram = () => {
       if (isEditMode) {
         return;
       }
-
       setNodes((nds) =>
         nds.map((n) =>
           n.id === node.id
             ? { ...n, data: { ...n.data, isCollapsed: !n.data?.isCollapsed } }
-            : n
-        )
+            : n,
+        ),
       );
     },
-    [setNodes, isEditMode]
+    [setNodes, isEditMode],
   );
 
   const handleAction = (action, { id }) => {
@@ -1348,9 +1262,8 @@ const NetworkDiagram = () => {
           setOrphanNodes((prev) => [...prev, nodeToSend]);
           setNodes((nds) => nds.filter((n) => n.id !== id));
           setEdges((eds) =>
-            eds.filter((e) => e.source !== id && e.target !== id)
+            eds.filter((e) => e.source !== id && e.target !== id),
           );
-
           saveNodePosition(
             id,
             {
@@ -1358,7 +1271,7 @@ const NetworkDiagram = () => {
               position_y: null,
               position_mode: 0,
             },
-            true
+            true,
           );
           toast.info(`${nodeToSend.data.label} sent to inventory.`);
         }
@@ -1416,12 +1329,10 @@ const NetworkDiagram = () => {
         if (addModal.isInsertion && insertionEdge) {
           const originalEdgeRecordId = parseInt(
             insertionEdge.id.replace("e-", ""),
-            10
+            10,
           );
-
           const sourceNode = nodes.find((n) => n.id === insertionEdge.source);
           const swId = sourceNode ? sourceNode.data.sw_id : null;
-
           const payload = {
             new_node_data: {
               ...formData,
@@ -1431,7 +1342,6 @@ const NetworkDiagram = () => {
             original_source_id: parseInt(insertionEdge.source, 10),
             original_edge_record_id: originalEdgeRecordId,
           };
-
           await insertNode(payload);
           await loadInitialData();
         } else {
@@ -1442,9 +1352,7 @@ const NetworkDiagram = () => {
             position_y: null,
             position_mode: 0,
           };
-
           const newNodeData = await createNode(payload);
-
           if (newNodeData) {
             const newNode = {
               id: String(newNodeData.id),
@@ -1459,9 +1367,7 @@ const NetworkDiagram = () => {
               },
               position: { x: 0, y: 0 },
             };
-
             setOrphanNodes((prev) => [...prev, newNode]);
-
             setAddModal({ isOpen: false, position: null, isInsertion: false });
             setIsDrawerOpen(true);
           }
@@ -1481,18 +1387,15 @@ const NetworkDiagram = () => {
       handleDetailsClick,
       handleNavigateClick,
       handleShowCustomers,
-    ]
+    ],
   );
 
   useEffect(() => {
     if (loading || !isEmpty) {
       return;
     }
-
     const hasSeenGuide = localStorage.getItem("hasSeenWelcomeGuide");
-
     console.log("Welcome Guide Status:", hasSeenGuide);
-
     if (hasSeenGuide !== "true") {
       setIsWelcomeOpen(true);
     }
@@ -1506,27 +1409,23 @@ const NetworkDiagram = () => {
   const handleOptimisticDelete = useCallback(
     (id, type) => {
       pushStateToHistory();
-
       try {
         if (type === MISC.DEVICE) {
           const nodeToDelete = nodes.find((n) => n.id === id);
           if (!nodeToDelete) return;
-
           if (id === dynamicRootId) {
             localStorage.removeItem(MISC.DYNAMIC_ROOT_ID);
             setDynamicRootId(null);
           }
-
           setDeletedNodes((prev) => [...prev, id]);
           setNodes((nds) => nds.filter((n) => n.id !== id));
           setEdges((eds) =>
-            eds.filter((e) => e.source !== id && e.target !== id)
+            eds.filter((e) => e.source !== id && e.target !== id),
           );
         } else {
           const edgeToDelete = edges.find((e) => e.id === id);
           const targetNode = nodes.find((n) => n.id === edgeToDelete.target);
           if (!edgeToDelete || !targetNode) return;
-
           const edgeId = id.replace("e-", "");
           setDeletedEdges((prev) => [...prev, edgeId]);
           setEdges((eds) => eds.filter((e) => e.id !== id));
@@ -1545,7 +1444,7 @@ const NetworkDiagram = () => {
       setEdges,
       setDeletedNodes,
       setDeletedEdges,
-    ]
+    ],
   );
 
   const handleConfirmDelete = useCallback(async () => {
@@ -1555,7 +1454,7 @@ const NetworkDiagram = () => {
         await deleteNode(id);
         setNodes((nds) => nds.filter((n) => n.id !== id));
         setEdges((eds) =>
-          eds.filter((e) => e.source !== id && e.target !== id)
+          eds.filter((e) => e.source !== id && e.target !== id),
         );
         toast.success("Device deleted.");
       } else {
@@ -1591,7 +1490,6 @@ const NetworkDiagram = () => {
   const onDrop = useCallback(
     (event) => {
       event.preventDefault();
-
       const dataString = event.dataTransfer.getData("application/reactflow");
       if (!dataString) {
         return;
@@ -1601,7 +1499,6 @@ const NetworkDiagram = () => {
         x: event.clientX,
         y: event.clientY,
       });
-
       const newNode = {
         id: nodeData.id,
         type: nodeData.type,
@@ -1616,23 +1513,18 @@ const NetworkDiagram = () => {
           onShowCustomers: handleShowCustomers,
         },
       };
-
       pushStateToHistory();
-
       setNodes((nds) => nds.concat(newNode));
       initialNodesRef.current.push(newNode);
       setOrphanNodes((nds) => nds.filter((n) => n.id !== nodeData.id));
-
       let wasAlreadyEditMode = false;
       setIsEditMode((current) => {
         wasAlreadyEditMode = current;
         return true;
       });
-
       if (!wasAlreadyEditMode) {
         toast.info("Edit mode enabled.");
       }
-
       saveNodePosition(
         nodeData.id,
         {
@@ -1640,9 +1532,8 @@ const NetworkDiagram = () => {
           position_y: position.y,
           position_mode: 1,
         },
-        true
+        true,
       );
-
       toast.success(`Added ${nodeData.data.name} to the diagram.`);
     },
     [
@@ -1653,7 +1544,7 @@ const NetworkDiagram = () => {
       handleNavigateClick,
       handleShowCustomers,
       pushStateToHistory,
-    ]
+    ],
   );
 
   const onNodeFound = (nodeId) => {
@@ -1661,7 +1552,7 @@ const NetworkDiagram = () => {
       nds.map((n) => ({
         ...n,
         data: { ...n.data, isHighlighted: n.id === nodeId },
-      }))
+      })),
     );
     reactFlowInstance.fitView({
       nodes: [{ id: nodeId }],
@@ -1670,7 +1561,7 @@ const NetworkDiagram = () => {
     });
     setTimeout(() => {
       setNodes((nds) =>
-        nds.map((n) => ({ ...n, data: { ...n.data, isHighlighted: false } }))
+        nds.map((n) => ({ ...n, data: { ...n.data, isHighlighted: false } })),
       );
     }, 3000);
   };
@@ -1686,7 +1577,7 @@ const NetworkDiagram = () => {
         const { hiddenNodeIds, hiddenEdgeIds } = getDescendants(
           node.id,
           allNodes,
-          edges
+          edges,
         );
         hiddenNodeIds.forEach((id) => hidden.nodeIds.add(id));
         hiddenEdgeIds.forEach((id) => hidden.edgeIds.add(id));
@@ -1698,13 +1589,12 @@ const NetworkDiagram = () => {
       (e) =>
         !hidden.edgeIds.has(e.id) &&
         !hidden.nodeIds.has(e.source) &&
-        !hidden.nodeIds.has(e.target)
+        !hidden.nodeIds.has(e.target),
     );
 
     const finalNodes = filteredNodes.map((node) => {
       if (!highlightedPath) return node;
       const isInPath = highlightedPath.nodes.has(node.id);
-
       return {
         ...node,
         style: {
@@ -1725,11 +1615,8 @@ const NetworkDiagram = () => {
         labelStyle: { ...edge.labelStyle },
         labelBgStyle: { ...edge.labelBgStyle },
       };
-
       if (!highlightedPath) return baseEdge;
-
       const isInPath = highlightedPath.edges.has(edge.id);
-
       return {
         ...baseEdge,
         animated: isInPath,
@@ -1768,7 +1655,6 @@ const NetworkDiagram = () => {
     const handleKeyDown = (event) => {
       const activeTag = document.activeElement.tagName;
       const isInputActive = ["INPUT", "TEXTAREA", "SELECT"].includes(activeTag);
-
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
         event.preventDefault();
         if (event.shiftKey) {
@@ -1778,7 +1664,6 @@ const NetworkDiagram = () => {
         }
         return;
       }
-
       if (event.key === "Escape") {
         setEditModal({ isOpen: false, node: null });
         setResetConfirmModal({ isOpen: false, scope: null, nodeId: null });
@@ -1792,16 +1677,12 @@ const NetworkDiagram = () => {
         setIsExportModalOpen(false);
         setCustomerModalNode(null);
         setContextMenu(null);
-
         setHighlightedPath(null);
-
         setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
         setEdges((eds) => eds.map((e) => ({ ...e, selected: false })));
         return;
       }
-
       if (isInputActive) return;
-
       switch (event.key.toLowerCase()) {
         case "0":
           handleResetView();
@@ -1839,7 +1720,6 @@ const NetworkDiagram = () => {
           if (isEditMode) {
             const selectedNode = nodes.find((n) => n.selected);
             const selectedEdge = edges.find((e) => e.selected);
-
             if (selectedNode) {
               setDeleteModal({
                 isOpen: true,
@@ -1859,7 +1739,6 @@ const NetworkDiagram = () => {
           break;
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
@@ -1876,7 +1755,6 @@ const NetworkDiagram = () => {
   useEffect(() => {
     const newRootId = id ? parseInt(id, 10) : null;
     setRootId(newRootId);
-
     if (newRootId !== null) {
       setDynamicRootId(null);
     } else {
@@ -1909,33 +1787,28 @@ const NetworkDiagram = () => {
   useEffect(() => {
     const root = document.documentElement;
     localStorage.setItem("colorMode", colorMode);
-
     if (colorMode === "dark") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
-
     setEdges((eds) =>
       eds.map((edge) => {
         const currentColor = edge.style?.stroke;
-
         if (colorMode === "dark" && currentColor === API_DEFAULT_COLOR) {
           return {
             ...edge,
             style: { ...edge.style, stroke: EDGE_COLOR_DARK_MODE },
           };
         }
-
         if (colorMode === "light" && currentColor === EDGE_COLOR_DARK_MODE) {
           return {
             ...edge,
             style: { ...edge.style, stroke: API_DEFAULT_COLOR },
           };
         }
-
         return edge;
-      })
+      }),
     );
   }, [colorMode, setEdges]);
 
@@ -1968,6 +1841,9 @@ const NetworkDiagram = () => {
         elevateEdgesOnSelect={true}
         elevateNodesOnSelect={false}
         nodeTypes={nodeTypes}
+        // --- 5. PASS EDGE TYPES AND CONNECTION LINE COMPONENT ---
+        edgeTypes={edgeTypes}
+        connectionLineComponent={FloatingConnectionLine}
         onMoveEnd={onMoveEnd}
         colorMode={colorMode}
         style={{ backgroundColor: "transparent" }}
