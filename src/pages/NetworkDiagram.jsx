@@ -195,6 +195,15 @@ const NetworkDiagram = () => {
     shouldRedirect: false,
     message: "",
   });
+  const [hoveredEdgeId, setHoveredEdgeId] = useState(null);
+
+  const onEdgeMouseEnter = useCallback((event, edge) => {
+    setHoveredEdgeId(edge.id);
+  }, []);
+
+  const onEdgeMouseLeave = useCallback(() => {
+    setHoveredEdgeId(null);
+  }, []);
 
   const getNodeIcon = (nodeType) => {
     switch (nodeType) {
@@ -1615,36 +1624,69 @@ const NetworkDiagram = () => {
       };
     });
 
+    // --- UPDATED EDGE LOGIC ---
     const finalEdges = filteredEdges.map((edge) => {
+      const isHovered = hoveredEdgeId === edge.id; // Check if hovered
+
       const baseEdge = {
         ...edge,
-        interactive: isEditMode,
-        zIndex: isEditMode ? 1000 : 0,
+        interactive: isEditMode, // Keep existing logic
+        // Use high zIndex for hover so it sits on top
+        zIndex: isHovered ? 2000 : isEditMode ? 1000 : 0,
+        className: "network-edge",
         label: showEdgeLabels ? edge.label : undefined,
         labelStyle: { ...edge.labelStyle },
         labelBgStyle: { ...edge.labelBgStyle },
       };
-      if (!highlightedPath) return baseEdge;
-      const isInPath = highlightedPath.edges.has(edge.id);
-      return {
-        ...baseEdge,
-        animated: isInPath,
-        style: {
-          ...baseEdge.style,
-          stroke: isInPath ? "#f59e0b" : baseEdge.style?.stroke,
-          strokeWidth: isInPath ? 3 : 1,
-          opacity: isInPath ? 1 : 0.05,
-          transition: "opacity 0.4s ease",
-        },
-        zIndex: isInPath ? 1000 : -1,
-      };
+
+      // Handle Trace Path Highlighting (Existing Logic)
+      if (highlightedPath) {
+        const isInPath = highlightedPath.edges.has(edge.id);
+
+        // If hovered while trace mode is active, combine styles or prioritize hover
+        if (isHovered) {
+          return {
+            ...baseEdge,
+            animated: isInPath, // Keep animation if in path
+            style: {
+              ...baseEdge.style,
+              stroke: "#3b82f6", // Blue-500
+              strokeWidth: 4, // Thicker for highlight
+              opacity: 1,
+              transition: "all 0.1s ease",
+            },
+          };
+        }
+
+        return {
+          ...baseEdge,
+          animated: isInPath,
+          style: {
+            ...baseEdge.style,
+            stroke: isInPath ? "#f59e0b" : baseEdge.style?.stroke,
+            strokeWidth: isInPath ? 3 : 1,
+            opacity: isInPath ? 1 : 0.05,
+            transition: "opacity 0.1s ease",
+          },
+          zIndex: isInPath ? 1000 : -1,
+        };
+      }
+
+      return baseEdge;
     });
 
     return {
       visibleNodes: finalNodes,
       visibleEdges: finalEdges,
     };
-  }, [nodes, edges, isEditMode, showEdgeLabels, highlightedPath]);
+  }, [
+    nodes,
+    edges,
+    isEditMode,
+    showEdgeLabels,
+    highlightedPath,
+    hoveredEdgeId,
+  ]);
 
   useEffect(() => {
     if (rootId === undefined) {
@@ -1850,6 +1892,8 @@ const NetworkDiagram = () => {
         onPaneClick={onPaneClick}
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}
+        onEdgeMouseEnter={onEdgeMouseEnter}
+        onEdgeMouseLeave={onEdgeMouseLeave}
         onNodeClick={onNodeClick}
         selectionOnDrag={true}
         elevateEdgesOnSelect={true}

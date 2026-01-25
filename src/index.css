@@ -284,3 +284,22 @@ button {
   justify-content: center;
   animation: spin-ccw-once 0.5s ease-in-out;
 }
+
+/* Target the SVG path inside the edge */
+.network-edge .react-flow__edge-path {
+  transition:
+    stroke 0.05s ease,
+    stroke-width 0.05s ease;
+  cursor: pointer;
+}
+
+/* On Hover */
+.network-edge:hover {
+  z-index: 2000; /* This attempts to bring it forward */
+}
+
+.network-edge:hover .react-flow__edge-path {
+  stroke: #3b82f6 !important; /* Blue-500 */
+  stroke-width: 4px !important;
+  opacity: 1 !important;
+}
