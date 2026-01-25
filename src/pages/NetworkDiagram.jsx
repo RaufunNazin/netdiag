@@ -1710,6 +1710,7 @@ const NetworkDiagram = () => {
           setIsDrawerOpen((prev) => !prev);
           break;
         case "r":
+          if (event.ctrlKey || event.metaKey) return;
           setResetConfirmModal({
             isOpen: true,
             scope: "all",
