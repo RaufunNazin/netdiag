@@ -231,9 +231,10 @@ const HelpBox = ({ isEmpty }) => {
                   description="Export Diagram"
                 />
                 <ShortcutRow
-                  keys={["M"]}
+                  keys={["Shift", "M"]}
                   description="Toggle Dark/Light Mode"
                 />
+                <ShortcutRow keys={["M"]} description="Toggle MiniMap" />
               </div>
 
               <div>

@@ -51,6 +51,7 @@ import ResetPositionsFab from "../components/ui/ResetPositionsFab.jsx";
 import UndoFab from "../components/ui/UndoFab.jsx";
 import SearchControl from "../components/ui/SearchControl.jsx";
 import IconDock from "../components/ui/IconDock.jsx";
+import ToggleMiniMapFab from "../components/ui/ToggleMiniMapFab.jsx";
 import HelpBox from "../components/ui/HelpBox.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import DownloadImageFab from "../components/ui/DownloadImageFab.jsx";
@@ -1202,6 +1203,16 @@ const NetworkDiagram = () => {
     });
   };
 
+  const [showMiniMap, setShowMiniMap] = useState(() => {
+    const saved = localStorage.getItem("showMiniMap");
+    return saved !== null ? JSON.parse(saved) : true; // Default to true
+  });
+
+  // --- NEW: Persist MiniMap State ---
+  useEffect(() => {
+    localStorage.setItem("showMiniMap", JSON.stringify(showMiniMap));
+  }, [showMiniMap]);
+
   const onEdgeContextMenu = (event, edge) =>
     handleContextMenu(event, "edge", edge);
 
@@ -1693,6 +1704,10 @@ const NetworkDiagram = () => {
         case "t":
           setIsTraceModalOpen((prev) => !prev);
           break;
+        case "m":
+          if (event.shiftKey) return; // ignore Shift+M here
+          setShowMiniMap((prev) => !prev);
+          break;
         case "i":
           setIsDrawerOpen((prev) => !prev);
           break;
@@ -1851,16 +1866,18 @@ const NetworkDiagram = () => {
         maxZoom={8}
       >
         <Background variant="dots" gap={20} size={1} bgColor="transparent" />
-        <div className="relative">
-          <MiniMap
-            position="top-left"
-            zoomable
-            pannable
-            nodeColor={(node) => nodeColors[node.data.node_type] ?? "#e5e7eb"}
-            className="pl-6"
-            bgColor="transparent"
-          />
-        </div>
+        {showMiniMap && (
+          <div className="relative">
+            <MiniMap
+              position="top-left"
+              zoomable
+              pannable
+              nodeColor={(node) => nodeColors[node.data.node_type] ?? "#e5e7eb"}
+              className="pl-6"
+              bgColor="transparent"
+            />
+          </div>
+        )}
 
         {contextMenu && (
           <ContextMenu {...contextMenu} onAction={handleAction} edges={edges} />
@@ -1955,6 +1972,12 @@ const NetworkDiagram = () => {
                 className="fab-button"
               />
             )}
+            <ToggleMiniMapFab
+              onClick={() => setShowMiniMap((prev) => !prev)}
+              disabled={loading || isEmpty}
+              isVisible={showMiniMap}
+              className="fab-button"
+            />
             <button
               className="fab-button md:hidden bg-[#ef4444] hover:bg-[#d43c3c] text-white p-2 rounded-full transition-all duration-200 flex items-center justify-center w-10 h-10"
               onClick={() => setIsLogoutModalOpen(true)}

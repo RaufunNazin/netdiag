@@ -14,7 +14,7 @@ const ThemeToggleFab = ({ colorMode, onToggle, className = "" }) => {
 
       if (isInputActive) return;
 
-      if (event.key.toLowerCase() === "m") {
+      if (event.key === "M" && event.shiftKey) {
         onToggle((prev) => (prev === "dark" ? "light" : "dark"));
       }
     };
@@ -35,7 +35,7 @@ const ThemeToggleFab = ({ colorMode, onToggle, className = "" }) => {
         } 
         ${className}
       `}
-      title={`Switch to ${isDark ? "Light" : "Dark"} Mode [M]`}
+      title={`Switch to ${isDark ? "Light" : "Dark"} Mode [Shift + M]`}
     >
       <div className="relative w-4 h-4 overflow-hidden">
         <svg
