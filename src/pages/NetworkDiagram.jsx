@@ -517,6 +517,9 @@ const NetworkDiagram = () => {
 
     const movedNodes = currentNodes.filter((currentNode) => {
       const originalNode = originalNodeMap.get(currentNode.id);
+      if (rootId && String(currentNode.id) === String(rootId)) {
+        return false;
+      }
       return (
         originalNode &&
         (currentNode.position.x !== originalNode.position.x ||
@@ -705,6 +708,10 @@ const NetworkDiagram = () => {
           initialNodes.forEach((node) => {
             if (String(node.data.id) === String(rootId)) {
               node.data.position_mode = 0;
+              // --- NEW: Anchor the OLT Node ---
+              node.draggable = false; // Disable dragging
+              node.position = { x: 0, y: 0 }; // Force visual center
+              // --------------------------------
             }
           });
         }

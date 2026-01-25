@@ -5,21 +5,21 @@ const ToggleMiniMapFab = ({ onClick, isVisible, disabled, className = "" }) => {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`download-fab-btn p-2 rounded-full text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
+      className={`download-fab-btn p-2.5 rounded-full text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
         isVisible
           ? "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
           : "bg-neutral-300 hover:bg-neutral-400 dark:bg-neutral-800 dark:hover:bg-neutral-700"
       } ${className}`}
       title="Toggle MiniMap [M]"
     >
-      <div className="w-6 h-6 flex items-center justify-center icon-download">
+      <div className="w-5 h-5 flex items-center justify-center icon-download">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          strokeWidth={1.15}
+          strokeWidth={1.5}
           stroke="currentColor"
-          className={`w-6 h-6 ${
+          className={`w-5 h-5 ${
             isVisible ? "text-white" : "text-neutral-800 dark:text-neutral-300"
           }`}
         >
