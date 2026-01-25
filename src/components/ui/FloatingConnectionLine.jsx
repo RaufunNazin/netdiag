@@ -14,7 +14,6 @@ function FloatingConnectionLine({
     return null;
   }
 
-  // Create a mock target node at the cursor position
   const targetNode = {
     id: "connection-target",
     measured: {

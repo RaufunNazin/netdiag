@@ -63,7 +63,6 @@ import { nodeColors } from "../utils/constants.js";
 import FloatingEdge from "../components/ui/FloatingEdge.jsx";
 import FloatingConnectionLine from "../components/ui/FloatingConnectionLine.jsx";
 
-// Lazy imports...
 const WelcomeModal = lazy(
   () => import("../components/modals/WelcomeModal.jsx"),
 );
@@ -114,7 +113,6 @@ const NODE_HEIGHT = 60;
 const API_DEFAULT_COLOR = "#1e293b";
 const EDGE_COLOR_DARK_MODE = "#cbd5e1";
 
-// --- 2. DEFINE EDGE TYPES ---
 const edgeTypes = {
   floating: FloatingEdge,
 };
@@ -656,7 +654,6 @@ const NetworkDiagram = () => {
               id: `e-${item.edge_id}`,
               source: String(item.parent_id),
               target: targetId,
-              // --- 3. APPLY FLOATING TYPE TO EXISTING EDGES ---
               type: "floating",
               markerEnd: { type: MarkerType.ArrowClosed },
               style: {
@@ -708,10 +705,8 @@ const NetworkDiagram = () => {
           initialNodes.forEach((node) => {
             if (String(node.data.id) === String(rootId)) {
               node.data.position_mode = 0;
-              // --- NEW: Anchor the OLT Node ---
-              node.draggable = false; // Disable dragging
-              node.position = { x: 0, y: 0 }; // Force visual center
-              // --------------------------------
+              node.draggable = false;
+              node.position = { x: 0, y: 0 };
             }
           });
         }
@@ -1120,7 +1115,6 @@ const NetworkDiagram = () => {
         id: `reactflow__edge-${params.source}${params.sourceHandle || ""}-${
           params.target
         }${params.targetHandle || ""}`,
-        // --- 4. APPLY FLOATING TYPE TO NEW CONNECTIONS ---
         type: "floating",
         markerEnd: { type: MarkerType.ArrowClosed },
       };
@@ -1179,8 +1173,6 @@ const NetworkDiagram = () => {
 
   const isValidConnection = useCallback((connection) => {
     if (connection.source === connection.target) return false;
-    // Note: With floating edges, specific handles might matter less,
-    // but we can keep this restriction if needed.
     return (
       connection.sourceHandle === MISC.RIGHT &&
       connection.targetHandle === MISC.LEFT
@@ -1212,10 +1204,9 @@ const NetworkDiagram = () => {
 
   const [showMiniMap, setShowMiniMap] = useState(() => {
     const saved = localStorage.getItem("showMiniMap");
-    return saved !== null ? JSON.parse(saved) : true; // Default to true
+    return saved !== null ? JSON.parse(saved) : true;
   });
 
-  // --- NEW: Persist MiniMap State ---
   useEffect(() => {
     localStorage.setItem("showMiniMap", JSON.stringify(showMiniMap));
   }, [showMiniMap]);
@@ -1712,7 +1703,7 @@ const NetworkDiagram = () => {
           setIsTraceModalOpen((prev) => !prev);
           break;
         case "m":
-          if (event.shiftKey) return; // ignore Shift+M here
+          if (event.shiftKey) return;
           setShowMiniMap((prev) => !prev);
           break;
         case "i":
@@ -1863,7 +1854,6 @@ const NetworkDiagram = () => {
         elevateEdgesOnSelect={true}
         elevateNodesOnSelect={false}
         nodeTypes={nodeTypes}
-        // --- 5. PASS EDGE TYPES AND CONNECTION LINE COMPONENT ---
         edgeTypes={edgeTypes}
         connectionLineComponent={FloatingConnectionLine}
         onMoveEnd={onMoveEnd}
