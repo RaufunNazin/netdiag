@@ -1,4 +1,5 @@
 import React from "react";
+import { UI_ICONS } from "../../utils/icons";
 
 const ToggleMiniMapFab = ({ onClick, isVisible, disabled, className = "" }) => {
   return (
@@ -13,23 +14,11 @@ const ToggleMiniMapFab = ({ onClick, isVisible, disabled, className = "" }) => {
       title="Toggle MiniMap [M]"
     >
       <div className="w-5 h-5 flex items-center justify-center icon-download">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className={`w-5 h-5 ${
+        {React.cloneElement(UI_ICONS.map, {
+          className: `w-5 h-5 ${
             isVisible ? "text-white" : "text-neutral-800 dark:text-neutral-300"
-          }`}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 21s6-5.686 6-10a6 6 0 10-12 0c0 4.314 6 10 6 10z"
-          />
-          <circle cx="12" cy="11" r="2.5" />
-        </svg>
+          }`,
+        })}
       </div>
     </button>
   );
