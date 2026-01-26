@@ -1624,14 +1624,12 @@ const NetworkDiagram = () => {
       };
     });
 
-    // --- UPDATED EDGE LOGIC ---
     const finalEdges = filteredEdges.map((edge) => {
-      const isHovered = hoveredEdgeId === edge.id; // Check if hovered
+      const isHovered = hoveredEdgeId === edge.id;
 
       const baseEdge = {
         ...edge,
-        interactive: isEditMode, // Keep existing logic
-        // Use high zIndex for hover so it sits on top
+        interactive: isEditMode,
         zIndex: isHovered ? 2000 : isEditMode ? 1000 : 0,
         className: "network-edge",
         label: showEdgeLabels ? edge.label : undefined,
@@ -1639,19 +1637,17 @@ const NetworkDiagram = () => {
         labelBgStyle: { ...edge.labelBgStyle },
       };
 
-      // Handle Trace Path Highlighting (Existing Logic)
       if (highlightedPath) {
         const isInPath = highlightedPath.edges.has(edge.id);
 
-        // If hovered while trace mode is active, combine styles or prioritize hover
         if (isHovered) {
           return {
             ...baseEdge,
-            animated: isInPath, // Keep animation if in path
+            animated: isInPath,
             style: {
               ...baseEdge.style,
-              stroke: "#3b82f6", // Blue-500
-              strokeWidth: 4, // Thicker for highlight
+              stroke: "#3b82f6",
+              strokeWidth: 4,
               opacity: 1,
               transition: "all 0.1s ease",
             },
