@@ -1,6 +1,5 @@
 import React from "react";
-import { getBezierPath } from "@xyflow/react";
-
+import { getSmoothStepPath } from "@xyflow/react";
 import { getEdgeParams } from "../../utils/floatingEdgeUtils";
 
 function FloatingConnectionLine({
@@ -30,13 +29,15 @@ function FloatingConnectionLine({
     targetNode,
   );
 
-  const [edgePath] = getBezierPath({
+  const [edgePath] = getSmoothStepPath({
     sourceX: sx,
     sourceY: sy,
     sourcePosition: sourcePos || fromPosition,
     targetPosition: targetPos || toPosition,
     targetX: tx || toX,
     targetY: ty || toY,
+    borderRadius: 10,
+    offset: 20,
   });
 
   return (

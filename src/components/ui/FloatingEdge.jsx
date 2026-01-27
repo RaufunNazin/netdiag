@@ -1,5 +1,4 @@
-import { getBezierPath, useInternalNode } from "@xyflow/react";
-
+import { getSmoothStepPath, useInternalNode } from "@xyflow/react"; // <--- Change import
 import { getEdgeParams } from "../../utils/floatingEdgeUtils";
 
 function FloatingEdge({ id, source, target, markerEnd, style }) {
@@ -15,13 +14,15 @@ function FloatingEdge({ id, source, target, markerEnd, style }) {
     targetNode,
   );
 
-  const [edgePath] = getBezierPath({
+  const [edgePath] = getSmoothStepPath({
     sourceX: sx,
     sourceY: sy,
     sourcePosition: sourcePos,
     targetPosition: targetPos,
     targetX: tx,
     targetY: ty,
+    borderRadius: 10,
+    offset: 20,
   });
 
   return (
